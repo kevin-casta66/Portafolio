@@ -1,0 +1,115 @@
+---
+slug: domonow-spec-driven
+title: "DomoNow: gobernar 34 repositorios con agentes de IA"
+summary: "Cómo pasamos de agentes que improvisaban la arquitectura a un flujo guiado por specs, con reglas, skills y límites, que hoy sigue todo el equipo."
+placeholder: false
+breakpoints: [context, problem, architecture, decisions, code, results, learnings]
+metrics:
+  - { id: reglas, label: "Reglas técnicas documentadas", unit: "", before: 0, after: 200, better: higher }
+  - { id: promocion, label: "Repositorios a promover a mano por release", unit: "", before: 30, after: 0, better: lower }
+diagram:
+  nodes:
+    - { id: dev, label: "Desarrollador", col: 0, row: 0 }
+    - { id: agente, label: "Agente (Claude Code)", col: 1, row: 0 }
+    - { id: store, label: "Store central de specs", col: 2, row: 0 }
+    - { id: reglas, label: "Reglas técnicas (~200)", col: 3, row: 0 }
+    - { id: skills, label: "8 skills propias", col: 2, row: 1 }
+    - { id: repos, label: "34 repositorios", col: 4, row: 0 }
+    - { id: ci, label: "CI: specs validadas", col: 3, row: 1 }
+    - { id: release, label: "Promoción a producción", col: 4, row: 1 }
+  steps:
+    - title: "El desarrollador pide, el agente propone"
+      description: "Cada cambio empieza como una propuesta con diseño, specs y tareas; el desarrollador la revisa antes de que se escriba código."
+      nodes: [dev, agente]
+      edges: [[dev, agente]]
+    - title: "Una sola fuente de verdad"
+      description: "El agente lee el Store central: arquitectura verificada, inventario de repositorios y reglas de negocio, en lugar de adivinar."
+      nodes: [store]
+      edges: [[agente, store]]
+    - title: "Reglas y skills"
+      description: "Cerca de 200 reglas técnicas de backend y frontend fijan el estándar, y 8 skills propias conectan módulos y reconstruyen reglas desde el código."
+      nodes: [reglas, skills]
+      edges: [[store, reglas], [store, skills]]
+    - title: "Los cambios llegan a los repositorios"
+      description: "Los changes que cruzan varios repositorios se planifican una vez y se aplican en orden en cada uno."
+      nodes: [repos]
+      edges: [[reglas, repos]]
+    - title: "Validación y release"
+      description: "La CI valida las specs en modo estricto y un script lleva los cambios de QA a producción respetando las dependencias."
+      nodes: [ci, release]
+      edges: [[repos, ci], [ci, release]]
+---
+
+<Breakpoint id="context">
+
+DomoNow es la plataforma SaaS de Ofima para administrar conjuntos residenciales: accesos con QR, reservas de zonas comunes, asambleas con votación en tiempo real, cartera, alertas de pánico y más. Son microservicios .NET y micro-frontends Angular repartidos en **34 repositorios**, con un equipo de unas 20 personas.
+
+Además de desarrollar módulos completos, soy responsable de la infraestructura Azure, de los releases, de revisar e integrar pull requests y de capacitar al equipo. Este caso cuenta cómo llevamos la IA al proceso de desarrollo de todo el equipo.
+
+</Breakpoint>
+
+<Breakpoint id="problem">
+
+El equipo ya usaba asistentes de IA, pero cada agente trabajaba a ciegas: no conocía las convenciones de arquitectura, duplicaba lógica entre microservicios y no sabía qué repositorio tocar cuando un cambio cruzaba backend y frontend. Más IA sin reglas solo producía más código que revisar.
+
+</Breakpoint>
+
+<Breakpoint id="architecture">
+
+Junto con otro desarrollador montamos un **Store central de specs** con OpenSpec que gobierna los 34 repositorios. Yo escribí las skills, la mayoría de los cambios y las reglas técnicas, y lo probé con el módulo piloto de Parqueaderos antes de extenderlo.
+
+<ArchitectureDiagram />
+
+</Breakpoint>
+
+<Breakpoint id="decisions">
+
+### Reglas antes que prompts
+
+Escribí cerca de 200 reglas técnicas con identificador, enunciado normativo y ejemplo (estructura de proyecto, CQRS, repositorios, componentes, design system, rutas). Las siguen tanto las personas como los agentes, y una skill específica detecta duplicados y contradicciones antes de añadir una nueva.
+
+### Skills que hacen el trabajo repetitivo
+
+Creé 8 skills propias de Claude Code: conectar un módulo al Store, reconstruir historias de usuario y reglas de negocio leyendo el código con dos agentes en paralelo, auditar una API .NET contra la arquitectura de referencia y versionar micro-frontends.
+
+### Límites claros para la IA
+
+El agente nunca ejecuta git ni SQL; los pasos que debe hacer una persona se marcan como tareas `[DEV]`, y el modelo se elige por fase: uno más capaz para explorar y proponer, otro más rápido para aplicar.
+
+### Automatizar el release
+
+Promover a producción era un proceso manual, repositorio por repositorio, sobre unos 30 repositorios. Lo especifiqué con el mismo flujo y lo automaticé con la API REST de Azure DevOps: detecta qué cambió, respeta el orden de las librerías compartidas, crea las ramas y abre los PR, con modo simulación por defecto.
+
+</Breakpoint>
+
+<Breakpoint id="code">
+
+Cada skill declara qué modelo usa y que solo se invoca a mano, para que ningún agente la dispare por su cuenta:
+
+<AnnotatedCode lang="yaml" title=".claude/skills/nueva-regla-modulo/SKILL.md" notes={{ 4: "Las tareas de razonamiento usan el modelo más capaz.", 5: "Solo un desarrollador puede invocarla: el agente no decide cuándo crear reglas." }}>
+{`---
+name: nueva-regla-modulo
+description: Convierte una historia de usuario en reglas de negocio asignadas a backend o frontend
+model: opus
+disable-model-invocation: true
+---`}
+</AnnotatedCode>
+
+</Breakpoint>
+
+<Breakpoint id="results">
+
+El Store acumula más de 1.100 tareas completadas, y yo redacté 50 de sus 52 cambios. La guía de adopción que escribí (17 secciones) es el material con el que capacitamos al equipo. Con el script de promoción, un release deja de ser una tarea manual por repositorio y pasa a ser una ejecución revisable.
+
+<MetricChart />
+
+</Breakpoint>
+
+<Breakpoint id="learnings">
+
+- La IA amplifica lo que ya hay: sin reglas amplifica el desorden; con reglas, el estándar.
+- Las specs son el contrato entre personas y agentes, y también entre repositorios.
+- Los límites (sin git, sin SQL, tareas `[DEV]`) son lo que permite confiar en el agente.
+- Un piloto pequeño (Parqueaderos) convence más al equipo que cualquier presentación.
+
+</Breakpoint>

@@ -56,7 +56,7 @@ post({ type: "state", bodies: out }, [out.buffer]);`,
 const inBar = step(0.16, within).mul(step(within, 0.84))
   .mul(step(margin, y)).mul(step(y, barTop));
 const cap = step(barTop.sub(0.035), y).mul(inBar); // cara superior`,
-    stack: ["d3"],
+    stack: ["threejs", "typescript"],
   },
   {
     id: "magnetic-grid",

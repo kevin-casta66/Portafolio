@@ -15,7 +15,7 @@ Depende de: `00-technique-teardown` (tabla de movimiento T1–T11 y versiones ve
 - 404 para slugs inexistentes; contenido completo legible sin JavaScript.
 - **Hold-to-Execute (T6)**: mantener pulsado ~800 ms un proceso muestra un anillo de progreso con "Ejecutando…"; al completarse, el gemelo WebGL de la tarjeta se expande a pantalla completa con distorsión de lente y aberración cromática en los bordes y se convierte en la cabecera del caso ("Attaching debugger…"). Clic normal = versión corta; teclado: Enter abre, mantener Espacio ejecuta la completa; táctil: mantener el dedo; reduced motion: fundido. Desbloquea el logro `process_executed`.
 - Transición inversa al volver al home desde el canvas persistente, contrayendo la cabecera hasta la tarjeta y restaurando el scroll.
-- **Transiciones de UI (T10)**: cambio de tema con revelado circular desde el botón, reordenado de filtros y apertura de menú mediante transiciones de vista de React (flag experimental de Next.js) con detección de soporte y fallback a Flip.
+- **Transiciones de UI (T10)**: cambio de tema con revelado circular desde el botón, reordenado de filtros y apertura de menú mediante el componente `<ViewTransition>` de React (estable en React 19.3 y sin configuración en Next 16.4: ya no hay flag experimental) con detección de soporte y fallback a Flip.
 - Degradación: en tier bajo o sin WebGL la transición de página pasa a una versión 2D o instantánea; con reduced motion, fundido corto.
 - **BREAKING (respecto a la versión anterior de este change)**: la transición tarjeta → caso ya no usa la View Transitions API del navegador.
 
@@ -31,8 +31,8 @@ Depende de: `00-technique-teardown` (tabla de movimiento T1–T11 y versiones ve
 
 ## Impact
 
-- Código: `app/[locale]/projects/[slug]/`, `components/case-study/` (Debugger layout, Breakpoints, ArchitectureDiagram, AnnotatedCode, MetricChart, StepNav), `components/systems/HoldToExecute`, `motion/` (controlador de transición de página, hook de hold, wrapper de transiciones de UI con fallback Flip), `webgl/nodes/` (lente + aberración en TSL) y la variante `canvas` de T6 registrada en `motion/transitions/registry.ts`, toggle de tema, `content/cases/*.mdx`.
-- Dependencias nuevas: MDX (compilación en build) y Shiki (resaltado en build). Se activa el flag experimental de transiciones de vista de Next.js solo para UI.
+- Código: `app/[locale]/projects/[slug]/`, `components/case-study/` (Debugger layout, Breakpoints, ArchitectureDiagram, AnnotatedCode, MetricChart, StepNav), `components/systems/HoldToExecute`, `motion/` (controlador de transición de página, hook de hold, wrapper de transiciones de UI con fallback Flip), `webgl/nodes/` (lente + aberración en TSL) y la escena/plano de T6 en `webgl/transitions/` (donde el change 04 registra las variantes canvas, `webgl/transitions/registry.ts`) con su prototipo en `/[locale]/prototypes/T6`, toggle de tema, `content/cases/*.mdx`.
+- Dependencias nuevas: MDX (compilación en build). Shiki ya está instalado desde el change 04 (`shiki` 4.5.0, `lib/highlight.ts` con tema de variables CSS) y se reutiliza. `<ViewTransition>` se usa solo para UI y no requiere flag en `next.config`.
 - Integración: usa los gemelos DOM↔WebGL y render targets del change 04, y el registro de logros del change 06 (`process_executed`; si 06 aún no está aplicado, el evento se emite y se ignora).
 - Modelo de contenido: cada proyecto con caso de estudio referencia su archivo MDX; validación de que los slugs coinciden.
 - SEO: nuevas páginas estáticas con metadatos por caso (OG/JSON-LD se cierra en el change 09).

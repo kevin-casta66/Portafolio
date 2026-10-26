@@ -38,6 +38,10 @@ activa, coreografías por sección y transiciones entre fases. Referencias: `doc
 | `choreography/`                                    | hero, lexer, parser, bytecode, runtime                                                |
 | `traces.ts`, `chip.ts`, `tree-order.ts`            | trazas de luz, chip procedural (T8) y post-order (T4)                                 |
 | `runtime.ts`                                       | ensamblaje (chunk diferido tras el LCP)                                               |
+| `useHold.ts`                                       | Hold-to-Execute: máquina de estados pura (testeable) + hook de Pointer Events/teclado |
+| `pageTransition.ts`, `t6.ts`, `transition-mode.ts` | T6: orquestación home ⇄ caso, superficie/timeline (`playT6`) y modo (full/2d/instant/fade) |
+| `uiTransition.ts`                                  | T10: tema (revelado circular), menú y filtros con transiciones de vista o FLIP        |
+| `choreography/case.ts`                             | caso de estudio: diagrama por pasos con el scroll y gráficos de métricas              |
 
 ## Inventario coreográfico
 
@@ -68,6 +72,10 @@ mientras se reproduce (máx. 3 simultáneos en pantalla).
 | —   | DISPLAY              | Paquete de red ligado al resultado real (200 / 500)                                | transform, opacity                  | 1    | sin paquete                   |
 | T11 | Cambio de fase / 404 | Glitch del título de fase (< 300 ms)                                               | transform, opacity (capa externa)   | 1    | sin glitch                    |
 | —   | 404                  | Volcado de memoria hexadecimal que se escribe                                      | texto decorativo (aria-hidden)      | 1    | volcado completo              |
+| T6  | RUNTIME→caso (y vuelta) | Tarjeta → proceso ejecutado → cabecera del caso («Attaching debugger…»)         | opacity, transform (superficie 2D), canvas (lente) | 3    | fundido ≤ 200 ms, sin expansión |
+| —   | RUNTIME              | Anillo de progreso del hold (Hold-to-Execute)                                      | trazo SVG, opacity                  | 1    | sin anillo, apertura con fundido |
+| T10 | Global               | Cambio de tema (círculo desde el botón), filtros y menú con transiciones de vista  | clip-path de la vista nueva, transform, opacity | 1    | cambio directo                |
+| —   | CASO                 | Diagrama de arquitectura construido por pasos con el scroll; barras de métricas    | trazo SVG, transform, opacity       | 2    | diagrama completo, barras finales |
 | —   | Global               | Acento activo y tinte de fondo (4–6 %) interpolados con el scroll                  | custom property `--accent-active`   | 1    | igual (cambio de color)       |
 | —   | Global               | Barra de progreso de lectura y revelado de encabezados (CSS nativo)                | transform, opacity                  | 1    | sin animación                 |
 

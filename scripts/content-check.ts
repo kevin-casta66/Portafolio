@@ -4,9 +4,10 @@
  */
 try {
   const { content } = await import("../lib/content");
-  const { skills, projects, experience, experiments } = content;
+  const { skills, projects, experience, experiments, caseNav } = content;
   console.log(
-    `Contenido válido: ${skills.length} habilidades, ${projects.length} proyectos, ` +
+    `Contenido válido: ${skills.length} habilidades, ${projects.length} proyectos ` +
+      `(${caseNav.entries.length} con caso de estudio), ` +
       `${experience.length} experiencias, ${experiments.length} experimentos.`,
   );
 } catch (error) {

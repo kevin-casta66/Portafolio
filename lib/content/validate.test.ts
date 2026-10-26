@@ -22,11 +22,11 @@ describe("validateContent", () => {
     expect(errorsOf(clone())).toEqual([]);
   });
 
-  it("deriva proyectos por habilidad (react → 3 proyectos)", () => {
+  it("deriva proyectos por habilidad (mcp → 1 proyecto, react → 2)", () => {
     const content = validateContent(clone(), opts);
+    expect((content.projectsBySkill["mcp"] ?? []).map((p) => p.slug)).toEqual(["arquelume-ai-agent"]);
     const slugs = (content.projectsBySkill["react"] ?? []).map((p) => p.slug).sort();
-    expect(slugs).toEqual(["atlas-dashboard", "pixel-forge", "signal-board"]);
-    expect(content.projectsBySkill["react"]).toHaveLength(3);
+    expect(slugs).toEqual(["compile-portfolio", "facturas-app"]);
   });
 
   it("falla con una habilidad huérfana indicando su id", () => {
@@ -47,14 +47,14 @@ describe("validateContent", () => {
     const raw = clone();
     (raw.projects[0] as ProjectInput).stack.push("cobol");
     expect(errorsOf(raw)).toContain(
-      "el proyecto «atlas-dashboard» referencia la habilidad inexistente «cobol»",
+      "el proyecto «arquelume-ai-agent» referencia la habilidad inexistente «cobol»",
     );
   });
 
   it("falla con identificadores duplicados", () => {
     const raw = clone();
     raw.projects.push(structuredClone(raw.projects[0] as ProjectInput));
-    expect(errorsOf(raw).some((p) => p.includes("identificador duplicado «atlas-dashboard»"))).toBe(
+    expect(errorsOf(raw).some((p) => p.includes("identificador duplicado «arquelume-ai-agent»"))).toBe(
       true,
     );
   });
@@ -75,7 +75,7 @@ describe("validateContent", () => {
     (raw.projects[0] as ProjectInput).links.caseStudy = "no-existe";
     const problems = errorsOf(raw, () => false);
     expect(problems).toContain(
-      "el proyecto «atlas-dashboard» enlaza al caso inexistente content/cases/no-existe.es.mdx",
+      "el proyecto «arquelume-ai-agent» enlaza al caso inexistente content/cases/no-existe.es.mdx",
     );
   });
 
@@ -100,9 +100,9 @@ describe("validateContent", () => {
 
 describe("placeholders", () => {
   it("detecta los campos marcados con ph() y no los identificadores", () => {
-    const found = findPlaceholders(rawContent.projects, "projects");
-    expect(found).toContain("projects[0].name");
-    expect(found).not.toContain("projects[0].slug");
+    const found = findPlaceholders(rawContent.experiments, "experiments");
+    expect(found).toContain("experiments[0].name.es");
+    expect(found).not.toContain("experiments[0].id");
   });
 
   it("un valor real (sin ph) deja de listarse", () => {

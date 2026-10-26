@@ -9,6 +9,7 @@ import { ParserSection } from "@/components/phases/Parser/ParserSection";
 import { RuntimeSection } from "@/components/phases/Runtime/RuntimeSection";
 import { SourceSection } from "@/components/phases/Source/SourceSection";
 import { PrototypeControls } from "@/components/dev/PrototypeControls";
+import { T6Prototype } from "@/components/dev/T6Prototype";
 import { routing } from "@/i18n/routing";
 
 /**
@@ -42,6 +43,16 @@ export default async function PrototypePage({
   setRequestLocale(locale);
 
   const id = transition.toUpperCase();
+  // T6 (Hold-to-Execute) es una transición por TIEMPO, no por scroll: su prototipo es una tarjeta y la
+  // cabecera de su caso, y el control de progreso recorre la expansión y la entrega de la superficie.
+  if (id === "T6") {
+    return (
+      <div data-transition-prototype={id}>
+        <T6Prototype />
+        <PrototypeControls id={id} />
+      </div>
+    );
+  }
   const page = PAGES[id];
   if (!page) notFound();
 

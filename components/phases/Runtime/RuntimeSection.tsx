@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { content } from "@/lib/content";
 import { ChipStage, type ChipProject } from "./ChipStage";
+import { CardTransition } from "./CardTransition";
 import { ProcessCard } from "./ProcessCard";
 import { ProcessFilter } from "./ProcessFilter";
 
@@ -61,7 +62,9 @@ export async function RuntimeSection({ grep }: { grep?: string | undefined }) {
           >
             {projects.map((project) => (
               <li key={project.slug}>
-                <ProcessCard project={project} skillNames={skillNames} />
+                <CardTransition name={`proc-${project.slug}`}>
+                  <ProcessCard project={project} skillNames={skillNames} />
+                </CardTransition>
               </li>
             ))}
           </ul>

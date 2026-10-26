@@ -27,6 +27,19 @@ describe("motion/tokens.ts ↔ styles/tokens.css", () => {
     expect(ms(cssVar("dur-scene-min"))).toBe(duration.sceneMin);
     expect(ms(cssVar("dur-scene-max"))).toBe(duration.sceneMax);
     expect(ms(cssVar("dur-glitch-max"))).toBe(duration.glitchMax);
+    expect(ms(cssVar("hold-duration"))).toBe(duration.hold);
+    expect(ms(cssVar("hold-click-max"))).toBe(duration.holdClick);
+    expect(ms(cssVar("dur-page-full"))).toBe(duration.pageFull);
+    expect(ms(cssVar("dur-page-short"))).toBe(duration.pageShort);
+    expect(ms(cssVar("dur-fade-max"))).toBe(duration.fadeMax);
+    expect(ms(cssVar("dur-theme"))).toBe(duration.theme);
+  });
+
+  it("la transición de página respeta los techos del brief", () => {
+    // Margen ≥ 100 ms para las esperas de la navegación (página destino, fuentes, rectángulo estable).
+    expect(duration.pageFull).toBeLessThanOrEqual(1200 - 100);
+    expect(duration.pageShort).toBeLessThanOrEqual(500 - 100);
+    expect(duration.fadeMax).toBeLessThanOrEqual(200);
   });
 
   it("staggers coinciden y están dentro de rango", () => {

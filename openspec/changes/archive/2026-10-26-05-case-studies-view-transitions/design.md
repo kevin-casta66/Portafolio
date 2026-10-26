@@ -25,6 +25,7 @@ MDX permite escribir prosa en Markdown e insertar componentes ricos (`<Architect
 - Alternativa: CMS headless → dependencia externa innecesaria para un portafolio.
 
 ### D2. Shiki en build (server components / rehype)
+Se reutiliza lo que dejó el change 04: `shiki` 4.5.0 ya instalado y `lib/highlight.ts` (highlighter singleton con `createCssVariablesTheme`, variables `--shiki-*` definidas en `app/globals.css` desde los tokens). Para MDX se añade un plugin rehype que llama a ese mismo módulo; no se crea un segundo highlighter ni otro tema.
 Shiki produce HTML con tokens coloreados en el servidor; no envía gramáticas ni runtime al cliente (protege el presupuesto de 180 KB). Tema basado en CSS variables para que los colores salgan de los design tokens y cambien con el tema sin re-render. Las anotaciones se declaran por meta del bloque (p. ej. ```ts {12: "nota"}```) y un transformer las convierte en `<aside>` alineadas por línea con CSS grid.
 - Alternativa: Prism/highlight.js en cliente → JS extra y FOUC.
 
@@ -35,7 +36,11 @@ Un controlador `motion/pageTransition.ts` orquesta cuatro fases sobre el reloj �
 3. **Navegación**: a mitad de la expansión se llama `router.push`; la página destino se monta con la cabecera en `opacity: 0`. Se espera a que la cabecera tenga rect estable (doble rAF).
 4. **Entrega**: el plano interpola sus uniforms a cero y su rect al de la cabecera; al terminar, cabecera DOM `opacity: 1`, plano oculto y recursos de transición liberados (`dispose` de render targets propios).
 
-Para mezclar escenas saliente/entrante se reutiliza la infraestructura de render targets + máscara TSL del change 04.
+Para mezclar escenas saliente/entrante se reutiliza la infraestructura de render targets + máscara TSL del change 04. Integración concreta con lo implementado en el 04:
+- El gemelo de cada tarjeta ya existe: `data-twin="card:<slug>"` en `ProcessCard`, seguido por `webgl/core/twins.ts` (incluso durante Flip).
+- El plano de T6 es una escena más del motor (`webgl/core/engine.ts`) que aporta su capa a la composición del `RenderPipeline` (`buildOutput` de `webgl/postfx.ts`); la lente y la aberración son nodos TSL en `webgl/nodes/`. No se crea otro renderer ni otro `RenderPipeline`.
+- Cualquier render target propio se dimensiona con `rtSize()` (`webgl/rt-size.ts`, píxeles físicos: en three r186 los viewports de RT ya no se escalan por el pixel ratio) y se libera con `dispose()` al terminar; si la transición coincide con una pérdida de contexto, se respeta la cola de `webgl/dispose.ts` (`await renderer.dispose()`).
+- Como manda MOTION-SPEC, T6 tiene prototipo aislado en la ruta de desarrollo del 04 (`/[locale]/prototypes/T6`, con control de progreso y selector de variante) antes de integrarse.
 - Alternativa: View Transitions API (versión previa de este change) → descartada por el addendum: experimental en App Router, sin control de shader y sin soporte homogéneo.
 - Alternativa: FLIP DOM entre rutas → no permite lente ni aberración; se conserva solo como degradación 2D (D6).
 
@@ -61,9 +66,9 @@ Una función `resolveTransitionMode()` consulta el modo de experiencia y el tier
 - `fade` (reduced motion) → fundido ≤ 200 ms.
 
 ### D7. Transiciones de UI (T10) con `<ViewTransition>` y fallback Flip
-Se activa el flag experimental `viewTransition` de Next.js y se envuelven el toggle de tema, la rejilla filtrada y el menú en `<ViewTransition>` de React. `supportsViewTransitions = typeof document.startViewTransition === 'function'`; sin soporte, `motion/uiTransition.ts` usa GSAP Flip (captura estado → aplica cambio → anima). El revelado circular del tema anima `clip-path: circle()` sobre `::view-transition-new(root)` desde las coordenadas del botón (radio con `Math.hypot` hasta la esquina más lejana); sin soporte → fundido cruzado con overlay. Reduced motion → cambio directo.
+`<ViewTransition>` se importa de `react` (estable en React 19.3.1 instalado) y funciona en el App Router de Next 16.4.3 sin configuración: la opción `experimental.viewTransition` ya no existe en esa versión (ver `node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`). Se envuelven el toggle de tema, la rejilla filtrada y el menú en `<ViewTransition>`; como solo animan con Transitions (`startTransition`), el cambio de tema y el filtrado se disparan dentro de una. `supportsViewTransitions = typeof document.startViewTransition === 'function'`; sin soporte, `motion/uiTransition.ts` usa GSAP Flip (captura estado → aplica cambio → anima). El revelado circular del tema anima `clip-path: circle()` sobre `::view-transition-new(root)` desde las coordenadas del botón (radio con `Math.hypot` hasta la esquina más lejana); sin soporte → fundido cruzado con overlay. Reduced motion → cambio directo.
 - Alternativa: solo Flip para todo → se pierde el revelado circular nativo del tema.
-- Riesgo de flag experimental acotado a UI no crítica.
+- Riesgo acotado a UI no crítica: el soporte del navegador (tipos de transición y `view-transition-class`) aún no es homogéneo.
 
 ### D8. Breakpoints, diagrama y gráficos
 - Sección activa: `IntersectionObserver` (no ScrollTrigger) para que funcione aunque se desactive el motion-system; `aria-current="location"`.
@@ -79,8 +84,8 @@ El canvas vive en `app/[locale]/layout.tsx`, fuera del segmento de página, por 
 - [Restaurar scroll antes de la transición inversa puede causar parpadeo] → el home se monta oculto bajo el plano a pantalla completa; se restaura scroll y luego se contrae.
 - [Hold en táctil compite con el scroll] → `touch-action: pan-y` + umbral de 10 px; probado en Android de gama media y Safari iOS.
 - [Espacio dentro de la tarjeta podría romper el scroll esperado por teclado] → solo se intercepta cuando el foco está en la propia tarjeta; fuera de ella, comportamiento nativo.
-- [Flag experimental de `<ViewTransition>` cambia entre versiones] → aislado en `motion/uiTransition.ts`; fallback Flip siempre probado.
-- [Shiki aumenta el tiempo de build] → highlighter singleton y solo los lenguajes usados.
+- [Soporte desigual de View Transitions entre navegadores (Safari se comporta distinto)] → aislado en `motion/uiTransition.ts`; fallback Flip siempre probado.
+- [Shiki aumenta el tiempo de build] → el highlighter singleton de `lib/highlight.ts` (change 04) y solo los lenguajes usados.
 - [Fugas de GPU por transiciones repetidas] → `dispose` explícito y verificación de memoria en Modo Debug.
 
 ## Migration Plan

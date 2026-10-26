@@ -34,10 +34,10 @@
 ## 6. Modo Debug
 
 - [ ] 6.1 Implementar el botón y el overlay de Debug (`pointer-events: none` fuera de sus paneles, persistido en sesión) y desbloquear `debugger_attached`; verificar que los CTAs siguen siendo clicables con Debug activo
-- [ ] 6.2 Importar stats-gl de forma dinámica al activar Debug y mostrar FPS, CPU y GPU ("GPU: n/d" sin extensión); verificar en la pestaña de red que no se descarga nada sin activar Debug y que las métricas se actualizan con Debug activo
-- [ ] 6.3 Mostrar backend activo (WebGPU/WebGL2) y tier, suscrito a cambios en caliente; verificar en Chrome (WebGPU) y forzando el fallback WebGL2 que el panel muestra el backend correcto y el mismo contenido
+- [ ] 6.2 Importar stats-gl de forma dinámica al activar Debug y mostrar FPS, CPU y GPU ("GPU: n/d" sin extensión); verificar en la pestaña de red que no se descarga nada sin activar Debug y que las métricas se actualizan con Debug activo; stats-gl se inicializa con el `WebGPURenderer` del change 04 (activa `trackTimestamp` por sí mismo) y se re-inicializa cuando el canvas se recrea tras una pérdida de contexto
+- [ ] 6.3 Mostrar backend activo (WebGPU/WebGL2) y tier, suscrito a cambios en caliente; verificar en Chrome (WebGPU) y forzando el fallback WebGL2 que el panel muestra el backend correcto y el mismo contenido; leer `graphics.backend`, `graphics.tier` y `scenes.drawCalls` que el change 04 ya publica en el store (y forzar el fallback con su flag `webgl2`)
 - [ ] 6.4 Añadir el flag de wireframe leído por los `NodeMaterial` de las escenas; verificar visualmente que las escenas se ven en wireframe
-- [ ] 6.5 Crear el registro `registerTweakables` y generar con Tweakpane los controles de la escena activa, con "Restablecer"; verificar que cambiar `bloomStrength` se refleja en el siguiente frame, que los controles se manejan con teclado y que al recargar vuelven los valores por defecto
+- [ ] 6.5 Crear el registro `registerTweakables` y generar con Tweakpane los controles de la escena activa, con "Restablecer"; verificar que cambiar `bloomStrength` se refleja en el siguiente frame, que los controles se manejan con teclado y que al recargar vuelven los valores por defecto; los parámetros son `uniform()` de módulo pasados a `buildOutput` de `webgl/postfx.ts`, y se verifica que un valor ajustado sobrevive a un cambio de tier (que reasigna `outputNode` del `RenderPipeline`)
 - [ ] 6.6 Marcar componentes principales con `data-debug-name` y dibujar sus contornos con `outline`; verificar que no hay desplazamiento de layout (CLS 0 al alternar) y el mensaje "sin escenas 3D" sin aceleración gráfica
 
 ## 7. Vista Rápida

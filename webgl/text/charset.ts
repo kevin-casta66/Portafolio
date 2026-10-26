@@ -23,8 +23,9 @@ const ASCII = Array.from({ length: 95 }, (_, i) => String.fromCharCode(0x20 + i)
 /** Acentos y signos del español/inglés usados en títulos y en la línea de código. */
 const SPANISH = "áéíóúüñÁÉÍÓÚÜÑ¿¡·–—…’‘“”«»";
 
-export function msdfCharset(font: MsdfFontName): string {
-  return font === "jetbrains-mono-400" ? ASCII : ASCII + SPANISH;
+// Ambas fuentes llevan los acentos: la línea de código del hero (monoespaciada) incluye el nombre del perfil.
+export function msdfCharset(_font: MsdfFontName): string {
+  return ASCII + SPANISH;
 }
 
 export function charsetSet(font: MsdfFontName): Set<string> {

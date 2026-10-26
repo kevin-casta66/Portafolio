@@ -385,3 +385,113 @@ html.boot-pending::before {
   --shiki-token-comment: var(--text-muted);
   --shiki-token-link: var(--accent);
 }
+
+/* ───────────────────────── Casos de estudio (change 05) ───────────────────────── */
+
+/* La página del caso es el proceso «adjunto»: tinte ámbar de RUNTIME en lugar del acento de SOURCE */
+:root:has([data-case-page]) {
+  --accent-active: var(--accent-runtime);
+}
+
+/* Código anotado: cada línea mide lo mismo (sin ajuste de línea), así las notas se alinean con `--line` */
+.case-code {
+  --code-lh: 1.65rem;
+}
+
+.case-code-pre {
+  line-height: var(--code-lh);
+  tab-size: 2;
+}
+
+.case-line {
+  position: relative;
+  display: flex;
+  min-height: var(--code-lh);
+  padding-inline-end: var(--space-4);
+}
+
+.case-line-no {
+  flex: none;
+  width: 2.75rem;
+  padding-inline-end: var(--space-3);
+  text-align: right;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.case-line-code {
+  white-space: pre;
+}
+
+.case-line[data-annotated="true"] {
+  background-color: var(--phase-tint);
+}
+
+.case-line-mark {
+  position: absolute;
+  inset-inline-end: var(--space-2);
+  top: 50%;
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translateY(-50%);
+  place-items: center;
+  border-radius: 9999px;
+  background-color: var(--accent);
+  color: var(--bg);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+@media (width >= 1024px) {
+  .case-note {
+    top: calc(1px + 0.75rem + var(--line) * var(--code-lh));
+  }
+}
+
+/* Hold-to-Execute: la tarjeta deja pasar el scroll vertical y, en táctil, no abre menú ni selecciona al mantener */
+[data-hold] {
+  touch-action: pan-y;
+}
+
+@media (pointer: coarse) {
+  [data-hold] {
+    -webkit-touch-callout: none;
+
+    /* Safari iOS aún necesita el prefijo para que la pulsación larga no seleccione texto */
+    /* stylelint-disable-next-line property-no-vendor-prefix */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Transición de página (T6): la página del caso se monta oculta y se muestra al terminar la entrega */
+html[data-page-transition="in"] [data-case-page] {
+  opacity: 0;
+}
+
+/*
+ * T10 · cambio de tema (revelado circular) y menú. Con transiciones de vista, el cambio de tema NO usa
+ * el fundido por defecto: la capa nueva (`::view-transition-new(root)`) se recorta con un círculo que
+ * anima `motion/uiTransition.ts` desde el botón. Solo con el atributo, para no afectar a otras transiciones.
+ */
+html[data-ui-transition="theme"]::view-transition-old(root),
+html[data-ui-transition="theme"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-ui-transition="theme"]::view-transition-old(root) {
+  z-index: 1;
+}
+
+html[data-ui-transition="theme"]::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Menú: la raíz se funde en el tiempo de UI */
+html[data-ui-transition="menu"]::view-transition-group(root) {
+  animation-duration: var(--dur-ui);
+  animation-timing-function: var(--ease-in-expo);
+}

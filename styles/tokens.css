@@ -51,6 +51,12 @@
   --dur-scene-min: 1200ms;
   --dur-scene-max: 1800ms;
   --dur-glitch-max: 300ms;
+  --hold-duration: 800ms;
+  --hold-click-max: 200ms;
+  --dur-page-full: 1100ms;
+  --dur-page-short: 400ms;
+  --dur-fade-max: 200ms;
+  --dur-theme: 600ms;
   --stagger-char: 35ms;
   --stagger-item: 70ms;
 

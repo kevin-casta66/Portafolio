@@ -1,0 +1,126 @@
+---
+slug: arquelume-ai-agent
+title: "ArqueLume: an AI agent that sells on WhatsApp without making things up"
+summary: "An LLM agent with MCP tools and hybrid search that answers each business's customers with real CRM data, with a salesperson in the loop when needed."
+placeholder: false
+breakpoints: [context, problem, architecture, decisions, code, results, learnings]
+metrics:
+  - { id: cost, label: "Projected cost per business per month", unit: "US$", before: 13, after: 4.5, better: lower }
+  - { id: evals, label: "Conversation cases evaluated", unit: "", before: 0, after: 106, better: higher }
+diagram:
+  nodes:
+    - { id: whatsapp, label: "WhatsApp Cloud API", col: 0, row: 0 }
+    - { id: queue, label: "Webhook + queue", col: 1, row: 0 }
+    - { id: orchestrator, label: ".NET 10 orchestrator", col: 2, row: 0 }
+    - { id: router, label: "Model router", col: 3, row: 0 }
+    - { id: llm, label: "LLM + fallback", col: 4, row: 0 }
+    - { id: seller, label: "Salesperson (shadow mode)", col: 1, row: 1 }
+    - { id: mcp, label: "MCP server", col: 2, row: 1 }
+    - { id: crm, label: "CRM.API · PostgreSQL", col: 3, row: 1 }
+    - { id: rag, label: "Hybrid RAG pgvector", col: 4, row: 1 }
+  steps:
+    - title: "A message arrives"
+      description: "The webhook validates Meta's signature and queues the message; answering Meta fast and processing later avoids duplicates and timeouts."
+      nodes: [whatsapp, queue]
+      edges: [[whatsapp, queue]]
+    - title: "The orchestrator picks it up in order"
+      description: "A hexagonal .NET 10 service consumes the queue keeping each conversation in order, with retries and a watchdog for stuck messages."
+      nodes: [orchestrator]
+      edges: [[queue, orchestrator]]
+    - title: "The agent looks up real data"
+      description: "Through MCP it asks the CRM for prices, stock, availability and business knowledge, combining vector and full-text search."
+      nodes: [mcp, crm, rag]
+      edges: [[orchestrator, mcp], [mcp, crm], [crm, rag]]
+    - title: "A model is chosen"
+      description: "A rule-based router decides which model answers; if the main provider fails, a fallback one takes over without the customer noticing."
+      nodes: [router, llm]
+      edges: [[orchestrator, router], [router, llm]]
+    - title: "A human decides when needed"
+      description: "In shadow mode the salesperson approves every draft before it is sent; in automatic mode the AI replies on its own."
+      nodes: [seller]
+      edges: [[orchestrator, seller], [seller, whatsapp]]
+---
+
+<Breakpoint id="context">
+
+ArqueLume is my own multi-business SaaS CRM. I designed, built, tested and deployed it solo in about 7 weeks: a .NET 10 backend, an Angular 21 frontend, a Figma design system and automated QA. Its most ambitious piece is **a sales agent that serves each business's customers on WhatsApp**.
+
+The whole project was planned with spec-driven development: an OpenSpec Store coordinates the 5 repositories and requires the backend contract, the orchestrator and the design to be settled before the UI is written.
+
+</Breakpoint>
+
+<Breakpoint id="problem">
+
+A chatbot that makes up a price or promises stock that does not exist destroys a business's trust faster than not answering at all. The challenge was not "plugging an LLM into WhatsApp" but making the agent:
+
+- answer **only with real data** from the CRM (prices, stock, bookings);
+- cost little per business, because the customers are small businesses;
+- be supervisable: the owner decides whether the AI sends on its own or a salesperson approves every reply.
+
+</Breakpoint>
+
+<Breakpoint id="architecture">
+
+I separated the conversation (the orchestrator) from the data (the CRM) and joined them with the Model Context Protocol: the agent never sees the database, only a dozen tools audited on every call.
+
+<ArchitectureDiagram />
+
+</Breakpoint>
+
+<Breakpoint id="decisions">
+
+### MCP tools instead of giant prompts
+
+The CRM exposes an MCP server with tools such as searching products, checking availability or searching the business knowledge base. Every call is audited, and the agent cannot read anything outside them.
+
+### Measure before trusting
+
+I built an evaluation set of 106 conversations and 33 analysis cases. It revealed that the model only asked for tools in 3 of 68 drafts; I fixed it by injecting the results of a prior search into the context (hybrid RAG with pgvector and Spanish full-text search, fused with Reciprocal Rank Fusion).
+
+### Choosing the model with numbers
+
+I compared the cost of 278 models for 50 daily conversations per business. With prompt caching and batch processing, the projection drops from about US$13 to about US$4.5 per business per month, with a fallback model from another provider.
+
+### Human in the loop
+
+Shadow mode lets a salesperson approve every draft. The business adopts AI without risking its reputation and switches to automatic mode once it trusts it.
+
+</Breakpoint>
+
+<Breakpoint id="code">
+
+The cross-provider fallback lives behind the same Microsoft.Extensions.AI `IChatClient` interface, so the rest of the agent never knows which provider answers (simplified excerpt):
+
+<AnnotatedCode lang="csharp" title="ClienteChatConRespaldo.cs" notes={{ 1: "Same interface: the agent does not change whether there is a fallback or not.", 6: "Only provider failures trigger the fallback; a bug in the agent itself is not hidden." }}>
+{`public sealed class ClienteChatConRespaldo(IChatClient principal, IChatClient respaldo, ILogger log) : IChatClient
+{
+    public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> mensajes, ChatOptions? opciones = null, CancellationToken ct = default)
+    {
+        try { return await principal.GetResponseAsync(mensajes, opciones, ct); }
+        catch (Exception ex) when (ex is HttpRequestException or TimeoutException)
+        {
+            log.LogWarning(ex, "Main provider unavailable; answering with the fallback");
+            return await respaldo.GetResponseAsync(mensajes, opciones, ct);
+        }
+    }
+}`}
+</AnnotatedCode>
+
+</Breakpoint>
+
+<Breakpoint id="results">
+
+The cost is a **documented projection** based on real provider prices, not an invoice measured in production; the evaluation, on the other hand, runs on every change to the agent. End-to-end QA, with WhatsApp and the LLM simulated, caught 6 real bugs before they reached a customer.
+
+<MetricChart />
+
+</Breakpoint>
+
+<Breakpoint id="learnings">
+
+- A useful agent is mostly engineering: queues, idempotency, retries and evaluations, not just a good prompt.
+- Evaluations turn "it seems to answer well" into a number you can improve.
+- Cost per conversation is a product requirement, not a billing detail.
+- Giving the AI narrow tools (MCP) is safer and cheaper than giving it the whole context.
+
+</Breakpoint>

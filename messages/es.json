@@ -61,6 +61,7 @@
       "exploring": "Exploración"
     },
     "categories": {
+      "ai": "IA y automatización",
       "frontend": "Frontend",
       "backend": "Backend",
       "cloud-devops": "Cloud/DevOps",
@@ -232,5 +233,62 @@
     },
     "ok": "[ OK ]",
     "wait": "[ .. ]"
+  },
+  "Case": {
+    "kicker": "Caso de estudio",
+    "backHome": "← Volver a proyectos",
+    "placeholderNotice": "Contenido de ejemplo: sustitúyelo por tu caso real en content/cases.",
+    "indexLabel": "Índice del caso",
+    "indexToggle": "Índice",
+    "indexCurrent": "Sección actual: {title}",
+    "breakpoints": {
+      "context": "Contexto",
+      "problem": "Problema",
+      "architecture": "Arquitectura",
+      "decisions": "Decisiones",
+      "code": "Código destacado",
+      "results": "Resultados",
+      "learnings": "Aprendizajes"
+    },
+    "diagram": {
+      "label": "Diagrama de arquitectura, construido paso a paso. La descripción de cada paso está debajo.",
+      "stepsHeading": "Pasos del diagrama",
+      "step": "Paso {n}",
+      "region": "Diagrama de arquitectura (desplazable)"
+    },
+    "chart": {
+      "label": "Gráfico de métricas. Los valores exactos están en la tabla.",
+      "caption": "Valores de las métricas",
+      "metric": "Métrica",
+      "before": "Antes",
+      "after": "Después",
+      "change": "Cambio",
+      "improved": "mejora",
+      "worsened": "empeora",
+      "same": "sin cambio",
+      "tableRegion": "Tabla de métricas (desplazable)"
+    },
+    "code": {
+      "notes": "Anotaciones del código",
+      "line": "Línea {n}",
+      "region": "Código {lang}"
+    },
+    "nav": {
+      "label": "Navegación entre casos",
+      "back": "Step back ◀",
+      "over": "Step over ▶",
+      "backLabel": "Caso anterior: {title}",
+      "overLabel": "Caso siguiente: {title}",
+      "first": "Es el primer caso",
+      "last": "Es el último caso",
+      "position": "Caso {index} de {total}"
+    }
+  },
+  "Hold": {
+    "instruction": "Pulsa Enter para abrir el caso de estudio, o mantén pulsado (o mantén la barra espaciadora) para ejecutarlo.",
+    "executing": "Ejecutando…",
+    "cancelled": "Ejecución cancelada.",
+    "attaching": "Attaching debugger…",
+    "opening": "Abriendo el caso de estudio de {name}"
   }
 }

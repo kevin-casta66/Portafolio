@@ -31,7 +31,7 @@ backend no se monta nada y el sitio es el HTML completo con las transiciones DOM
 | `quality.ts`, `detect.ts` | Tiers alto/medio/bajo, presets, regla de móvil, detect-gpu con benchmarks autoalojados |
 | `postfx.ts` | Composición de capas → aberración → bloom selectivo (MRT `glow`, tier alto) → grano → Bayer |
 | `scenes/` | SOURCE (retícula + fluido compute), RUNTIME (chip), GPU (pipeline), DISPLAY (monitor), lab, texto MSDF |
-| `transitions/` | Variantes canvas de T2, T3, T4, T5, T8, T9 (T11 vive en `scenes/text.ts`) |
+| `transitions/` | Variantes canvas de T2, T3, T4, T5, T8, T9 (T11 vive en `scenes/text.ts`) y la escena de T6 (`T6.scene.ts`: gemelo de la tarjeta con lente y aberración; sin render targets ni texturas; solo existe mientras `t6.armed`, ver `motion/shared.ts`) |
 | `text/` | Atlas MSDF (`pnpm webgl:msdf`), maquetación por palabras DOM, glitch de títulos |
 | `lab/`, `workers/` | Experimentos del laboratorio; física Rapier y triangulación de T8 en Web Workers |
 
@@ -45,5 +45,5 @@ backend no se monta nada y el sitio es el HTML completo con las transiciones DOM
 
 ## Prototipos
 
-`/[locale]/prototypes/T2…T9|T11` (solo en desarrollo; en producción 404) monta las dos secciones que
+`/[locale]/prototypes/T2…T9|T11` y `T6` (tarjeta + cabecera del caso; control de progreso y «Ver máscara de la lente») (solo en desarrollo; en producción 404) monta las dos secciones que
 conecta cada transición y un control de progreso 0–1, con selector de variante canvas/DOM/reducida.

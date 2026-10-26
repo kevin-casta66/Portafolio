@@ -24,12 +24,19 @@ export async function ProcessCard({
   const t = await getTranslations("Runtime");
   const titleId = `project-${project.slug}-title`;
   const { links, media } = project;
+  // Hold-to-Execute (change 05): solo las tarjetas con caso de estudio se pueden «ejecutar».
+  const hold = links.caseStudy
+    ? { slug: links.caseStudy, descId: `project-${project.slug}-hold`, text: (await getTranslations("Hold"))("instruction") }
+    : null;
 
   return (
     <article
       id={`project-${project.slug}`}
-      tabIndex={-1}
+      tabIndex={hold ? 0 : -1}
       aria-labelledby={titleId}
+      aria-describedby={hold?.descId}
+      data-hold={hold?.slug}
+      data-hold-title={hold ? project.name : undefined}
       data-anim="process-card"
       data-twin={`card:${project.slug}`}
       data-status={project.status}
@@ -85,6 +92,12 @@ export async function ProcessCard({
           ))}
         </dl>
 
+        {hold ? (
+          <p id={hold.descId} className="sr-only">
+            {hold.text}
+          </p>
+        ) : null}
+
         {links.demo || links.code || links.caseStudy ? (
           <p className="mt-6 flex flex-wrap gap-3">
             {links.demo ? (
@@ -98,7 +111,7 @@ export async function ProcessCard({
               </a>
             ) : null}
             {links.caseStudy ? (
-              <Link href={`/projects/${links.caseStudy}`} className={linkClass}>
+              <Link href={`/projects/${links.caseStudy}`} data-hold-link className={linkClass}>
                 {t("caseStudy")}
               </Link>
             ) : null}

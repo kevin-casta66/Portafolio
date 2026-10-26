@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { fontVariables } from "@/app/fonts";
 import { BootGateLoader } from "@/components/phases/Boot/BootGateLoader";
 import { Header } from "@/components/systems/Header";
+import { HoldLoader } from "@/components/systems/HoldLoader";
 import { MotionLoader } from "@/components/systems/MotionLoader";
 import { StoreHydrator } from "@/components/systems/StoreHydrator";
 import { WebglLoader } from "@/components/systems/WebglLoader";
@@ -60,6 +61,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <StoreHydrator />
           <MotionLoader />
           <WebglLoader />
+          <HoldLoader />
         </NextIntlClientProvider>
       </body>
     </html>

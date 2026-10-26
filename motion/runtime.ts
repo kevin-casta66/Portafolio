@@ -1,5 +1,6 @@
 import { appStore } from "@/lib/store";
 import { bytecodeChoreography } from "./choreography/bytecode";
+import { caseChoreography } from "./choreography/case";
 import type { ChoreoContext, Choreography } from "./choreography/context";
 import { heroChoreography } from "./choreography/hero";
 import { lexerChoreography } from "./choreography/lexer";
@@ -35,6 +36,7 @@ const CHOREOGRAPHIES: readonly Choreography[] = [
   parserChoreography,
   bytecodeChoreography,
   runtimeChoreography,
+  caseChoreography,
 ];
 
 export interface MotionRuntime {
@@ -61,6 +63,13 @@ interface CompileMotionTestHook {
   destroyReplay(): void;
   /** Duración de la timeline de la última reproducción aislada y fijación de su tiempo. */
   replayTimeline(): { duration: number; setTime: (t: number) => void } | null;
+  /**
+   * T6 aislada (sin navegar): reproduce la superficie de la tarjeta `slug` a la cabecera `[data-case-header]`
+   * (o a un rectángulo fijo) hasta el progreso dado. Devuelve el estado de la superficie.
+   */
+  playT6(slug: string, progress: number, surface: "canvas" | "dom"): Promise<Record<string, unknown>>;
+  /** Destruye la reproducción de `playT6`. */
+  stopT6(): void;
   /** Crea un pin de prueba (scrub): la animación debe detenerse al soltar el scroll. */
   testPin(selector: string): void;
   gsapInfo(): Record<string, boolean | string>;
@@ -134,6 +143,7 @@ export function startMotionRuntime(): MotionRuntime {
     const defs: TransitionDef[] = [...TRANSITIONS];
     let testCanvasReady = false;
     let lastReplay: TransitionHandle | null = null;
+    let t6Playback: { timeline: { progress(value?: number): unknown }; destroy(): void } | null = null;
     const params = new URLSearchParams(window.location.search);
     const testMode = params.has(TEST_PARAM);
     const t2 = TRANSITIONS.find((d) => d.id === "T2");
@@ -210,6 +220,28 @@ export function startMotionRuntime(): MotionRuntime {
         replayTimeline: () => {
           const tl = lastReplay?.timeline as unknown as gsap.core.Timeline | undefined;
           return tl ? { duration: tl.duration(), setTime: (t: number) => void tl.time(t) } : null;
+        },
+        playT6: async (slug, progress, surface) => {
+          const [{ playT6, rectOf, viewportRect }, shared] = await Promise.all([import("./t6"), import("./shared")]);
+          t6Playback?.destroy();
+          const card = document.querySelector<HTMLElement>(`[data-hold="${slug}"]`);
+          if (!card) return { error: "sin tarjeta" };
+          const header = document.querySelector<HTMLElement>("[data-case-header]");
+          const view = viewportRect();
+          if (surface === "canvas") shared.armT6();
+          t6Playback = playT6({
+            from: rectOf(card),
+            to: header ? rectOf(header) : { x: view.w * 0.1, y: 80, w: view.w * 0.8, h: 260 },
+            intensity: "full",
+            surface,
+          });
+          t6Playback.timeline.progress(progress);
+          return { ...shared.t6.state, ready: shared.t6.ready, urlAntes: location.href };
+        },
+        stopT6: () => {
+          t6Playback?.destroy();
+          t6Playback = null;
+          void import("./shared").then((s) => s.disarmT6());
         },
         testPin: (selector) => {
           const el = document.querySelector<HTMLElement>(selector);

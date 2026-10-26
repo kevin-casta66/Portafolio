@@ -1,0 +1,115 @@
+---
+slug: domonow-spec-driven
+title: "DomoNow: governing 34 repositories with AI agents"
+summary: "How we went from agents that improvised the architecture to a spec-driven workflow, with rules, skills and limits, that the whole team now follows."
+placeholder: false
+breakpoints: [context, problem, architecture, decisions, code, results, learnings]
+metrics:
+  - { id: rules, label: "Documented technical rules", unit: "", before: 0, after: 200, better: higher }
+  - { id: promotion, label: "Repositories promoted by hand per release", unit: "", before: 30, after: 0, better: lower }
+diagram:
+  nodes:
+    - { id: dev, label: "Developer", col: 0, row: 0 }
+    - { id: agent, label: "Agent (Claude Code)", col: 1, row: 0 }
+    - { id: store, label: "Central spec Store", col: 2, row: 0 }
+    - { id: rules, label: "Technical rules (~200)", col: 3, row: 0 }
+    - { id: skills, label: "8 custom skills", col: 2, row: 1 }
+    - { id: repos, label: "34 repositories", col: 4, row: 0 }
+    - { id: ci, label: "CI: validated specs", col: 3, row: 1 }
+    - { id: release, label: "Production promotion", col: 4, row: 1 }
+  steps:
+    - title: "The developer asks, the agent proposes"
+      description: "Every change starts as a proposal with design, specs and tasks; the developer reviews it before any code is written."
+      nodes: [dev, agent]
+      edges: [[dev, agent]]
+    - title: "A single source of truth"
+      description: "The agent reads the central Store: verified architecture, repository inventory and business rules, instead of guessing."
+      nodes: [store]
+      edges: [[agent, store]]
+    - title: "Rules and skills"
+      description: "About 200 backend and frontend technical rules set the standard, and 8 custom skills connect modules and rebuild rules from the code."
+      nodes: [rules, skills]
+      edges: [[store, rules], [store, skills]]
+    - title: "Changes reach the repositories"
+      description: "Changes that span several repositories are planned once and applied in order in each of them."
+      nodes: [repos]
+      edges: [[rules, repos]]
+    - title: "Validation and release"
+      description: "CI validates the specs in strict mode and a script takes changes from QA to production respecting dependencies."
+      nodes: [ci, release]
+      edges: [[repos, ci], [ci, release]]
+---
+
+<Breakpoint id="context">
+
+DomoNow is Ofima's SaaS platform for managing residential complexes: QR access, common-area bookings, assemblies with live voting, billing, panic alerts and more. It is made of .NET microservices and Angular micro-frontends spread across **34 repositories**, with a team of about 20 people.
+
+Besides building full modules, I own the Azure infrastructure and the releases, review and integrate pull requests, and train the team. This case tells how we brought AI into the whole team's development process.
+
+</Breakpoint>
+
+<Breakpoint id="problem">
+
+The team already used AI assistants, but every agent worked blind: it did not know the architecture conventions, duplicated logic across microservices and did not know which repository to touch when a change spanned backend and frontend. More AI without rules just meant more code to review.
+
+</Breakpoint>
+
+<Breakpoint id="architecture">
+
+Together with another developer we built a **central spec Store** with OpenSpec that governs the 34 repositories. I wrote the skills, most of the changes and the technical rules, and piloted it with the Parking module before rolling it out.
+
+<ArchitectureDiagram />
+
+</Breakpoint>
+
+<Breakpoint id="decisions">
+
+### Rules before prompts
+
+I wrote about 200 technical rules, each with an ID, a normative statement and an example (project structure, CQRS, repositories, components, design system, routing). Both people and agents follow them, and a dedicated skill detects duplicates and contradictions before a new one is added.
+
+### Skills that do the repetitive work
+
+I built 8 custom Claude Code skills: connecting a module to the Store, rebuilding user stories and business rules from the code with two agents in parallel, auditing a .NET API against the reference architecture and versioning micro-frontends.
+
+### Clear limits for the AI
+
+The agent never runs git or SQL; steps that a person must do are marked as `[DEV]` tasks, and the model is chosen per phase: a more capable one to explore and propose, a faster one to apply.
+
+### Automating the release
+
+Promoting to production was a manual, repository-by-repository process over about 30 repositories. I specified it with the same workflow and automated it with the Azure DevOps REST API: it detects what changed, respects the order of the shared libraries, creates the branches and opens the PRs, with a dry-run mode by default.
+
+</Breakpoint>
+
+<Breakpoint id="code">
+
+Every skill declares which model it uses and that it can only be invoked by hand, so no agent can trigger it on its own:
+
+<AnnotatedCode lang="yaml" title=".claude/skills/nueva-regla-modulo/SKILL.md" notes={{ 4: "Reasoning tasks use the more capable model.", 5: "Only a developer can invoke it: the agent does not decide when to create rules." }}>
+{`---
+name: nueva-regla-modulo
+description: Convierte una historia de usuario en reglas de negocio asignadas a backend o frontend
+model: opus
+disable-model-invocation: true
+---`}
+</AnnotatedCode>
+
+</Breakpoint>
+
+<Breakpoint id="results">
+
+The Store holds more than 1,100 completed tasks, and I wrote 50 of its 52 changes. The adoption guide I wrote (17 sections) is the material we use to train the team. With the promotion script, a release is no longer a manual task per repository but a single reviewable run.
+
+<MetricChart />
+
+</Breakpoint>
+
+<Breakpoint id="learnings">
+
+- AI amplifies what is already there: without rules it amplifies the mess; with rules, the standard.
+- Specs are the contract between people and agents, and also between repositories.
+- Limits (no git, no SQL, `[DEV]` tasks) are what make the agent trustworthy.
+- A small pilot (Parking) convinces the team more than any presentation.
+
+</Breakpoint>

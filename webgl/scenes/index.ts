@@ -1,3 +1,4 @@
+import { t6 } from "@/motion/shared";
 import { sectionRange } from "../core/layout";
 import type { SceneDef } from "../core/types";
 import { textRanges } from "./text-ranges";
@@ -45,5 +46,14 @@ export const SCENE_DEFS: readonly SceneDef[] = [
     order: 90,
     range: textRanges,
     load: () => import("./text").then((m) => m.createTextScene),
+  },
+  {
+    // T6 (tarjeta ⇄ cabecera del caso): existe solo mientras la transición está armada o en curso; al
+    // terminar se suelta y el motor libera su malla y su material (no usa render targets ni texturas).
+    id: "t6",
+    order: 95,
+    range: () => (t6.armed || t6.state.visible ? { start: -Infinity, end: Infinity } : null),
+    preload: 0,
+    load: () => import("../transitions/T6.scene").then((m) => m.createT6Scene),
   },
 ];

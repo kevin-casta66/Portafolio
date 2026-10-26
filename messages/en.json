@@ -61,6 +61,7 @@
       "exploring": "Exploring"
     },
     "categories": {
+      "ai": "AI & automation",
       "frontend": "Frontend",
       "backend": "Backend",
       "cloud-devops": "Cloud/DevOps",
@@ -232,5 +233,62 @@
     },
     "ok": "[ OK ]",
     "wait": "[ .. ]"
+  },
+  "Case": {
+    "kicker": "Case study",
+    "backHome": "← Back to projects",
+    "placeholderNotice": "Sample content: replace it with your real case in content/cases.",
+    "indexLabel": "Case index",
+    "indexToggle": "Index",
+    "indexCurrent": "Current section: {title}",
+    "breakpoints": {
+      "context": "Context",
+      "problem": "Problem",
+      "architecture": "Architecture",
+      "decisions": "Decisions",
+      "code": "Featured code",
+      "results": "Results",
+      "learnings": "Learnings"
+    },
+    "diagram": {
+      "label": "Architecture diagram, built step by step. The description of each step is below.",
+      "stepsHeading": "Diagram steps",
+      "step": "Step {n}",
+      "region": "Architecture diagram (scrollable)"
+    },
+    "chart": {
+      "label": "Metrics chart. The exact values are in the table.",
+      "caption": "Metric values",
+      "metric": "Metric",
+      "before": "Before",
+      "after": "After",
+      "change": "Change",
+      "improved": "improved",
+      "worsened": "worse",
+      "same": "no change",
+      "tableRegion": "Metrics table (scrollable)"
+    },
+    "code": {
+      "notes": "Code annotations",
+      "line": "Line {n}",
+      "region": "{lang} code"
+    },
+    "nav": {
+      "label": "Case navigation",
+      "back": "Step back ◀",
+      "over": "Step over ▶",
+      "backLabel": "Previous case: {title}",
+      "overLabel": "Next case: {title}",
+      "first": "This is the first case",
+      "last": "This is the last case",
+      "position": "Case {index} of {total}"
+    }
+  },
+  "Hold": {
+    "instruction": "Press Enter to open the case study, or press and hold (or hold the space bar) to execute it.",
+    "executing": "Executing…",
+    "cancelled": "Execution cancelled.",
+    "attaching": "Attaching debugger…",
+    "opening": "Opening the {name} case study"
   }
 }

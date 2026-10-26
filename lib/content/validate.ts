@@ -1,4 +1,5 @@
 import type { ZodType } from "zod";
+import { buildCaseNav, type CaseNav } from "./cases";
 import {
   experienceSchema,
   experimentSchema,
@@ -30,6 +31,8 @@ export interface Content {
   experiments: Experiment[];
   /** Relación derivada del stack de cada proyecto: nadie la mantiene a mano. */
   projectsBySkill: Record<string, Project[]>;
+  /** Recorrido entre casos de estudio y `hasCaseStudy` por proyecto (derivados de `links.caseStudy`). */
+  caseNav: CaseNav;
 }
 
 export interface ValidateOptions {
@@ -140,5 +143,6 @@ export function validateContent(raw: RawContent, { caseExists }: ValidateOptions
     experience,
     experiments,
     projectsBySkill,
+    caseNav: buildCaseNav(projects),
   };
 }

@@ -26,13 +26,53 @@ export function PrototypeControls({ id }: { id: string }) {
   const [status, setStatus] = useState(id === "T11" ? "T11: el glitch se dispara con el botón" : "esperando el motor 3D…");
   const handle = useRef<Handle | null>(null);
   const progressRef = useRef(0);
+  const [mask, setMask] = useState(false);
 
   useEffect(() => {
     progressRef.current = progress;
   }, [progress]);
 
+  // T6: la superficie (gemelo de la tarjeta) se reproduce con `playT6`, sin navegar.
   useEffect(() => {
-    if (id === "T11") return;
+    if (id !== "T6") return;
+    if (variant === "canvas" && !ready) return;
+    let cancelled = false;
+    void (async () => {
+      const [t6mod, shared] = await Promise.all([import("@/motion/t6"), import("@/motion/shared")]);
+      if (cancelled) return;
+      const card = document.querySelector<HTMLElement>("[data-hold]");
+      const header = document.querySelector<HTMLElement>("[data-case-header]");
+      if (!card || !header) return;
+      handle.current?.destroy();
+      if (variant === "canvas") shared.armT6();
+      const playback = t6mod.playT6({
+        from: t6mod.rectOf(card),
+        to: t6mod.rectOf(header),
+        intensity: "full",
+        surface: variant === "canvas" ? "canvas" : "dom",
+        label: "Attaching debugger…",
+      });
+      playback.timeline.progress(progressRef.current);
+      handle.current = playback;
+      setStatus(`T6 · superficie ${variant === "canvas" ? "en el canvas (lente)" : "DOM (2D)"}`);
+    })();
+    return () => {
+      cancelled = true;
+      handle.current?.destroy();
+      handle.current = null;
+      void import("@/motion/shared").then((s) => s.disarmT6());
+    };
+  }, [id, variant, ready]);
+
+  useEffect(() => {
+    void import("@/motion/shared").then((s) => {
+      s.t6.maskView = mask;
+      s.t6.markDirty?.();
+    });
+  }, [mask]);
+
+  useEffect(() => {
+    if (id === "T11" || id === "T6") return;
     if (variant === "canvas" && !ready) return;
     let cancelled = false;
     void (async () => {
@@ -121,6 +161,12 @@ export function PrototypeControls({ id }: { id: string }) {
             <option value="reduced">reducida</option>
           </select>
         </label>
+        {id === "T6" ? (
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={mask} onChange={(e) => setMask(e.target.checked)} />
+            Ver máscara de la lente
+          </label>
+        ) : null}
         {id === "T11" ? (
           <button type="button" onClick={glitch} className="rounded border border-accent px-3 py-1">
             Glitch

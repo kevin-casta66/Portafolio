@@ -13,8 +13,9 @@ const idSchema = z
 const urlSchema = z.string().regex(/^https?:\/\//, "debe empezar por http:// o https://");
 
 export const SKILL_CATEGORIES = [
-  "frontend",
+  "ai",
   "backend",
+  "frontend",
   "cloud-devops",
   "data",
   "design",

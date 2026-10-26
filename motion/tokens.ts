@@ -26,6 +26,21 @@ export const duration = {
   sceneMax: 1800,
   /** Techo de cualquier glitch. */
   glitchMax: 300,
+  /** Hold-to-Execute: tiempo que hay que mantener pulsado (T6). */
+  hold: 800,
+  /** Una pulsación más corta que esto, sin desplazarse, es un clic normal. */
+  holdClick: 200,
+  /**
+   * Transición de página tarjeta → caso: completa (tras un hold) y corta (clic / Enter). Son el tiempo
+   * de las dos mitades (expansión + entrega); los techos de 1200 ms y 500 ms incluyen además las
+   * esperas de la navegación (~100 ms), de ahí el margen.
+   */
+  pageFull: 1100,
+  pageShort: 400,
+  /** Techo del fundido de movimiento reducido al abrir un caso. */
+  fadeMax: 200,
+  /** Cambio de tema: revelado circular desde el botón (T10). */
+  theme: 600,
 } as const;
 
 /** Retardo entre elementos, en milisegundos (rangos permitidos: char 30–40, item 60–80). */

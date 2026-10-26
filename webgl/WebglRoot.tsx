@@ -3,7 +3,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { appStore } from "@/lib/store";
-import { subscribeClock } from "@/motion/shared";
+import { subscribeClock, t6 } from "@/motion/shared";
 import { TEST_PARAM } from "@/motion/config";
 import { backendOf, forcedBackend, hasAnyBackend } from "./core/backend";
 import { Engine } from "./core/engine";
@@ -68,6 +68,8 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
     });
     engineRef.current = engine;
     const unregister = SCENE_DEFS.map((def) => engine.register(def));
+    // La capa de movimiento (T6) despierta al motor cuando arma o mueve la superficie de la transición.
+    t6.markDirty = () => engine.markDirty();
 
     // El render se suscribe al reloj único (prioridad 100: tras scroll, señales y animaciones).
     let stopClock: (() => void) | null = null;
@@ -146,6 +148,8 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
       unsubscribeClock();
       stopClock?.();
       uninstallVariants();
+      t6.markDirty = null;
+      t6.ready = false;
       unregister.forEach((fn) => fn());
       engine.destroy();
       engineRef.current = null;

@@ -19,6 +19,12 @@
 | `stagger-char` | 30–40 ms | Entre caracteres |
 | `stagger-item` | 60–80 ms | Entre elementos de lista |
 | `glitch-max` | < 300 ms | Techo de cualquier glitch |
+| `--hold-duration` | 800 ms | Hold-to-Execute (T6): tiempo que hay que mantener pulsado |
+| `--hold-click-max` | 200 ms | Una pulsación más corta, sin desplazarse, es un clic normal |
+| `--dur-page-full` | 1100 ms | Transición tarjeta → caso tras un hold: expansión + entrega (techo medido, con esperas de navegación: 1200 ms) |
+| `--dur-page-short` | 400 ms | Transición tarjeta → caso con clic / Enter: expansión + entrega (techo medido: 500 ms) |
+| `--dur-fade-max` | 200 ms | Fundido de movimiento reducido al abrir un caso |
+| `--dur-theme` | 600 ms | Cambio de tema: revelado circular desde el botón (T10) |
 
 ## 2. Catálogo T1–T11
 
@@ -37,7 +43,7 @@ Leyenda — **Disp.**: disparador (scroll / hold / clic / carga). **RM**: fallba
 | T7 | Cambio de layout Grid/Lista/Heap (RUNTIME) | clic | `--dur-ui` + `stagger-item` | `--ease-in-expo` | Flip de tarjetas; los gemelos 3D las siguen sin saltos | 03 (DOM) · 04 (gemelos) · 07 (modo Heap) | Cambio con fundido | Flip DOM sin gemelos |
 | T8 | Rasterización (RUNTIME→GPU) | scroll-scrub | `scene-scrub` | `--ease-scene` | Imagen del chip pixelada progresivamente (tamaño de píxel animado) hasta malla de vértices que se triangula en tiempo real | 04 (fallback DOM: 03) | Fundido entre imagen y malla estática | Rejilla de celdas SVG → malla de puntos y aristas |
 | T9 | Convergencia (GPU→DISPLAY) | scroll-scrub | `scene-scrub` | `--ease-scene` | Píxeles (partículas de compute) migran a la silueta del monitor; gradiente espectral al ensamblarse | 04 (fallback DOM: 03) | Monitor aparece con fundido y gradiente estático | Celdas SVG que convergen al marco del monitor |
-| T10 | Transiciones de UI (tema, filtros, menú) | clic | `--dur-ui` (tema: ≈ 600 ms) | `--ease-in-expo` | Tema con revelado circular desde el botón; filtros y menú con el componente de transición de vista de React (flag experimental de Next.js) | 05 | Cambio instantáneo / fundido | Sin soporte del navegador: GSAP Flip o cambio instantáneo |
+| T10 | Transiciones de UI (tema, filtros, menú) | clic | `--dur-ui` (tema: ≈ 600 ms) | `--ease-in-expo` | Tema con revelado circular desde el botón; filtros y menú con el componente `<ViewTransition>` de React (sin flag desde Next 16.4) | 05 | Cambio instantáneo / fundido | Sin soporte del navegador: GSAP Flip o cambio instantáneo |
 | T11 | Glitch SDF (cambio de fase y 404) | scroll (cambio de fase) / carga de la 404 | < 300 ms | `--ease-scene` | Desplazamiento de canales RGB y salto de offset en la textura SDF del título de fase | 04 (DOM: 03) | Sin glitch; solo cambio de color de fase | Capas duplicadas del título con `feColorMatrix`/`feOffset` |
 
 Reglas transversales (Brief §5): máx. 3 focos de animación simultáneos · solo `transform`, `opacity` y
@@ -52,7 +58,7 @@ Reglas transversales (Brief §5): máx. 3 focos de animación simultáneos · so
 | T3 | Curva de cada rama y mapa de intensidad del pulso de luz a lo largo del tubo |
 | T4 | Profundidad de los anillos del túnel (código de color por empleo) y posición de la cámara |
 | T5 | **Matriz Bayer** (umbral ordenado) como máscara en espacio de pantalla y el render target de la escena entrante bajo el barrido |
-| T6 | **Render target del gemelo de la tarjeta** y mapa de distorsión de lente (desplazamiento radial) + canales de aberración |
+| T6 | **Peso de la lente por píxel** (0 = centro limpio, 1 = borde; es la «vista de máscara» del prototipo) y la separación de los canales R/G/B de la aberración. La cara de la tarjeta es una SDF procedural: no hay render target que mostrar |
 | T7 | Rectángulos DOM de origen y destino y los planos gemelos que los siguen |
 | T8 | **Mapa de tamaño de píxel** (mosaico) y la malla de vértices antes y después de triangular |
 | T9 | **Posiciones objetivo** de las partículas (silueta del monitor muestreada) y su campo de velocidad |

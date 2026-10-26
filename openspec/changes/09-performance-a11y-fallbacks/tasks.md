@@ -17,23 +17,23 @@
 ## 3. Cadena de fallbacks gráficos
 
 - [ ] 3.1 Crear un `PhaseIllustration` SVG/CSS por fase (SOURCE, LEXER, PARSER, BYTECODE, RUNTIME, GPU, DISPLAY) y para `/heap`, con tokens y ambos temas; verificar visualmente en tema claro y oscuro
-- [ ] 3.2 Detectar disponibilidad del backend de nueva generación y de WebGL2 antes del import dinámico y cachear el resultado; verificar con WebGL desactivado que el chunk 3D no se solicita
+- [ ] 3.2 Detectar disponibilidad del backend de nueva generación y de WebGL2 antes del import dinámico y cachear el resultado; verificar con WebGL desactivado que el chunk 3D no se solicita; reutilizar `webgl/core/backend.ts` del change 04 en vez de duplicar la detección
 - [ ] 3.3 Forzar el backend WebGL2 (flag de depuración) y comparar el contenido DOM y las escenas de cada fase con el backend de nueva generación; verificar que no hay diferencias de contenido y que el Modo Debug muestra el backend activo
 - [ ] 3.4 Conectar hover de tarjetas de proyecto con el resaltado del núcleo en el chip 2D; verificar sin WebGL
-- [ ] 3.5 Manejar la pérdida y restauración del contexto/dispositivo cambiando a fallback y restaurando; verificar forzando la pérdida (fallback < 1 s)
+- [ ] 3.5 Manejar la pérdida y restauración del contexto/dispositivo cambiando a fallback y restaurando; verificar forzando la pérdida (fallback < 1 s); partir del reintento único con `await renderer.dispose()` del change 04 y verificar que nunca hay dos contextos vivos (`liveContexts()` de `webgl/dispose.ts`)
 - [ ] 3.6 Pasar a `fallback2d` en sesión si fps < 30 durante 3 s en tier bajo; verificar con CPU throttling 6× y Modo Debug
 
 ## 4. Presupuestos de rendimiento
 
-- [ ] 4.1 Crear `scripts/check-bundle.ts` que sume el gzip del JS de primer render por ruta (home, caso, `/heap`, `/motion`) y falle si ≥ 180 KB o incluye librerías 3D/animación diferibles; verificar ejecutándolo sobre `next build`
+- [ ] 4.1 Crear `scripts/check-bundle.ts` que sume el gzip del JS de primer render por ruta (home, caso, `/heap`, `/motion`) y falle si ≥ 180 KB o incluye librerías 3D/animación diferibles; verificar ejecutándolo sobre `next build`; usar el mismo criterio de medición que el change 04 (gzip nivel 9 de los scripts `/_next/static` del HTML) y anotar la línea base de 249,7 KB
 - [ ] 4.2 Diferir la carga de GSAP, Lenis, el motor 3D y las escenas a después del LCP; verificar en la línea de tiempo de red que esas peticiones empiezan tras el evento LCP
 - [ ] 4.3 Auditar handlers de interacción (filtros, AST, Hold-to-Execute, Run GC, drag del Heap, terminal, formulario) y mover a GPU o worker todo trabajo > 50 ms; verificar en el panel Performance que no quedan long tasks en esas interacciones
 - [ ] 4.4 Medir INP en filtros, AST, Hold-to-Execute, `/heap`, terminal y formulario con Web Vitals en consola; verificar < 200 ms en móvil emulado
 - [ ] 4.5 Revisar Lenis y pins: sin bloqueo de wheel/touch, retroceso libre, teclado (PageDown, Inicio/Fin) y Call Stack funcionando durante pins; verificar manualmente en escritorio y móvil
 - [ ] 4.6 Crear script local que recorra las fases en cada tier y lea draw calls y partículas del Modo Debug; verificar < 100 draw calls por escena activa y partículas ≤ 200k/50k/0
-- [ ] 4.7 Migrar imágenes a AVIF/WebP con `sizes` y dimensiones reservadas, vídeos a WebM/MP4 con póster y reproducción solo en viewport, y texturas a formato comprimido; verificar en Network con viewport de 390 px
+- [ ] 4.7 Migrar imágenes a AVIF/WebP con `sizes` y dimensiones reservadas, vídeos a WebM/MP4 con póster y reproducción solo en viewport, y texturas a formato comprimido; verificar en Network con viewport de 390 px; incluye el pendiente 5.6 del change 04 (conversión KTX2 con `toktx`)
 - [ ] 4.8 Configurar fuentes locales con subset, precarga y fallback ajustado; verificar cero peticiones a terceros y CLS de fuentes ≈ 0
-- [ ] 4.9 Limitar DPR a 2 en el canvas; verificar con emulación de DPR 3 en Modo Debug
+- [ ] 4.9 Comprobar que se mantiene el límite de DPR a 2 implementado en el change 04 (`dpr={[1, 2]}` en `webgl/WebglRoot.tsx`); verificar con emulación de DPR 3 en Modo Debug que `renderer.getPixelRatio()` devuelve 2
 - [ ] 4.10 Ejecutar Lighthouse móvil local en `/es`, `/en`, un caso, `/heap` y `/motion` con todas las capas activas; verificar Perf ≥ 90, A11y/BP/SEO = 100, LCP < 2,5 s, CLS < 0,05 y guardar los informes en `docs/perf/`
 - [ ] 4.11 Medir fps en recorrido completo en escritorio de referencia con cada backend; verificar mediana ≥ 58 y documentar en `docs/perf/`
 
@@ -44,7 +44,7 @@
 - [ ] 5.3 Asegurar gestión de foco en terminal, ayuda de atajos y diálogos (atrapar, Escape, retorno de foco); verificar con teclado
 - [ ] 5.4 Implementar patrón ARIA `tree` en el AST, cuadrícula navegable con flechas en `/heap` y controles operables por teclado en `/motion` (Replay, velocidad, interruptor de máscara); verificar con teclado y NVDA
 - [ ] 5.5 Exponer el progreso de Hold-to-Execute de forma accesible (Enter abre, mantener Espacio ejecuta, anuncio al completar); verificar con NVDA
-- [ ] 5.6 Marcar el canvas como `aria-hidden`, comprobar que todo dato de escena y todo texto MSDF tiene equivalente DOM; verificar con NVDA en RUNTIME, GPU y títulos de fase
+- [ ] 5.6 Marcar el canvas como `aria-hidden`, comprobar que todo dato de escena y todo texto MSDF tiene equivalente DOM; verificar con NVDA en RUNTIME, GPU y títulos de fase; cubre los pendientes 4.2 y 7.2 del change 04 (texto MSDF y controles del shader generativo con lector de pantalla real)
 - [ ] 5.7 Añadir regiones vivas en terminal, resultado del formulario y avisos de logros (educadas, sin robar foco); verificar anuncios con NVDA
 - [ ] 5.8 Medir contraste de todos los tokens de texto, acentos y texto sobre liquid glass (Call Stack, terminal, lente del Heap) en ambos temas sobre el fondo más desfavorable y ajustar la opacidad de fondo donde falle; verificar con script de contraste
 - [ ] 5.9 Crear script local de auditoría axe sobre página (home, caso, 404, `/heap`, `/motion`) × tema × locale × modo; verificar cero violaciones
