@@ -103,6 +103,16 @@
       "label": "Layout",
       "grid": "Grid",
       "list": "List"
+    },
+    "chip": {
+      "label": "Process chip",
+      "help": "Each core on the chip is a project. Hover, focus or tap a core to see its quick card.",
+      "core": "{name}, PID {pid}",
+      "status": "Status",
+      "stack": "Stack",
+      "metric": "Metric",
+      "close": "Close card",
+      "open": "Show card for {name}"
     }
   },
   "Gpu": {
@@ -110,7 +120,55 @@
     "intro": "Experiments that showcase pure technical skill.",
     "viewCode": "</> View code",
     "viewExperiment": "← View experiment",
-    "codeRegion": "Code of {name}"
+    "codeRegion": "Code of {name}",
+    "pipeline": {
+      "label": "Graphics pipeline",
+      "intro": "The same chip you saw above, walked through a GPU pipeline: the vertex mesh joins into triangles, gets rasterized and ends up as pixels.",
+      "stage": "Stage",
+      "vertices": "Vertices",
+      "verticesBody": "Points of the chip mesh.",
+      "triangles": "Triangles",
+      "trianglesBody": "Vertices join into faces.",
+      "raster": "Rasterization",
+      "rasterBody": "Each triangle becomes fragments.",
+      "pixels": "Pixels",
+      "pixelsBody": "Shaded fragments make up the image."
+    },
+    "lab": {
+      "controls": {
+        "scale": "Scale",
+        "speed": "Speed",
+        "warp": "Warp",
+        "gravity": "Gravity",
+        "bounce": "Bounce",
+        "metric": "Metric",
+        "order": "Order",
+        "strength": "Strength",
+        "radius": "Radius"
+      },
+      "options": {
+        "years": "Years of experience",
+        "projects": "Projects",
+        "alphabetical": "Alphabetical",
+        "value": "By value"
+      },
+      "stage": {
+        "shader": "Generative shader stage",
+        "physics": "Physics simulation stage",
+        "dataviz": "Data visualization stage",
+        "microinteraction": "Micro-interaction stage"
+      },
+      "help": {
+        "shader": "Adjust the controls below; the noise field changes instantly.",
+        "physics": "Drag the bodies with the pointer or your finger. With focus on the stage: arrow keys give an impulse and R resets.",
+        "dataviz": "Hover the bars or change the metric and order with the controls.",
+        "microinteraction": "Move the pointer (or your finger) over the grid; with focus, arrow keys move the magnet and R recenters it."
+      },
+      "readout": "{label}: {value}",
+      "reading": "Reading",
+      "live": "Live experiment",
+      "paused": "Experiment paused on this device; the image is shown."
+    }
   },
   "Display": {
     "title": "Contact",

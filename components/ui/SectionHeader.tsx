@@ -21,6 +21,7 @@ export function SectionHeader({ id, phase, title, intro, size = "default" }: Sec
       <h2
         id={`${id}-title`}
         tabIndex={-1}
+        data-msdf="title"
         className={
           size === "dominant"
             ? "mt-2 font-display text-display font-semibold leading-none"

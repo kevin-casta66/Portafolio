@@ -37,13 +37,16 @@ export function createBootRegistry(): BootRegistry {
       const entry: BootTrack = { id, done: false, value };
       list = [...list, entry];
       emit();
-      const finish = () => {
+      const finish = (result?: unknown) => {
+        // Si no se pasó un valor y la promesa resuelve a uno mostrable (p. ej. el tier de GPU), se usa ese.
+        if (entry.value === undefined && (typeof result === "string" || typeof result === "number"))
+          entry.value = result;
         entry.done = true;
         list = [...list];
         emit();
       };
       // Un recurso que falla también «termina»: el arranque no debe colgarse por él.
-      promise.then(finish, finish);
+      promise.then(finish, () => finish());
     },
     tracks: () => list,
     progress: () => (list.length === 0 ? 1 : list.filter((t) => t.done).length / list.length),

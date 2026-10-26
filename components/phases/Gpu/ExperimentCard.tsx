@@ -3,13 +3,19 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
+import type { ExperimentKind } from "@/webgl/lab/definitions";
+import { ExperimentControls } from "./ExperimentControls";
+import { ExperimentStage } from "./ExperimentStage";
 
 interface ExperimentCardProps {
+  id: string;
+  kind: ExperimentKind;
+  dataset?: { label: string; years: number; projects: number }[] | undefined;
   name: string;
   summary: string;
   image: string;
   alt: string;
-  code: string;
+  codeTokens: { content: string; color: string }[][];
 }
 
 /**
@@ -19,7 +25,7 @@ interface ExperimentCardProps {
  * cara oculta queda `inert` (ni tabulable ni leída por lectores de pantalla). Con movimiento
  * reducido no hay giro: fundido entre caras.
  */
-export function ExperimentCard({ name, summary, image, alt, code }: ExperimentCardProps) {
+export function ExperimentCard({ id, kind, dataset, name, summary, image, alt, codeTokens }: ExperimentCardProps) {
   const t = useTranslations("Gpu");
   const [flipped, setFlipped] = useState(false);
   const codeId = useId();
@@ -61,6 +67,8 @@ export function ExperimentCard({ name, summary, image, alt, code }: ExperimentCa
               unoptimized={image.endsWith(".svg")}
               className="size-full object-cover text-fg-muted"
             />
+            {/* Escenario interactivo: el canvas 3D dibuja aquí; sin 3D se ve la imagen de arriba */}
+            <ExperimentStage id={id} kind={kind} dataset={dataset} />
             <button
               ref={frontButton}
               type="button"
@@ -82,9 +90,20 @@ export function ExperimentCard({ name, summary, image, alt, code }: ExperimentCa
               id={codeId}
               tabIndex={0}
               aria-label={t("codeRegion", { name })}
-              className="absolute inset-0 overflow-auto p-4 pb-16 font-mono text-sm text-syntax-string"
+              className="absolute inset-0 overflow-auto p-4 pb-16 font-mono text-sm"
             >
-              <code>{code}</code>
+              <code>
+                {codeTokens.map((line, i) => (
+                  <span key={i} className="block">
+                    {line.map((token, j) => (
+                      <span key={j} style={{ color: token.color }}>
+                        {token.content}
+                      </span>
+                    ))}
+                    {line.length === 0 ? " " : null}
+                  </span>
+                ))}
+              </code>
             </pre>
             <button
               ref={backButton}
@@ -102,7 +121,8 @@ export function ExperimentCard({ name, summary, image, alt, code }: ExperimentCa
 
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-xl font-semibold">{name}</h3>
-        <p className="mt-2 flex-1 text-fg-muted">{summary}</p>
+        <p className="mt-2 text-fg-muted">{summary}</p>
+        <ExperimentControls id={id} kind={kind} />
       </div>
     </article>
   );

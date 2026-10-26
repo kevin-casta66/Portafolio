@@ -18,6 +18,15 @@ const colorRules = [HEX, COLOR_FN].flatMap((re) => [
   },
 ]);
 
+// Sin GLSL: todo shader es TSL (NodeMaterial). `ShaderMaterial` y `onBeforeCompile` no funcionan con WebGPURenderer.
+const GLSL_MESSAGE = "GLSL prohibido: escribe el shader en TSL (webgl/nodes) con NodeMaterial.";
+const glslRules = [
+  { selector: "ImportSpecifier[imported.name=/^(ShaderMaterial|RawShaderMaterial)$/]", message: GLSL_MESSAGE },
+  { selector: "MemberExpression[property.name=/^(ShaderMaterial|RawShaderMaterial|onBeforeCompile)$/]", message: GLSL_MESSAGE },
+  { selector: "NewExpression[callee.name=/^(ShaderMaterial|RawShaderMaterial)$/]", message: GLSL_MESSAGE },
+  { selector: "Property[key.name='onBeforeCompile']", message: GLSL_MESSAGE },
+];
+
 // Movimiento: easings, duraciones y bucles de frame solo existen dentro de `motion/` (tokens, reloj).
 const motionRules = [
   {
@@ -50,12 +59,17 @@ const motionRules = [
   },
 ];
 
+// Las timelines de las transiciones en canvas usan unidades de PROGRESO (0..1), no segundos: pueden
+// llevar duraciones y easings propios, pero nunca su propio bucle de frame.
+const frameRules = motionRules.filter((rule) => rule.selector.includes("requestAnimationFrame"));
+
 export default defineConfig([
   ...nextCoreWebVitals,
   ...nextTypescript,
-  { rules: { "no-restricted-syntax": ["error", ...colorRules, ...motionRules] } },
+  { rules: { "no-restricted-syntax": ["error", ...colorRules, ...motionRules, ...glslRules] } },
   // Dentro de motion/ sí pueden vivir duraciones, curvas y el bucle de frame; los colores, no.
-  { files: ["motion/**"], rules: { "no-restricted-syntax": ["error", ...colorRules] } },
+  { files: ["motion/**"], rules: { "no-restricted-syntax": ["error", ...colorRules, ...glslRules] } },
+  { files: ["webgl/transitions/**"], rules: { "no-restricted-syntax": ["error", ...colorRules, ...frameRules, ...glslRules] } },
   {
     files: ["motion/tokens.ts", "**/*.test.ts", "**/*.test.tsx"],
     rules: { "no-restricted-syntax": "off" },

@@ -72,7 +72,9 @@ export interface AppState {
   sound: { enabled: boolean; gateChoice: GateChoice | null };
   debug: boolean;
   quickView: boolean;
-  graphics: { tier: QualityTier; backend: GraphicsBackend };
+  graphics: { tier: QualityTier; backend: GraphicsBackend; ready: boolean };
+  /** Escenas 3D renderizándose ahora mismo (las publica el motor del change 04). */
+  scenes: { active: string[]; drawCalls: Record<string, number> };
   achievements: string[];
   /** `true` cuando la puerta de arranque (T1) terminó (o no se mostró): el hero puede empezar a teclear. */
   bootDone: boolean;
@@ -86,6 +88,11 @@ export interface AppState {
   setQuickView: (quickView: boolean) => void;
   setTier: (tier: QualityTier) => void;
   setBackend: (backend: GraphicsBackend) => void;
+  /** `true` cuando el canvas 3D terminó de cargar y registró sus escenas. */
+  setCanvasReady: (ready: boolean) => void;
+  setActiveScenes: (active: string[]) => void;
+  /** Draw calls por escena activa (los publica el motor 3D, como mucho cada 500 ms). */
+  setDrawCalls: (drawCalls: Record<string, number>) => void;
   /** Devuelve `true` solo la primera vez que se desbloquea el logro. */
   unlockAchievement: (id: string) => boolean;
   /**
@@ -101,7 +108,7 @@ export const DEFAULT_STATE = {
   sound: { enabled: false, gateChoice: null },
   debug: false,
   quickView: false,
-  graphics: { tier: "auto", backend: "pending" },
+  graphics: { tier: "auto", backend: "pending", ready: false },
   achievements: [],
   bootDone: false,
 } as const satisfies Partial<AppState>;
@@ -114,6 +121,7 @@ export function createAppStore(storages: Storages = browserStorages) {
     debug: DEFAULT_STATE.debug,
     quickView: DEFAULT_STATE.quickView,
     graphics: { ...DEFAULT_STATE.graphics },
+    scenes: { active: [], drawCalls: {} },
     achievements: [],
     bootDone: DEFAULT_STATE.bootDone,
 
@@ -132,6 +140,14 @@ export function createAppStore(storages: Storages = browserStorages) {
     setQuickView: (quickView) => set({ quickView }),
     setTier: (tier) => set((s) => ({ graphics: { ...s.graphics, tier } })),
     setBackend: (backend) => set((s) => ({ graphics: { ...s.graphics, backend } })),
+    setCanvasReady: (ready) => set((s) => ({ graphics: { ...s.graphics, ready } })),
+    setActiveScenes: (active) =>
+      set((s) =>
+        s.scenes.active.length === active.length && s.scenes.active.every((id, i) => id === active[i])
+          ? s
+          : { scenes: { ...s.scenes, active } },
+      ),
+    setDrawCalls: (drawCalls) => set((s) => ({ scenes: { ...s.scenes, drawCalls } })),
     unlockAchievement: (id) => {
       if (get().achievements.includes(id)) return false;
       const achievements = [...get().achievements, id];

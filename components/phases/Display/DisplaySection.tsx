@@ -21,7 +21,10 @@ export async function DisplaySection() {
       <div className="grid-12">
         <SectionHeader id="display" phase="DISPLAY" title={t("title")} intro={t("intro")} />
 
-        <div className="col-span-12 lg:col-span-7">
+        {/* Gemelo del monitor: el canvas dibuja su marco alrededor del formulario (sin cubrirlo).
+            mb-24 reserva el bisel + la peana (88 px, webgl/objects/monitor.ts) para que no tapen
+            el contenido de debajo. */}
+        <div data-twin="monitor" className="col-span-12 mb-24 lg:col-span-7">
           <ContactForm alternativeEmail={profile.email} />
         </div>
 

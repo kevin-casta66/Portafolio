@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { content } from "@/lib/content";
+import { byRecency } from "@/lib/content/experience-order";
 
 /** BYTECODE — experiencia. Cada etapa es una función; cada logro, una instrucción + texto humano. */
 export async function BytecodeSection() {
@@ -11,7 +12,7 @@ export async function BytecodeSection() {
   const format = (value: string) => month.format(new Date(`${value}-01T00:00:00`));
 
   // Orden cronológico inverso: lo más reciente primero.
-  const stages = [...content.experience].sort((a, b) => b.start.localeCompare(a.start));
+  const stages = byRecency(content.experience);
 
   return (
     <section
@@ -28,6 +29,7 @@ export async function BytecodeSection() {
             <li
               key={stage.id}
               data-anim="function"
+              data-stage-id={stage.id}
               className="rounded-lg border border-border bg-surface p-5 sm:p-8"
             >
               <h3 className="font-mono text-lg font-medium text-accent break-words sm:text-xl">

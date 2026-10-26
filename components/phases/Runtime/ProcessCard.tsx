@@ -31,6 +31,7 @@ export async function ProcessCard({
       tabIndex={-1}
       aria-labelledby={titleId}
       data-anim="process-card"
+      data-twin={`card:${project.slug}`}
       data-status={project.status}
       data-stack={project.stack.join(" ")}
       className="relative scroll-mt-24 overflow-hidden rounded-lg border border-border bg-surface "

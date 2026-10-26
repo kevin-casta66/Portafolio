@@ -39,6 +39,7 @@ export async function SourceSection() {
           <h1
             id="source-title"
             tabIndex={-1}
+            data-msdf="title"
             data-anim="name"
             className="mt-5 font-display text-display font-semibold leading-none"
           >

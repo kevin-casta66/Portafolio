@@ -11,6 +11,7 @@ import { Flip, Observer, ScrollTrigger, SplitText, gsap, registerGsap } from "./
 import { onPhaseChange, phaseState } from "./phase-state";
 import { startPhaseTracking } from "./phase-runtime";
 import { hasFinePointer, isCompact, onReducedMotionChange, prefersReducedMotion } from "./reduced";
+import { canvasState, publishClock, setCanvasVariant } from "./shared";
 import { createSmoothScroll, type SmoothScroll } from "./smooth-scroll";
 import { createTransitionController, type TransitionController } from "./transitions/controller";
 import type { TransitionContext, TransitionDef } from "./transitions/contract";
@@ -75,6 +76,7 @@ declare global {
 export function startMotionRuntime(): MotionRuntime {
   registerGsap();
   const clock = createClock(gsap.ticker);
+  publishClock(clock);
   let reduced = prefersReducedMotion();
   let smooth: SmoothScroll | null = null;
   let unmountPage: (() => void) | null = null;
@@ -107,7 +109,9 @@ export function startMotionRuntime(): MotionRuntime {
       compact: isCompact(),
       finePointer: hasFinePointer(),
       clock,
-      transitionsOn: motionConfig.transitions && hasHome,
+      // Las rutas de prototipos (change 04) recorren una transición con un control manual, no con el scroll.
+      transitionsOn:
+        motionConfig.transitions && hasHome && !document.querySelector("[data-transition-prototype]"),
       onCleanup: (fn) => cleanups.push(fn),
     };
     const scope = gsap.context(() => {
@@ -118,7 +122,10 @@ export function startMotionRuntime(): MotionRuntime {
     const stopGlitch = onPhaseChange((phase) => {
       if (reduced) return;
       const title = document.getElementById(`${phase}-title`);
-      if (title) glitchTitle(title);
+      if (!title) return;
+      // Con el gemelo MSDF activo el glitch lo hace el canvas (T11 canvas); el DOM queda de respaldo.
+      if (canvasState.glitch?.(title)) return;
+      glitchTitle(title);
     });
 
     // Transiciones scrubbed: se montan con el layout estable (fuentes cargadas).
@@ -129,19 +136,17 @@ export function startMotionRuntime(): MotionRuntime {
     let lastReplay: TransitionHandle | null = null;
     const params = new URLSearchParams(window.location.search);
     const testMode = params.has(TEST_PARAM);
-    if (testMode) {
-      // Variante «canvas» de prueba para T2 (copia de la DOM): permite verificar el cambio en caliente.
-      defs[0] = {
-        ...defs[0]!,
-        variants: { ...defs[0]!.variants, canvas: (c) => defs[0]!.variants.dom!(c) },
-      };
-    }
+    const t2 = TRANSITIONS.find((d) => d.id === "T2");
+    // Prueba (change 03): sin motor 3D real, `setCanvasReady` simula una variante «canvas» de T2 (copia de la DOM).
+    const installStubCanvas = () => {
+      if (testMode && t2 && !t2.variants.canvas) setCanvasVariant("T2", (c) => t2.variants.dom!(c));
+    };
     if (ctx.transitionsOn) {
       void document.fonts.ready.then(() => {
         if (cancelled || destroyed) return;
         controller = createTransitionController(defs, tctx, attachScrollTrigger, {
           reducedMotion: reduced,
-          canvasReady: false,
+          canvasReady: appStore.getState().graphics.ready,
           tier: appStore.getState().graphics.tier,
           backend: appStore.getState().graphics.backend,
         });
@@ -152,6 +157,16 @@ export function startMotionRuntime(): MotionRuntime {
     } else {
       document.documentElement.dataset.motionReady = "true";
     }
+
+    // El motor 3D (change 04) publica backend, tier y «listo» en el store: la variante se reevalúa.
+    const syncGraphics = () => {
+      const { tier, backend, ready } = appStore.getState().graphics;
+      controller?.setInputs({ canvasReady: ready, tier, backend });
+    };
+    const stopGraphics = appStore.subscribe((state, prev) => {
+      if (state.graphics !== prev.graphics) syncGraphics();
+    });
+    cleanups.push(stopGraphics);
 
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     const onResize = () => {
@@ -168,6 +183,7 @@ export function startMotionRuntime(): MotionRuntime {
         progressOf: (id) => controller?.progressOf(id),
         setCanvasReady: (ready) => {
           testCanvasReady = ready;
+          if (ready) installStubCanvas();
           controller?.setInputs({
             canvasReady: ready,
             backend: ready ? "webgpu" : "pending",
@@ -270,6 +286,7 @@ export function startMotionRuntime(): MotionRuntime {
       stopVelocity();
       smooth?.destroy();
       disposers.forEach((d) => d());
+      publishClock(null);
       clock.destroy();
       ScrollTrigger.getAll().forEach((t) => t.kill());
     },

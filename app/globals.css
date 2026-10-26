@@ -357,3 +357,31 @@ html.boot-pending::before {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   }
 }
+
+/* Canvas 3D persistente (change 04): decorativo, por encima del contenido pero por debajo de la cabecera y la puerta */
+.webgl-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Título cubierto por su gemelo MSDF: el texto real sigue en el DOM (accesible, con su foco) pero no se pinta dos veces */
+.msdf-covered {
+  color: transparent;
+}
+
+/* Resaltado de código (Shiki con tema de variables CSS): todo sale de los tokens del sistema de diseño */
+:root {
+  --shiki-foreground: var(--text);
+  --shiki-background: transparent;
+  --shiki-token-keyword: var(--syntax-keyword);
+  --shiki-token-string: var(--syntax-string);
+  --shiki-token-string-expression: var(--syntax-string);
+  --shiki-token-constant: var(--syntax-type);
+  --shiki-token-function: var(--syntax-type);
+  --shiki-token-parameter: var(--text);
+  --shiki-token-punctuation: var(--syntax-punct);
+  --shiki-token-comment: var(--text-muted);
+  --shiki-token-link: var(--accent);
+}

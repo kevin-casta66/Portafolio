@@ -27,7 +27,10 @@ export function NotFoundMotion() {
       ]);
       if (cancelled) return;
       registerGsap();
-      const glitch = title ? glitchTitle(title) : null;
+      // T11: con el canvas 3D listo el glitch lo hace el título MSDF; si no, la versión DOM.
+      const { canvasState } = await import("@/motion/shared");
+      const byCanvas = title ? (canvasState.glitch?.(title) ?? false) : false;
+      const glitch = title && !byCanvas ? glitchTitle(title) : null;
 
       let tween: gsap.core.Tween | undefined;
       if (pre && full) {

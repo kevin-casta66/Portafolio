@@ -31,6 +31,7 @@ export default async function NotFound() {
         </p>
         <h1
           id="not-found-title"
+          data-msdf="title"
           className="mt-2 font-display text-3xl font-semibold leading-tight sm:text-4xl"
         >
           {t("title")}

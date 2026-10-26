@@ -103,6 +103,16 @@
       "label": "Disposición",
       "grid": "Cuadrícula",
       "list": "Lista"
+    },
+    "chip": {
+      "label": "Chip de procesos",
+      "help": "Cada núcleo del chip es un proyecto. Pasa el puntero, enfoca o toca un núcleo para ver su ficha rápida.",
+      "core": "{name}, PID {pid}",
+      "status": "Estado",
+      "stack": "Stack",
+      "metric": "Métrica",
+      "close": "Cerrar ficha",
+      "open": "Ver ficha de {name}"
     }
   },
   "Gpu": {
@@ -110,7 +120,55 @@
     "intro": "Experimentos que demuestran habilidad técnica pura.",
     "viewCode": "</> Ver código",
     "viewExperiment": "← Ver experimento",
-    "codeRegion": "Código de {name}"
+    "codeRegion": "Código de {name}",
+    "pipeline": {
+      "label": "Pipeline gráfico",
+      "intro": "El mismo chip que ves arriba, recorrido por el pipeline de una GPU: la malla de vértices se une en triángulos, se rasteriza y termina en píxeles.",
+      "stage": "Etapa",
+      "vertices": "Vértices",
+      "verticesBody": "Puntos de la malla del chip.",
+      "triangles": "Triángulos",
+      "trianglesBody": "Los vértices se unen en caras.",
+      "raster": "Rasterización",
+      "rasterBody": "Cada triángulo se convierte en fragmentos.",
+      "pixels": "Píxeles",
+      "pixelsBody": "Los fragmentos sombreados forman la imagen."
+    },
+    "lab": {
+      "controls": {
+        "scale": "Escala",
+        "speed": "Velocidad",
+        "warp": "Distorsión",
+        "gravity": "Gravedad",
+        "bounce": "Rebote",
+        "metric": "Métrica",
+        "order": "Orden",
+        "strength": "Intensidad",
+        "radius": "Radio"
+      },
+      "options": {
+        "years": "Años de experiencia",
+        "projects": "Proyectos",
+        "alphabetical": "Alfabético",
+        "value": "Por valor"
+      },
+      "stage": {
+        "shader": "Escenario del shader generativo",
+        "physics": "Escenario de la simulación física",
+        "dataviz": "Escenario de la visualización de datos",
+        "microinteraction": "Escenario de la micro-interacción"
+      },
+      "help": {
+        "shader": "Ajusta los controles de abajo; el campo de ruido cambia al instante.",
+        "physics": "Arrastra los cuerpos con el puntero o el dedo. Con el foco en el escenario: flechas para dar un impulso y R para reiniciar.",
+        "dataviz": "Pasa el puntero por las barras o cambia la métrica y el orden con los controles.",
+        "microinteraction": "Mueve el puntero (o el dedo) sobre la rejilla; con el foco, las flechas desplazan el imán y R lo centra."
+      },
+      "readout": "{label}: {value}",
+      "reading": "Lectura",
+      "live": "Experimento en vivo",
+      "paused": "Experimento en pausa en este dispositivo; se muestra la imagen."
+    }
   },
   "Display": {
     "title": "Contacto",

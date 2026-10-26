@@ -35,7 +35,7 @@ describe("store global", () => {
     expect(s.sound).toEqual({ enabled: false, gateChoice: null });
     expect(s.debug).toBe(false);
     expect(s.quickView).toBe(false);
-    expect(s.graphics).toEqual({ tier: "auto", backend: "pending" });
+    expect(s.graphics).toEqual({ tier: "auto", backend: "pending", ready: false });
     expect(s.achievements).toEqual([]);
   });
 

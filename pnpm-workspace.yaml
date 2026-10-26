@@ -1,0 +1,2 @@
+overrides:
+  "@react-three/drei>stats-gl": 4.2.3

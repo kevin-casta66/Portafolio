@@ -103,6 +103,14 @@ export function BootGate({ projectCount }: { projectCount: number }) {
       controller.registry.track("skills", Promise.resolve());
       controller.registry.track("projects", preloadCriticalMedia(), projectCount);
       controller.registry.track("fonts", document.fonts.ready);
+      // Detección de GPU real (change 04): máx. 1,5 s; si no responde se aplica el tier medio.
+      controller.registry.track(
+        "gpu",
+        import("@/webgl/detect").then(async (m) => {
+          const detection = await m.detectTier();
+          return m.TIER_NUMBER[detection.tier];
+        }),
+      );
     }
     const mode = controller.start({ pathname, search, hash, visitedThisSession: visited });
     if (mode === "off") {

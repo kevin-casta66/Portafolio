@@ -8,6 +8,7 @@ import { BootGateLoader } from "@/components/phases/Boot/BootGateLoader";
 import { Header } from "@/components/systems/Header";
 import { MotionLoader } from "@/components/systems/MotionLoader";
 import { StoreHydrator } from "@/components/systems/StoreHydrator";
+import { WebglLoader } from "@/components/systems/WebglLoader";
 import { routing } from "@/i18n/routing";
 import { content } from "@/lib/content";
 import { motionScript } from "@/lib/motion-script";
@@ -58,6 +59,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           </footer>
           <StoreHydrator />
           <MotionLoader />
+          <WebglLoader />
         </NextIntlClientProvider>
       </body>
     </html>
