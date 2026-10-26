@@ -1,0 +1,178 @@
+{
+  "Metadata": {
+    "title": "COMPILE — Portafolio de desarrollador",
+    "description": "El viaje de una línea de código: portafolio de un desarrollador."
+  },
+  "Layout": {
+    "skipToContent": "Saltar al contenido",
+    "mainNavigation": "Accesos principales",
+    "footerNote": "Programa finalizado con código de salida 0"
+  },
+  "Header": {
+    "home": "Ir al inicio",
+    "downloadCv": "Descargar CV",
+    "quickView": "Vista Rápida",
+    "quickViewSoon": "Disponible próximamente",
+    "language": "Idioma",
+    "switchTo": "{code}: cambiar idioma a {language}",
+    "themeToLight": "Cambiar a tema claro",
+    "themeToDark": "Cambiar a tema oscuro"
+  },
+  "Home": {
+    "projectsHeading": "Proyectos",
+    "placeholderNotice": "Contenido de ejemplo: sustitúyelo por tus datos en /content."
+  },
+  "Hero": {
+    "eyebrow": "SOURCE",
+    "ctaProjects": "Ver proyectos",
+    "ctaCv": "Descargar CV",
+    "unavailable": "No disponible por ahora",
+    "codeLabel": "Línea de código de ejemplo",
+    "editorFile": "main.ts"
+  },
+  "Lexer": {
+    "title": "Sobre mí",
+    "intro": "El analizador léxico clasifica cada token de mi biografía.",
+    "lanes": {
+      "keyword": "keyword",
+      "identifier": "identifier",
+      "string": "string",
+      "number": "number"
+    },
+    "laneHints": {
+      "keyword": "quién soy",
+      "identifier": "cómo me llamo y dónde estoy",
+      "string": "lo que me motiva",
+      "number": "datos"
+    },
+    "inferredType": "Tipo inferido: {type}",
+    "tooltipHelp": "Pasa el cursor, enfoca o toca un token para ver su tipo inferido."
+  },
+  "Parser": {
+    "title": "Habilidades",
+    "intro": "Un árbol de sintaxis donde cada hoja es una tecnología respaldada por proyectos reales.",
+    "treeLabel": "Árbol de habilidades",
+    "root": "Developer",
+    "years": "{count, plural, one {# año} other {# años}}",
+    "projects": "{count, plural, one {# proyecto} other {# proyectos}}",
+    "levels": {
+      "daily": "Uso diario",
+      "production": "Producción",
+      "exploring": "Exploración"
+    },
+    "categories": {
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "cloud-devops": "Cloud/DevOps",
+      "data": "Datos",
+      "design": "Diseño",
+      "soft-skills": "Soft skills"
+    },
+    "relatedHeading": "Proyectos que usan {skill}",
+    "clearSelection": "Quitar selección",
+    "selectHint": "Selecciona una tecnología para ver los proyectos que la demuestran. Usa las flechas, Inicio y Fin para moverte; Escape quita la selección."
+  },
+  "Bytecode": {
+    "title": "Experiencia",
+    "intro": "Cada etapa es una función compilada; cada logro, una instrucción.",
+    "registers": "Registros",
+    "registersHint": "Stack usado en esta etapa",
+    "instructions": "Instrucciones",
+    "present": "Presente"
+  },
+  "Runtime": {
+    "title": "Proyectos",
+    "intro": "Procesos en ejecución, con métricas reales.",
+    "filterLabel": "Filtrar por tecnología",
+    "filterAll": "todos",
+    "filterCommand": "Comando del filtro",
+    "results": "{count, plural, =0 {Ningún proceso encontrado} one {# proceso encontrado} other {# procesos encontrados}}",
+    "empty": "Ningún proceso coincide con ese filtro.",
+    "pid": "PID",
+    "state": "estado",
+    "role": "Rol",
+    "stack": "Stack",
+    "problem": "Problema",
+    "metrics": "Métricas",
+    "demo": "Demo en vivo",
+    "code": "Código",
+    "caseStudy": "Caso de estudio",
+    "videoFallback": "El video no está disponible; se muestra el póster.",
+    "apply": "Aplicar filtro",
+    "layout": {
+      "label": "Disposición",
+      "grid": "Cuadrícula",
+      "list": "Lista"
+    }
+  },
+  "Gpu": {
+    "title": "Laboratorio",
+    "intro": "Experimentos que demuestran habilidad técnica pura.",
+    "viewCode": "</> Ver código",
+    "viewExperiment": "← Ver experimento",
+    "codeRegion": "Código de {name}"
+  },
+  "Display": {
+    "title": "Contacto",
+    "intro": "Escríbeme: respondo en menos de 48 horas.",
+    "form": {
+      "legend": "Enviar un mensaje",
+      "name": "Nombre",
+      "email": "Email",
+      "message": "Mensaje",
+      "honeypot": "Deja este campo vacío",
+      "submit": "Enviar mensaje",
+      "sending": "Enviando…",
+      "success": "200 OK ✓ Mensaje recibido",
+      "successBody": "Gracias, te responderé pronto.",
+      "failure": "500 Error del servidor",
+      "failureBody": "No pude enviar el mensaje. Inténtalo de nuevo o escríbeme a {email}.",
+      "retry": "Reintentar",
+      "rateLimited": "429 Demasiados intentos. Espera unos minutos o escríbeme a {email}."
+    },
+    "errors": {
+      "nameRequired": "Escribe tu nombre.",
+      "nameTooLong": "El nombre es demasiado largo (máximo 100 caracteres).",
+      "emailRequired": "Escribe tu email.",
+      "emailInvalid": "Introduce un email válido, por ejemplo nombre@dominio.com.",
+      "messageTooShort": "El mensaje es demasiado corto (mínimo 10 caracteres).",
+      "messageTooLong": "El mensaje es demasiado largo (máximo 2000 caracteres)."
+    },
+    "alt": {
+      "heading": "También puedes escribirme directamente",
+      "copy": "Copiar email",
+      "copied": "Copiado al portapapeles",
+      "copyFailed": "No se pudo copiar. Selecciona el email y cópialo manualmente.",
+      "social": "Redes",
+      "cv": "Descargar CV"
+    },
+    "closing": "Programa finalizado con código de salida 0",
+    "cable": {
+      "you": "tú",
+      "server": "servidor"
+    }
+  },
+  "NotFound": {
+    "title": "Segmentation fault (core dumped)",
+    "body": "El proceso accedió a una dirección de memoria que no existe.",
+    "restart": "Reiniciar proceso",
+    "dumpLabel": "Volcado de memoria"
+  },
+  "Boot": {
+    "region": "Arranque de COMPILE",
+    "brand": "COMPILE",
+    "skip": "Saltar ⏎",
+    "withSound": "▶ Iniciar con sonido",
+    "silent": "Iniciar en silencio",
+    "summary": "Arranque completado. Elige iniciar con sonido o en silencio.",
+    "lines": {
+      "skills": "Mounting /skills",
+      "projects": "Loading projects ({count})",
+      "fonts": "Loading fonts",
+      "assets": "Loading assets",
+      "gpu": "GPU detected: tier {value}"
+    },
+    "ok": "[ OK ]",
+    "wait": "[ .. ]"
+  }
+}

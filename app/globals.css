@@ -1,0 +1,359 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/*
+ * Puente Tailwind ↔ tokens: las utilidades (`bg-surface`, `text-accent`, `font-display`…) apuntan a
+ * variables CSS, así cambian solas con el tema y la fase. Los valores viven en styles/tokens.css.
+ */
+
+/* Solo existen los colores del sistema de diseño: sin paleta por defecto de Tailwind */
+@theme {
+  /* stylelint-disable-next-line custom-property-pattern */
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-fg: var(--text);
+  --color-fg-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-phase-tint: var(--phase-tint);
+  --color-glass: var(--glass-bg);
+  --color-syntax-keyword: var(--syntax-keyword);
+  --color-syntax-type: var(--syntax-type);
+  --color-syntax-string: var(--syntax-string);
+  --color-syntax-punct: var(--syntax-punct);
+
+  --font-display: var(--ff-display);
+  --font-sans: var(--ff-text);
+  --font-mono: var(--ff-code);
+
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-2xl: var(--fs-2xl);
+  --text-3xl: var(--fs-3xl);
+  --text-display: var(--fs-display);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+@layer base {
+  html {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--ff-text);
+    font-size: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--bg);
+
+    /* Cada fase tiñe sutilmente el fondo (4–6 % del acento) */
+    background-image: linear-gradient(var(--accent-tint), var(--accent-tint));
+    font-size: var(--fs-base);
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--bg);
+  }
+}
+
+/* Grilla de 12 columnas con márgenes laterales ≥ 16 px */
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--page-margin);
+}
+
+/* Números de línea decorativos del editor del hero: no entran en la selección de texto */
+.code-lines {
+  counter-reset: line;
+}
+
+.code-lines > li {
+  display: flex;
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  counter-increment: line;
+}
+
+.code-lines > li::before {
+  content: counter(line);
+  min-width: 1.5ch;
+  text-align: right;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-elevated);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skip-link {
+    transition: transform var(--dur-micro) var(--ease-in-expo);
+  }
+}
+
+/* ───────────────────────── Movimiento (change 03) ───────────────────────── */
+
+/* Lenis: solo suaviza el scroll nativo (no transforma el contenido) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Cortina previa a la puerta de arranque: solo con JS, y un temporizador de seguridad la retira siempre */
+html.boot-pending::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background-color: var(--bg);
+}
+
+/* Barra de progreso de lectura: animación de scroll NATIVA; sin soporte no se muestra */
+.read-progress {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .read-progress {
+      display: block;
+      position: fixed;
+      inset-inline: 0;
+      top: 0;
+      z-index: 80;
+      height: 3px;
+      background-image: var(--accent-active-gradient);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      animation: read-progress linear both;
+      animation-timeline: scroll(root);
+    }
+
+    @keyframes read-progress {
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
+}
+
+/* Revelado sutil de encabezados: nativo, nunca oculta (parte de una opacidad legible) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-view {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+
+    @keyframes reveal-in {
+      from {
+        opacity: 0.45;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+}
+
+/* Hero: cursor de texto y popup de autocompletado (capas decorativas creadas por JS) */
+.hero-caret {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  background-color: var(--accent);
+  pointer-events: none;
+}
+
+.hero-autocomplete {
+  position: absolute;
+  left: 0;
+  z-index: 5;
+  min-width: 9rem;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-elevated);
+  color: var(--text);
+  font-family: var(--ff-code);
+  font-size: var(--fs-sm);
+  pointer-events: none;
+}
+
+.hero-autocomplete > div {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.hero-autocomplete > div[data-selected="true"] {
+  background-color: var(--phase-tint);
+  color: var(--accent);
+}
+
+/* Bytecode: program counter */
+.pc-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: -0.75rem;
+  height: 16px;
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.pc-arrow {
+  position: absolute;
+  top: 0;
+  left: -1.6rem;
+  color: var(--accent);
+  font-size: var(--fs-sm);
+  line-height: 1;
+  filter: drop-shadow(0 0 6px var(--accent));
+  pointer-events: none;
+}
+
+/* Proyectos: reflejo especular de la tarjeta (se desplaza con transform) */
+.card-glare {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--text) 16%, transparent),
+    transparent 65%
+  );
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Parser: árbol arrastrable en escritorio */
+[role="tree"].is-draggable {
+  cursor: grab;
+}
+
+[role="tree"][data-dragging="true"] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* Laboratorio: tarjeta que gira 180° para mostrar el código */
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform var(--dur-reveal) var(--ease-scene);
+}
+
+.flip-card[data-flipped="true"] .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Sin giro: fundido entre caras */
+  .flip-inner {
+    transform: none !important;
+    transition: none;
+  }
+
+  .flip-face {
+    backface-visibility: visible;
+    transition: opacity var(--dur-ui) var(--ease-in-expo);
+  }
+
+  .flip-back {
+    transform: none;
+    opacity: 0;
+  }
+
+  .flip-card[data-flipped="true"] .flip-front {
+    opacity: 0;
+  }
+
+  .flip-card[data-flipped="true"] .flip-back {
+    opacity: 1;
+  }
+}
+
+/* Proyectos: layout Lista (T7). El cambio lo anima FLIP; este CSS solo define la disposición final */
+#runtime-list[data-layout="list"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (width >= 640px) {
+  #runtime-list[data-layout="list"] article {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}

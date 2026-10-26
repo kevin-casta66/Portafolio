@@ -1,0 +1,59 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Proyecto: «COMPILE» — portafolio personal de un desarrollador. Fuente de verdad: docs/BRIEF.md.
+  Narrativa: el visitante sigue una línea de código `const dev = new Developer("<nombre>")`
+  por el pipeline BOOT → SOURCE (hero) → LEXER (sobre mí) → PARSER/AST (habilidades) →
+  BYTECODE (experiencia) → RUNTIME/CPU (proyectos) → GPU (laboratorio) → DISPLAY (contacto).
+  Páginas extra: caso de estudio "Debugger" (/projects/[slug]) y 404 "Segmentation fault".
+
+  ADDENDUM v2 (docs/ADDENDUM-v2.md) manda sobre el brief en motor 3D, shaders, postprocesado,
+  transiciones e interacciones. Catálogo de transiciones T1–T11 definido ahí.
+
+  Stack: Next.js (App Router, última estable) + React + TypeScript strict, Tailwind CSS v4,
+  GSAP 3 completo (ScrollTrigger, SplitText, Flip, MorphSVG, DrawSVG, CustomEase, Observer) + Lenis
+  con un único rAF (Lenis y R3F avanzan desde el ticker de GSAP), Three.js WebGPURenderer
+  (three/webgpu) con fallback automático a WebGL2 vía fábrica asíncrona de gl en R3F + Drei,
+  shaders SOLO en TSL/NodeMaterial (prohibido ShaderMaterial y GLSL crudo), compute shaders TSL
+  (solo tier alto), RenderPipeline de three/webgpu con nodos TSL (PostProcessing está deprecada desde r183) (sin EffectComposer ni pmndrs
+  postprocessing), texto MSDF con material TSL (siempre con gemelo DOM), Rapier (solo laboratorio),
+  React <ViewTransition> solo para UI (tema, filtros, menú) con fallback a GSAP Flip, CSS
+  scroll-driven animations dentro de @supports, Web Audio API, stats-gl + Tweakpane en Modo Debug,
+  Motion, Zustand, MDX + Shiki, next-intl (es/en), React Hook Form + Zod + Resend, detect-gpu,
+  Vercel, Playwright + Lighthouse CI. Versiones exactas fijadas tras verificar documentación oficial.
+
+  Arquitectura de render: canvas persistente único; registro de escenas con rango de scroll y
+  renderizado selectivo; gemelos DOM↔WebGL que siguen el rect del DOM; render targets + máscara TSL
+  para transiciones; tiers alto/medio/bajo con cambio en caliente; dispose estricto al salir.
+  Presupuesto por escena activa: < 100 draw calls; partículas alto 200k / medio 50k / bajo 0.
+
+  Principios innegociables:
+  - Contenido esencial (nombre, rol, propuesta de valor, CTAs, proyectos, CV) visible en el
+    primer render vía SSR; ninguna animación bloquea el contenido ni secuestra el scroll.
+  - Vista Rápida (modo reclutador) y CV a un clic desde cualquier punto.
+  - Todo color vía design tokens (CSS custom properties); sin hex sueltos en componentes.
+  - Animar solo transform/opacity/filter; máximo 3 focos de animación simultáneos;
+    glitch solo en cambios de fase y < 300 ms; toda animación representa una transformación
+    de datos (token → nodo → instrucción → proceso → vértice → píxel).
+  - Un único <Canvas> R3F en el layout raíz con <View> de Drei; escenas con dynamic import.
+  - Contenido editable en /content/*.ts y /content/cases/*.mdx; relaciones habilidad↔proyecto
+    calculadas desde los datos; cada habilidad enlazada a ≥ 1 proyecto.
+  - Presupuestos: Lighthouse móvil Perf ≥ 90 y A11y/BP/SEO = 100; LCP < 2,5 s; CLS < 0,05;
+    INP < 200 ms; JS inicial < 180 KB gzip; DPR ≤ 2.
+  - Funciona completo con teclado, con prefers-reduced-motion y sin WebGL; contraste AA en
+    ambos temas (oscuro "Silicio" y claro "Datasheet").
+  - Los datos personales aún no existen: usar contenido de ejemplo claramente marcado como
+    placeholder hasta que el autor lo rellene.
+
+rules:
+  proposal:
+    - Referenciar la sección del docs/BRIEF.md que origina el change.
+    - Indicar de qué changes previos depende (orden de la sección 12 del brief).
+  specs:
+    - Preferir ADDED Requirements; si un change amplía una capability de un change previo aún no archivado, usar ADDED en esa misma ruta en lugar de MODIFIED.
+  tasks:
+    - Cada tarea debe poder completarse en una sesión e indicar cómo verificarse.

@@ -1,0 +1,55 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "theme",
+          "utility",
+          "variant",
+          "custom-variant",
+          "source",
+          "plugin",
+          "apply",
+          "reference"
+        ]
+      }
+    ],
+    "import-notation": "string",
+    "color-no-hex": true,
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "hwb",
+      "lab",
+      "lch",
+      "oklab",
+      "oklch",
+      "color"
+    ],
+    "declaration-property-value-no-unknown": null,
+    "lightness-notation": "number",
+    "hue-degree-notation": "number",
+    "custom-property-empty-line-before": null
+  },
+  "overrides": [
+    {
+      "files": ["styles/tokens.css"],
+      "rules": {
+        "color-no-hex": null,
+        "function-disallowed-list": null
+      }
+    }
+  ],
+  "ignoreFiles": [
+    "node_modules/**",
+    ".next/**",
+    "public/**",
+    "openspec/**",
+    "docs/**",
+    "coverage/**"
+  ]
+}

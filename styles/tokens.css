@@ -1,0 +1,226 @@
+/*
+ * Design tokens de «COMPILE» — única fuente de verdad visual y de movimiento.
+ *
+ * - Los colores literales (hex / oklch) SOLO pueden vivir en este archivo (lo hacen cumplir
+ *   Stylelint y ESLint). Los componentes usan los tokens semánticos.
+ * - Los valores de movimiento tienen un espejo en `motion/tokens.ts`; un test los compara.
+ * - `scripts/check-contrast.ts` parsea este archivo: mantén una declaración `--token: valor;` por línea.
+ * - Referencia de movimiento: docs/MOTION-SPEC.md.
+ */
+
+/* ───────────────────────── Primitivas ───────────────────────── */
+:root {
+  /* Silicio (tema oscuro) */
+  --silicon-950: #07080c;
+  --silicon-900: #0e1118;
+  --silicon-850: #151a24;
+  --silicon-800: #232a38;
+  --ink-100: #e8ecf4;
+  --ink-400: #8a93a6;
+
+  /* Datasheet (tema claro) */
+  --paper-50: #f4f1ea;
+  --paper-100: #ebe7dc;
+  --paper-0: #fbf9f4;
+  --paper-300: #cfc8b8;
+  --ink-900: #12141a;
+  --ink-600: #4b5262;
+
+  /* Acentos por fase — tema oscuro */
+  --cyan-400: #22d3ee;
+  --violet-400: #a78bfa;
+  --lime-400: #a3e635;
+  --amber-400: #fbbf24;
+  --magenta-400: #f472b6;
+
+  /* Acentos por fase — tema claro (oscurecidos en OKLCH hasta cumplir AA) */
+  --cyan-700: oklch(0.47 0.1 220);
+  --violet-700: oklch(0.47 0.18 295);
+  --lime-700: oklch(0.46 0.12 128);
+  --amber-700: oklch(0.47 0.1 75);
+  --magenta-700: oklch(0.49 0.19 358);
+
+  /* ─── Movimiento (espejo en motion/tokens.ts) ─── */
+  --ease-in-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-scene: cubic-bezier(0.76, 0, 0.24, 1);
+  --spring-stiffness: 300;
+  --spring-damping: 30;
+  --dur-micro: 150ms;
+  --dur-ui: 300ms;
+  --dur-reveal: 700ms;
+  --dur-scene-min: 1200ms;
+  --dur-scene-max: 1800ms;
+  --dur-glitch-max: 300ms;
+  --stagger-char: 35ms;
+  --stagger-item: 70ms;
+
+  /* ─── Tipografía: roles (las familias las inyecta next/font) ─── */
+  --ff-display: var(--font-unbounded), var(--font-unbounded-ext), system-ui, sans-serif;
+  --ff-text: var(--font-geist), var(--font-geist-ext), system-ui, sans-serif;
+  --ff-code: var(--font-jetbrains), var(--font-jetbrains-ext), ui-monospace, monospace;
+
+  /* Escala fluida: de 360 px a 1440 px de viewport */
+  --fs-xs: clamp(0.75rem, calc(0.75rem + 0.0625 * (100vw - 22.5rem) / 67.5), 0.8125rem);
+  --fs-sm: clamp(0.875rem, calc(0.875rem + 0.0625 * (100vw - 22.5rem) / 67.5), 0.9375rem);
+  --fs-base: clamp(1rem, calc(1rem + 0.125 * (100vw - 22.5rem) / 67.5), 1.125rem);
+  --fs-lg: clamp(1.125rem, calc(1.125rem + 0.25 * (100vw - 22.5rem) / 67.5), 1.375rem);
+  --fs-xl: clamp(1.375rem, calc(1.375rem + 0.5 * (100vw - 22.5rem) / 67.5), 1.875rem);
+  --fs-2xl: clamp(1.75rem, calc(1.75rem + 1 * (100vw - 22.5rem) / 67.5), 2.75rem);
+  --fs-3xl: clamp(2rem, calc(2rem + 1.75 * (100vw - 22.5rem) / 67.5), 3.75rem);
+  --fs-display: clamp(2.5rem, calc(2.5rem + 4 * (100vw - 22.5rem) / 67.5), 6.5rem);
+
+  /* ─── Espaciado, grilla de 12 columnas y radios ─── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+  --grid-cols: 12;
+  --grid-gutter: clamp(1rem, calc(0.5rem + 1.5vw), 2rem);
+  --page-margin: clamp(1rem, calc(0.4rem + 3vw), 4rem);
+  --content-max: 90rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+
+  /* Tinte de fondo por fase: 4–6 % de opacidad del acento */
+  --tint-alpha: 5%;
+
+  /* Acento activo (por defecto: SOURCE); [data-phase] lo reasigna por sección */
+  --accent: var(--accent-source);
+  --accent-gradient: linear-gradient(var(--accent), var(--accent));
+  --phase-tint: color-mix(in srgb, var(--accent) var(--tint-alpha), transparent);
+
+  /*
+   * Acento ACTIVO global: lo interpola el scroll (motion/phase-runtime.ts) entre los acentos de fase
+   * y de él deriva el tinte de fondo. Sin JavaScript se queda en el acento de SOURCE.
+   */
+  --accent-active: var(--accent-source);
+  --accent-tint: color-mix(in srgb, var(--accent-active) var(--tint-alpha), transparent);
+  --accent-spectrum: linear-gradient(
+    90deg,
+    var(--accent-source),
+    var(--accent-parser),
+    var(--accent-bytecode),
+    var(--accent-runtime),
+    var(--accent-gpu)
+  );
+  --accent-active-gradient: linear-gradient(var(--accent-active), var(--accent-active));
+}
+
+/* ───────────────────────── Tema oscuro «Silicio» (por defecto) ───────────────────────── */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: var(--silicon-950);
+  --surface: var(--silicon-900);
+  --surface-elevated: var(--silicon-850);
+  --border: var(--silicon-800);
+  --text: var(--ink-100);
+  --text-muted: var(--ink-400);
+
+  --accent-source: var(--cyan-400);
+  --accent-lexer: var(--cyan-400);
+  --accent-parser: var(--violet-400);
+  --accent-bytecode: var(--lime-400);
+  --accent-runtime: var(--amber-400);
+  --accent-gpu: var(--magenta-400);
+
+  /* Resaltado de sintaxis (editor del hero, fragmentos de código) */
+  --syntax-keyword: var(--violet-400);
+  --syntax-type: var(--amber-400);
+  --syntax-string: var(--lime-400);
+  --syntax-punct: var(--ink-400);
+
+  /* Superficie translúcida (liquid glass): la opacidad mínima garantiza AA sobre el peor fondo */
+  --glass-bg-min-alpha: 0.72;
+  --glass-blur: 16px;
+  --glass-bg: color-mix(
+    in srgb,
+    var(--surface) calc(var(--glass-bg-min-alpha) * 100%),
+    transparent
+  );
+
+  --grain-opacity: 0.05;
+}
+
+/* ───────────────────────── Tema claro «Datasheet» ───────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: var(--paper-50);
+  --surface: var(--paper-100);
+  --surface-elevated: var(--paper-0);
+  --border: var(--paper-300);
+  --text: var(--ink-900);
+  --text-muted: var(--ink-600);
+
+  --accent-source: var(--cyan-700);
+  --accent-lexer: var(--cyan-700);
+  --accent-parser: var(--violet-700);
+  --accent-bytecode: var(--lime-700);
+  --accent-runtime: var(--amber-700);
+  --accent-gpu: var(--magenta-700);
+
+  --syntax-keyword: var(--violet-700);
+  --syntax-type: var(--amber-700);
+  --syntax-string: var(--lime-700);
+  --syntax-punct: var(--ink-600);
+
+  --glass-bg-min-alpha: 0.72;
+  --glass-blur: 16px;
+  --glass-bg: color-mix(
+    in srgb,
+    var(--surface) calc(var(--glass-bg-min-alpha) * 100%),
+    transparent
+  );
+
+  --grain-opacity: 0.07;
+}
+
+/* En DISPLAY el acento activo es el gradiente espectral con todos los acentos */
+[data-active-phase="display"] {
+  --accent-active-gradient: var(--accent-spectrum);
+}
+
+[data-phase] {
+  --accent-gradient: linear-gradient(var(--accent), var(--accent));
+  --phase-tint: color-mix(in srgb, var(--accent) var(--tint-alpha), transparent);
+}
+
+[data-phase="source"] {
+  --accent: var(--accent-source);
+}
+
+[data-phase="lexer"] {
+  --accent: var(--accent-lexer);
+}
+
+[data-phase="parser"] {
+  --accent: var(--accent-parser);
+}
+
+[data-phase="bytecode"] {
+  --accent: var(--accent-bytecode);
+}
+
+[data-phase="runtime"] {
+  --accent: var(--accent-runtime);
+}
+
+[data-phase="gpu"] {
+  --accent: var(--accent-gpu);
+}
+
+[data-phase="display"] {
+  /* Color sólido de respaldo (texto, bordes); el relleno de marca es el gradiente */
+  --accent: var(--text);
+  --accent-gradient: var(--accent-spectrum);
+  --phase-tint: color-mix(in srgb, var(--accent-gpu) var(--tint-alpha), transparent);
+}

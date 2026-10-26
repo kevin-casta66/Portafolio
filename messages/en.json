@@ -1,0 +1,178 @@
+{
+  "Metadata": {
+    "title": "COMPILE — Developer portfolio",
+    "description": "The journey of a line of code: a developer portfolio."
+  },
+  "Layout": {
+    "skipToContent": "Skip to content",
+    "mainNavigation": "Main links",
+    "footerNote": "Program finished with exit code 0"
+  },
+  "Header": {
+    "home": "Go to home",
+    "downloadCv": "Download CV",
+    "quickView": "Quick View",
+    "quickViewSoon": "Coming soon",
+    "language": "Language",
+    "switchTo": "{code}: switch language to {language}",
+    "themeToLight": "Switch to light theme",
+    "themeToDark": "Switch to dark theme"
+  },
+  "Home": {
+    "projectsHeading": "Projects",
+    "placeholderNotice": "Sample content: replace it with your data in /content."
+  },
+  "Hero": {
+    "eyebrow": "SOURCE",
+    "ctaProjects": "View projects",
+    "ctaCv": "Download CV",
+    "unavailable": "Not available right now",
+    "codeLabel": "Sample line of code",
+    "editorFile": "main.ts"
+  },
+  "Lexer": {
+    "title": "About me",
+    "intro": "The lexer classifies every token of my biography.",
+    "lanes": {
+      "keyword": "keyword",
+      "identifier": "identifier",
+      "string": "string",
+      "number": "number"
+    },
+    "laneHints": {
+      "keyword": "who I am",
+      "identifier": "my name and where I am",
+      "string": "what drives me",
+      "number": "data"
+    },
+    "inferredType": "Inferred type: {type}",
+    "tooltipHelp": "Hover, focus or tap a token to see its inferred type."
+  },
+  "Parser": {
+    "title": "Skills",
+    "intro": "A syntax tree where every leaf is a technology backed by real projects.",
+    "treeLabel": "Skills tree",
+    "root": "Developer",
+    "years": "{count, plural, one {# year} other {# years}}",
+    "projects": "{count, plural, one {# project} other {# projects}}",
+    "levels": {
+      "daily": "Daily use",
+      "production": "Production",
+      "exploring": "Exploring"
+    },
+    "categories": {
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "cloud-devops": "Cloud/DevOps",
+      "data": "Data",
+      "design": "Design",
+      "soft-skills": "Soft skills"
+    },
+    "relatedHeading": "Projects using {skill}",
+    "clearSelection": "Clear selection",
+    "selectHint": "Select a technology to see the projects that prove it. Use the arrow keys, Home and End to move; Escape clears the selection."
+  },
+  "Bytecode": {
+    "title": "Experience",
+    "intro": "Every stage is a compiled function; every achievement, an instruction.",
+    "registers": "Registers",
+    "registersHint": "Stack used in this stage",
+    "instructions": "Instructions",
+    "present": "Present"
+  },
+  "Runtime": {
+    "title": "Projects",
+    "intro": "Running processes with real metrics.",
+    "filterLabel": "Filter by technology",
+    "filterAll": "all",
+    "filterCommand": "Filter command",
+    "results": "{count, plural, =0 {No processes found} one {# process found} other {# processes found}}",
+    "empty": "No process matches that filter.",
+    "pid": "PID",
+    "state": "state",
+    "role": "Role",
+    "stack": "Stack",
+    "problem": "Problem",
+    "metrics": "Metrics",
+    "demo": "Live demo",
+    "code": "Code",
+    "caseStudy": "Case study",
+    "videoFallback": "The video is unavailable; showing the poster.",
+    "apply": "Apply filter",
+    "layout": {
+      "label": "Layout",
+      "grid": "Grid",
+      "list": "List"
+    }
+  },
+  "Gpu": {
+    "title": "Lab",
+    "intro": "Experiments that showcase pure technical skill.",
+    "viewCode": "</> View code",
+    "viewExperiment": "← View experiment",
+    "codeRegion": "Code of {name}"
+  },
+  "Display": {
+    "title": "Contact",
+    "intro": "Write to me: I reply within 48 hours.",
+    "form": {
+      "legend": "Send a message",
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "honeypot": "Leave this field empty",
+      "submit": "Send message",
+      "sending": "Sending…",
+      "success": "200 OK ✓ Message received",
+      "successBody": "Thank you, I will reply soon.",
+      "failure": "500 Server error",
+      "failureBody": "I could not send the message. Try again or write to me at {email}.",
+      "retry": "Retry",
+      "rateLimited": "429 Too many attempts. Wait a few minutes or write to me at {email}."
+    },
+    "errors": {
+      "nameRequired": "Enter your name.",
+      "nameTooLong": "The name is too long (100 characters max).",
+      "emailRequired": "Enter your email.",
+      "emailInvalid": "Enter a valid email, for example name@domain.com.",
+      "messageTooShort": "The message is too short (10 characters min).",
+      "messageTooLong": "The message is too long (2000 characters max)."
+    },
+    "alt": {
+      "heading": "You can also write to me directly",
+      "copy": "Copy email",
+      "copied": "Copied to clipboard",
+      "copyFailed": "Could not copy. Select the email and copy it manually.",
+      "social": "Social links",
+      "cv": "Download CV"
+    },
+    "closing": "Program finished with exit code 0",
+    "cable": {
+      "you": "you",
+      "server": "server"
+    }
+  },
+  "NotFound": {
+    "title": "Segmentation fault (core dumped)",
+    "body": "The process accessed a memory address that does not exist.",
+    "restart": "Restart process",
+    "dumpLabel": "Memory dump"
+  },
+  "Boot": {
+    "region": "COMPILE boot",
+    "brand": "COMPILE",
+    "skip": "Skip ⏎",
+    "withSound": "▶ Start with sound",
+    "silent": "Start silently",
+    "summary": "Boot complete. Choose to start with sound or silently.",
+    "lines": {
+      "skills": "Mounting /skills",
+      "projects": "Loading projects ({count})",
+      "fonts": "Loading fonts",
+      "assets": "Loading assets",
+      "gpu": "GPU detected: tier {value}"
+    },
+    "ok": "[ OK ]",
+    "wait": "[ .. ]"
+  }
+}
