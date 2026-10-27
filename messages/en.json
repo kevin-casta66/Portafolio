@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "COMPILE — Developer portfolio",
+    "title": "Portfolio — Full Stack Developer",
     "description": "The journey of a line of code: a developer portfolio."
   },
   "Layout": {
@@ -12,11 +12,18 @@
     "home": "Go to home",
     "downloadCv": "Download CV",
     "quickView": "Quick View",
-    "quickViewSoon": "Coming soon",
     "language": "Language",
     "switchTo": "{code}: switch language to {language}",
     "themeToLight": "Switch to light theme",
-    "themeToDark": "Switch to dark theme"
+    "themeToDark": "Switch to dark theme",
+    "quickViewHint": "One-page résumé (Q)",
+    "soundOn": "Mute sound (M)",
+    "soundOff": "Turn sound on (M)",
+    "debugOn": "Turn Debug mode off (D)",
+    "debugOff": "Turn Debug mode on (D)",
+    "terminal": "Open the terminal (~)",
+    "shortcuts": "Keyboard shortcuts (?)",
+    "tools": "Tools"
   },
   "Home": {
     "projectsHeading": "Projects",
@@ -119,7 +126,7 @@
   "Gpu": {
     "title": "Lab",
     "intro": "Experiments that showcase pure technical skill.",
-    "viewCode": "</> View code",
+    "viewCode": "'</>' View code",
     "viewExperiment": "← View experiment",
     "codeRegion": "Code of {name}",
     "pipeline": {
@@ -218,8 +225,8 @@
     "dumpLabel": "Memory dump"
   },
   "Boot": {
-    "region": "COMPILE boot",
-    "brand": "COMPILE",
+    "region": "Portfolio boot",
+    "brand": "Portfolio",
     "skip": "Skip ⏎",
     "withSound": "▶ Start with sound",
     "silent": "Start silently",
@@ -290,5 +297,103 @@
     "cancelled": "Execution cancelled.",
     "attaching": "Attaching debugger…",
     "opening": "Opening the {name} case study"
+  },
+  "CallStack": {
+    "label": "Call stack: journey phases",
+    "mobileLabel": "Journey phases",
+    "current": "Current phase",
+    "phases": {
+      "source": "Start",
+      "lexer": "About me",
+      "parser": "Skills",
+      "bytecode": "Experience",
+      "runtime": "Projects",
+      "gpu": "Lab",
+      "display": "Contact"
+    },
+    "progress": "Journey progress",
+    "openList": "Show the phases",
+    "closeList": "Hide the phases"
+  },
+  "Achievements": {
+    "counter": "{unlocked}/{total} achievements unlocked",
+    "listTitle": "Achievements",
+    "unlockedLabel": "Unlocked",
+    "lockedLabel": "Locked",
+    "hint": "Hint",
+    "close": "Close the achievements list",
+    "toastPrefix": "Achievement unlocked",
+    "dismiss": "Dismiss the notice"
+  },
+  "Terminal": {
+    "title": "Terminal",
+    "inputLabel": "Command line",
+    "outputLabel": "Terminal output",
+    "close": "Close the terminal",
+    "welcome": "Portfolio shell · type “help” to list the commands · Esc to exit",
+    "options": "Options",
+    "cleared": "Output cleared"
+  },
+  "Shortcuts": {
+    "title": "Keyboard shortcuts",
+    "intro": "They work when focus is outside text fields.",
+    "key": "Key",
+    "action": "Action",
+    "command": "Equivalent command",
+    "escape": "Close the terminal or this panel",
+    "preferences": "Preferences",
+    "systemCursor": "Use the system cursor",
+    "close": "Close the shortcuts"
+  },
+  "Debug": {
+    "label": "Debug mode",
+    "panelTitle": "Debug",
+    "backend": "Graphics backend",
+    "backendWebgpu": "WebGPU (next-gen)",
+    "backendWebgl2": "WebGL2 (compatibility)",
+    "backendNone": "no 3D",
+    "backendPending": "starting…",
+    "tier": "Quality tier",
+    "fps": "FPS",
+    "cpu": "CPU/frame",
+    "gpu": "GPU/frame",
+    "gpuUnavailable": "GPU: n/a",
+    "drawCalls": "Draw calls",
+    "scenes": "Active 3D scenes",
+    "noScenes": "No active 3D scenes",
+    "wireframe": "Scene wireframes",
+    "boxes": "Component boxes",
+    "tweakables": "Shader parameters",
+    "tweakablesNote": "They apply to this session only.",
+    "reset": "Reset",
+    "bloomOnlyHigh": "Bloom only applies at high quality.",
+    "param": {
+      "bloomStrength": "Bloom strength",
+      "aberration": "Chromatic aberration",
+      "noise": "Grain (noise)"
+    },
+    "loading": "Loading tools…"
+  },
+  "QuickView": {
+    "label": "Quick View",
+    "headline": "One-page résumé",
+    "print": "Print / save as PDF",
+    "exit": "Back to the full experience",
+    "profile": "Profile",
+    "projects": "Featured projects",
+    "otherProjects": "Other projects",
+    "skills": "Skills",
+    "experience": "Experience",
+    "contact": "Contact",
+    "evidence": "Evidence",
+    "caseStudy": "View case study",
+    "present": "Present",
+    "downloadCv": "Download CV",
+    "years": "{count, plural, one {# year} other {# years}}",
+    "projectsCount": "{count, plural, one {# project} other {# projects}}"
+  },
+  "Sound": {
+    "toggleOn": "Sound on",
+    "toggleOff": "Sound off"
   }
 }

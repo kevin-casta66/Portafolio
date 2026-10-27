@@ -1,4 +1,4 @@
-# PROYECTO: «COMPILE» — Portafolio-odisea de [TU NOMBRE], [TU ROL]
+# PROYECTO: «Portafolio» — Portafolio-odisea de [TU NOMBRE], [TU ROL]
 
 > Documento fuente del proyecto. Las specs y changes de `openspec/` derivan de aquí.
 > Si algo cambia en el brief, actualiza los changes con `/opsx:update`.
@@ -10,7 +10,7 @@ Objetivo único y no negociable: DESTACAR MIS HABILIDADES COMO DESARROLLADOR. Ca
 
 Restricción clave de UX: un reclutador con 30 segundos debe poder ver mi nombre, rol, propuesta de valor, mejores proyectos y descargar mi CV sin esperar ninguna animación.
 
-## 1. Concepto y temática: «COMPILE — El viaje de una línea de código»
+## 1. Concepto y temática: «Portafolio — El viaje de una línea de código»
 El visitante no "navega una web": sigue a una sola línea de código, `const dev = new Developer("[TU NOMBRE]")`, en su viaje por el interior de la máquina hasta convertirse en los píxeles que forman la página final. El scroll equivale a ciclos de reloj. Cada sección es una etapa real del pipeline de ejecución:
 
 BOOT → SOURCE → LEXER → PARSER (AST) → BYTECODE → RUNTIME (CPU) → GPU → DISPLAY

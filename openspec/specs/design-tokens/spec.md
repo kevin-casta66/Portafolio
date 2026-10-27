@@ -1,6 +1,6 @@
 ## Purpose
 
-Define la fuente única de verdad visual y de movimiento de «COMPILE» (color, acentos por fase, easing, duraciones, tipografía fluida, espaciado y grilla) para que toda la interfaz sea coherente y tematizable.
+Define la fuente única de verdad visual y de movimiento de «Portafolio» (color, acentos por fase, easing, duraciones, tipografía fluida, espaciado y grilla) para que toda la interfaz sea coherente y tematizable.
 
 ## Requirements
 

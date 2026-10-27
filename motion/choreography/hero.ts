@@ -1,3 +1,4 @@
+import { emit } from "@/lib/events";
 import { appStore } from "@/lib/store";
 import { EASE, SplitText, gsap, seconds } from "../gsap";
 import { duration, stagger } from "../tokens";
@@ -73,6 +74,8 @@ export const heroChoreography: Choreography = (ctx) => {
       const char = chars[i] as HTMLElement;
       tl.set(char, { opacity: 1 }, t);
       tl.call(place, [char, "right"], t);
+      // Clic de tecleo (solo suena con el sonido activado; el gestor de sonido escucha el evento).
+      tl.call(() => emit("ui:sound", { name: "key" }), [], t);
       t += step;
     }
   };

@@ -48,6 +48,7 @@ export async function LexerSection() {
 
   return (
     <section
+      data-debug-name="LexerSection"
       id="lexer"
       data-phase="lexer"
       aria-labelledby="lexer-title"

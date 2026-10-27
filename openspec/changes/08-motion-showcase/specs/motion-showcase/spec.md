@@ -1,6 +1,6 @@
 ## Purpose
 
-Exponer públicamente el sistema de movimiento de COMPILE como prueba de habilidad técnica: tokens de animación visualizados y cada transición del catálogo T1–T11 reproducible de forma aislada, con sus internos y una nota técnica, sin sacrificar accesibilidad ni rendimiento.
+Exponer públicamente el sistema de movimiento de Portafolio como prueba de habilidad técnica: tokens de animación visualizados y cada transición del catálogo T1–T11 reproducible de forma aislada, con sus internos y una nota técnica, sin sacrificar accesibilidad ni rendimiento.
 
 ## ADDED Requirements
 

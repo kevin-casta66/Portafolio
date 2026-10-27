@@ -1,6 +1,6 @@
 # motion
 
-Sistema de movimiento de «COMPILE»: tokens, reloj único, scroll suave, señal de velocidad, fase
+Sistema de movimiento de «Portafolio»: tokens, reloj único, scroll suave, señal de velocidad, fase
 activa, coreografías por sección y transiciones entre fases. Referencias: `docs/MOTION-SPEC.md`
 (tabla T1–T11), `docs/ADDENDUM-v2.md` §4–§5 y §7.
 
@@ -20,7 +20,7 @@ activa, coreografías por sección y transiciones entre fases. Referencias: `doc
    `js-motion` / `boot-pending` en `<html>`: ver `lib/motion-script.ts`.
 6. **Máximo 3 focos simultáneos** (columna «Foco» del inventario).
 7. **Limpieza obligatoria**: `gsap.context` + `ctx.onCleanup` en cada coreografía, `destroy()` en
-   cada transición; `window.__compileMotion.counts()` (con `?motionTest=1`) permite comprobarlo.
+   cada transición; `window.__portafolioMotion.counts()` (con `?motionTest=1`) permite comprobarlo.
 
 ## Estructura
 
@@ -51,7 +51,7 @@ mientras se reproduce (máx. 3 simultáneos en pantalla).
 
 | ID  | Fase                 | Dato / feedback                                                                    | Propiedades                         | Foco | Reducida                      |
 | --- | -------------------- | ---------------------------------------------------------------------------------- | ----------------------------------- | ---- | ----------------------------- |
-| T1  | BOOT                 | El arranque real (logs `[ OK ]`, progreso) → la marca COMPILE → el cursor del hero | transform, opacity                  | 2    | fundido, sin resorte ni CRT   |
+| T1  | BOOT                 | El arranque real (logs `[ OK ]`, progreso) → la marca Portafolio → el cursor del hero | transform, opacity                  | 2    | fundido, sin resorte ni CRT   |
 | —   | SOURCE               | Tecleo de `const dev = new Developer("…")` con autocompletado (token tecleado)     | opacity, transform (cursor)         | 2    | sin tecleo                    |
 | T2  | SOURCE→LEXER         | Tokens de la línea de código → carriles del analizador léxico                      | transform, opacity                  | 2    | tokens con fundido escalonado |
 | —   | LEXER                | Contadores `number` (dato → valor final)                                           | texto (aria-hidden mientras cuenta) | 1    | valor final directo           |
@@ -83,6 +83,6 @@ mientras se reproduce (máx. 3 simultáneos en pantalla).
 
 - Unitarios (Vitest): tokens ↔ CSS, resorte, reloj, velocidad, fase, controlador de transiciones,
   catálogo ↔ `docs/MOTION-SPEC.md`, post-order, chip, arranque, inventario (este archivo).
-- En navegador: `?motionTest=1` expone `window.__compileMotion` (contadores, fase, variantes,
+- En navegador: `?motionTest=1` expone `window.__portafolioMotion` (contadores, fase, variantes,
   `scrollTo(id, p)`, `replay`). No cambia el comportamiento.
 - Desactivar una pieza: `motion/config.ts` (flags). Con todo desactivado el sitio es el HTML estático.

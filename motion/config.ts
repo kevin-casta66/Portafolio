@@ -19,6 +19,6 @@ export const motionConfig = {
 export type MotionConfig = typeof motionConfig;
 
 /** Clave de sesión: la puerta completa solo se muestra una vez por sesión. */
-export const BOOTED_KEY = "compile:booted";
-/** Parámetro de prueba: expone `window.__compileMotion` (no cambia el comportamiento). */
+export const BOOTED_KEY = "portafolio:booted";
+/** Parámetro de prueba: expone `window.__portafolioMotion` (no cambia el comportamiento). */
 export const TEST_PARAM = "motionTest";

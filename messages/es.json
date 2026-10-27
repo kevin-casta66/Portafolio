@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "COMPILE — Portafolio de desarrollador",
+    "title": "Portafolio — Desarrollador Full Stack",
     "description": "El viaje de una línea de código: portafolio de un desarrollador."
   },
   "Layout": {
@@ -12,11 +12,18 @@
     "home": "Ir al inicio",
     "downloadCv": "Descargar CV",
     "quickView": "Vista Rápida",
-    "quickViewSoon": "Disponible próximamente",
     "language": "Idioma",
     "switchTo": "{code}: cambiar idioma a {language}",
     "themeToLight": "Cambiar a tema claro",
-    "themeToDark": "Cambiar a tema oscuro"
+    "themeToDark": "Cambiar a tema oscuro",
+    "quickViewHint": "Currículum de una página (Q)",
+    "soundOn": "Silenciar el sonido (M)",
+    "soundOff": "Activar el sonido (M)",
+    "debugOn": "Desactivar el modo Debug (D)",
+    "debugOff": "Activar el modo Debug (D)",
+    "terminal": "Abrir la terminal (~)",
+    "shortcuts": "Atajos de teclado (?)",
+    "tools": "Herramientas"
   },
   "Home": {
     "projectsHeading": "Proyectos",
@@ -119,7 +126,7 @@
   "Gpu": {
     "title": "Laboratorio",
     "intro": "Experimentos que demuestran habilidad técnica pura.",
-    "viewCode": "</> Ver código",
+    "viewCode": "'</>' Ver código",
     "viewExperiment": "← Ver experimento",
     "codeRegion": "Código de {name}",
     "pipeline": {
@@ -218,8 +225,8 @@
     "dumpLabel": "Volcado de memoria"
   },
   "Boot": {
-    "region": "Arranque de COMPILE",
-    "brand": "COMPILE",
+    "region": "Arranque de Portafolio",
+    "brand": "Portafolio",
     "skip": "Saltar ⏎",
     "withSound": "▶ Iniciar con sonido",
     "silent": "Iniciar en silencio",
@@ -290,5 +297,103 @@
     "cancelled": "Ejecución cancelada.",
     "attaching": "Attaching debugger…",
     "opening": "Abriendo el caso de estudio de {name}"
+  },
+  "CallStack": {
+    "label": "Pila de llamadas: fases del recorrido",
+    "mobileLabel": "Fases del recorrido",
+    "current": "Fase actual",
+    "phases": {
+      "source": "Inicio",
+      "lexer": "Sobre mí",
+      "parser": "Habilidades",
+      "bytecode": "Experiencia",
+      "runtime": "Proyectos",
+      "gpu": "Laboratorio",
+      "display": "Contacto"
+    },
+    "progress": "Progreso del recorrido",
+    "openList": "Mostrar las fases",
+    "closeList": "Ocultar las fases"
+  },
+  "Achievements": {
+    "counter": "{unlocked}/{total} logros desbloqueados",
+    "listTitle": "Logros",
+    "unlockedLabel": "Desbloqueado",
+    "lockedLabel": "Bloqueado",
+    "hint": "Pista",
+    "close": "Cerrar la lista de logros",
+    "toastPrefix": "Logro desbloqueado",
+    "dismiss": "Descartar el aviso"
+  },
+  "Terminal": {
+    "title": "Terminal",
+    "inputLabel": "Línea de comandos",
+    "outputLabel": "Salida de la terminal",
+    "close": "Cerrar la terminal",
+    "welcome": "Portafolio shell · escribe «help» para ver los comandos · Esc para salir",
+    "options": "Opciones",
+    "cleared": "Salida borrada"
+  },
+  "Shortcuts": {
+    "title": "Atajos de teclado",
+    "intro": "Funcionan con el foco fuera de los campos de texto.",
+    "key": "Tecla",
+    "action": "Acción",
+    "command": "Comando equivalente",
+    "escape": "Cerrar la terminal o este panel",
+    "preferences": "Preferencias",
+    "systemCursor": "Usar el cursor del sistema",
+    "close": "Cerrar los atajos"
+  },
+  "Debug": {
+    "label": "Modo Debug",
+    "panelTitle": "Debug",
+    "backend": "Backend gráfico",
+    "backendWebgpu": "WebGPU (nueva generación)",
+    "backendWebgl2": "WebGL2 (compatibilidad)",
+    "backendNone": "sin 3D",
+    "backendPending": "iniciando…",
+    "tier": "Calidad",
+    "fps": "FPS",
+    "cpu": "CPU/frame",
+    "gpu": "GPU/frame",
+    "gpuUnavailable": "GPU: n/d",
+    "drawCalls": "Draw calls",
+    "scenes": "Escenas 3D activas",
+    "noScenes": "Sin escenas 3D activas",
+    "wireframe": "Wireframe de las escenas",
+    "boxes": "Cajas de componentes",
+    "tweakables": "Parámetros de shaders",
+    "tweakablesNote": "Se aplican solo a esta sesión.",
+    "reset": "Restablecer",
+    "bloomOnlyHigh": "El bloom solo se aplica en calidad alta.",
+    "param": {
+      "bloomStrength": "Intensidad del bloom",
+      "aberration": "Aberración cromática",
+      "noise": "Grano (ruido)"
+    },
+    "loading": "Cargando herramientas…"
+  },
+  "QuickView": {
+    "label": "Vista Rápida",
+    "headline": "Currículum de una página",
+    "print": "Imprimir / guardar como PDF",
+    "exit": "Volver a la experiencia completa",
+    "profile": "Perfil",
+    "projects": "Proyectos destacados",
+    "otherProjects": "Otros proyectos",
+    "skills": "Habilidades",
+    "experience": "Experiencia",
+    "contact": "Contacto",
+    "evidence": "Evidencia",
+    "caseStudy": "Ver caso de estudio",
+    "present": "Presente",
+    "downloadCv": "Descargar CV",
+    "years": "{count, plural, one {# año} other {# años}}",
+    "projectsCount": "{count, plural, one {# proyecto} other {# proyectos}}"
+  },
+  "Sound": {
+    "toggleOn": "Sonido activado",
+    "toggleOff": "Sonido desactivado"
   }
 }

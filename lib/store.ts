@@ -9,10 +9,18 @@ export type QualityTier = "auto" | "high" | "medium" | "low";
 /** `pending` hasta que el motor 3D (change 04) determina el backend tras `init()`. */
 export type GraphicsBackend = "pending" | "webgpu" | "webgl2" | "none";
 
+export type CursorPref = "custom" | "system";
+
 export const STORAGE_KEYS = {
-  theme: "compile:theme",
-  gateChoice: "compile:gate",
-  achievements: "compile:achievements",
+  theme: "portafolio:theme",
+  gateChoice: "portafolio:gate",
+  achievements: "portafolio:achievements",
+  /** localStorage: preferencias del visitante (`{ sound, cursor }`). */
+  prefs: "portafolio:prefs",
+  /** sessionStorage: el modo Debug dura la sesión del navegador. */
+  debug: "portafolio:debug",
+  /** sessionStorage: la Vista Rápida se conserva al navegar (la URL es la fuente compartible). */
+  quickView: "portafolio:quick",
 } as const;
 
 /** Subconjunto de la API Storage que usamos (facilita los tests). */
@@ -66,12 +74,47 @@ function parseAchievements(raw: string | null): string[] {
   }
 }
 
+/** Preferencias persistidas entre visitas (slice `prefs`, localStorage). */
+interface StoredPrefs {
+  sound: boolean;
+  cursor: CursorPref;
+}
+
+function parsePrefs(raw: string | null): Partial<StoredPrefs> {
+  if (raw === null) return {};
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (value === null || typeof value !== "object") return {};
+    const { sound, cursor } = value as Record<string, unknown>;
+    return {
+      ...(typeof sound === "boolean" ? { sound } : {}),
+      ...(cursor === "custom" || cursor === "system" ? { cursor } : {}),
+    };
+  } catch {
+    return {};
+  }
+}
+
+function writePrefs(storages: Storages, patch: Partial<StoredPrefs>): void {
+  const current = parsePrefs(read(storages.local(), STORAGE_KEYS.prefs));
+  write(storages.local(), STORAGE_KEYS.prefs, JSON.stringify({ ...current, ...patch }));
+}
+
 export interface AppState {
   phase: Phase;
   theme: Theme;
   sound: { enabled: boolean; gateChoice: GateChoice | null };
+  /** Preferencias del visitante que persisten entre visitas. */
+  prefs: { cursor: CursorPref };
+  /** Modo Debug (sesión). */
   debug: boolean;
+  /** Qué muestra el modo Debug (no se persiste). */
+  debugTools: { wireframe: boolean; boxes: boolean };
   quickView: boolean;
+  /** Superficies abiertas (terminal, panel de atajos, lista de logros): no se persisten. */
+  ui: { terminalOpen: boolean; shortcutsOpen: boolean; achievementsOpen: boolean };
+  /** Logros recién desbloqueados que aún no se han mostrado como aviso (cola FIFO). */
+  toastQueue: string[];
   graphics: { tier: QualityTier; backend: GraphicsBackend; ready: boolean };
   /** Escenas 3D renderizándose ahora mismo (las publica el motor del change 04). */
   scenes: { active: string[]; drawCalls: Record<string, number> };
@@ -84,8 +127,13 @@ export interface AppState {
   setTheme: (theme: Theme) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setGateChoice: (choice: GateChoice) => void;
+  setCursorPref: (cursor: CursorPref) => void;
   setDebug: (debug: boolean) => void;
+  setDebugTool: (tool: "wireframe" | "boxes", value: boolean) => void;
   setQuickView: (quickView: boolean) => void;
+  setUi: (ui: Partial<AppState["ui"]>) => void;
+  /** Saca de la cola el aviso que ya se mostró (o se descartó). */
+  shiftToast: () => void;
   setTier: (tier: QualityTier) => void;
   setBackend: (backend: GraphicsBackend) => void;
   /** `true` cuando el canvas 3D terminó de cargar y registró sus escenas. */
@@ -106,10 +154,14 @@ export const DEFAULT_STATE = {
   phase: "boot",
   theme: "dark",
   sound: { enabled: false, gateChoice: null },
+  prefs: { cursor: "custom" },
   debug: false,
+  debugTools: { wireframe: true, boxes: true },
   quickView: false,
+  ui: { terminalOpen: false, shortcutsOpen: false, achievementsOpen: false },
   graphics: { tier: "auto", backend: "pending", ready: false },
   achievements: [],
+  toastQueue: [],
   bootDone: false,
 } as const satisfies Partial<AppState>;
 
@@ -118,8 +170,12 @@ export function createAppStore(storages: Storages = browserStorages) {
     phase: DEFAULT_STATE.phase,
     theme: DEFAULT_STATE.theme,
     sound: { ...DEFAULT_STATE.sound },
+    prefs: { ...DEFAULT_STATE.prefs },
     debug: DEFAULT_STATE.debug,
+    debugTools: { ...DEFAULT_STATE.debugTools },
     quickView: DEFAULT_STATE.quickView,
+    ui: { ...DEFAULT_STATE.ui },
+    toastQueue: [],
     graphics: { ...DEFAULT_STATE.graphics },
     scenes: { active: [], drawCalls: {} },
     achievements: [],
@@ -131,13 +187,30 @@ export function createAppStore(storages: Storages = browserStorages) {
       write(storages.local(), STORAGE_KEYS.theme, theme);
       set({ theme });
     },
-    setSoundEnabled: (enabled) => set((s) => ({ sound: { ...s.sound, enabled } })),
+    setSoundEnabled: (enabled) => {
+      writePrefs(storages, { sound: enabled });
+      set((s) => ({ sound: { ...s.sound, enabled } }));
+    },
     setGateChoice: (gateChoice) => {
       write(storages.session(), STORAGE_KEYS.gateChoice, gateChoice);
+      writePrefs(storages, { sound: gateChoice === "sound" });
       set({ sound: { enabled: gateChoice === "sound", gateChoice } });
     },
-    setDebug: (debug) => set({ debug }),
-    setQuickView: (quickView) => set({ quickView }),
+    setCursorPref: (cursor) => {
+      writePrefs(storages, { cursor });
+      set({ prefs: { cursor } });
+    },
+    setDebug: (debug) => {
+      write(storages.session(), STORAGE_KEYS.debug, debug ? "1" : "0");
+      set({ debug });
+    },
+    setDebugTool: (tool, value) => set((s) => ({ debugTools: { ...s.debugTools, [tool]: value } })),
+    setQuickView: (quickView) => {
+      write(storages.session(), STORAGE_KEYS.quickView, quickView ? "1" : "0");
+      set({ quickView });
+    },
+    setUi: (ui) => set((s) => ({ ui: { ...s.ui, ...ui } })),
+    shiftToast: () => set((s) => (s.toastQueue.length === 0 ? s : { toastQueue: s.toastQueue.slice(1) })),
     setTier: (tier) => set((s) => ({ graphics: { ...s.graphics, tier } })),
     setBackend: (backend) => set((s) => ({ graphics: { ...s.graphics, backend } })),
     setCanvasReady: (ready) => set((s) => ({ graphics: { ...s.graphics, ready } })),
@@ -152,16 +225,24 @@ export function createAppStore(storages: Storages = browserStorages) {
       if (get().achievements.includes(id)) return false;
       const achievements = [...get().achievements, id];
       write(storages.local(), STORAGE_KEYS.achievements, JSON.stringify(achievements));
-      set({ achievements });
+      set((s) => ({ achievements, toastQueue: [...s.toastQueue, id] }));
       return true;
     },
     hydrate: (domTheme) => {
       const gate = read(storages.session(), STORAGE_KEYS.gateChoice);
       const gateChoice: GateChoice | null = gate === "sound" || gate === "silent" ? gate : null;
       const savedTheme = read(storages.local(), STORAGE_KEYS.theme);
+      const prefs = parsePrefs(read(storages.local(), STORAGE_KEYS.prefs));
       set((s) => ({
         theme: savedTheme === "light" || savedTheme === "dark" ? savedTheme : (domTheme ?? s.theme),
-        sound: { enabled: gateChoice === "sound", gateChoice },
+        // La elección de la puerta (sesión) manda; sin ella, la preferencia guardada; sin ninguna, silencio.
+        sound: {
+          enabled: gateChoice !== null ? gateChoice === "sound" : (prefs.sound ?? false),
+          gateChoice,
+        },
+        prefs: { cursor: prefs.cursor ?? s.prefs.cursor },
+        debug: read(storages.session(), STORAGE_KEYS.debug) === "1",
+        quickView: read(storages.session(), STORAGE_KEYS.quickView) === "1" || s.quickView,
         achievements: parseAchievements(read(storages.local(), STORAGE_KEYS.achievements)),
       }));
     },

@@ -23,6 +23,7 @@ export async function GpuSection() {
 
   return (
     <section
+      data-debug-name="GpuSection"
       id="gpu"
       data-phase="gpu"
       aria-labelledby="gpu-title"

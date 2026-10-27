@@ -54,7 +54,7 @@
 - [ ] 6.1 Implementar `generateMetadata` por página y locale (home, casos, `/heap`, `/motion`) con canonical y `alternates.languages` (es, en, x-default); verificar inspeccionando el `head`
 - [ ] 6.2 Crear `opengraph-image` dinámico por página con estilo de fase y para cada caso con nombre y métrica principal; verificar que devuelve 1200×630
 - [ ] 6.3 Añadir JSON-LD `Person` en home y `CreativeWork` por caso generados desde `content/`; verificar con el validador de Schema.org sin errores
-- [ ] 6.4 Generar `sitemap` y `robots` desde slugs y rutas públicas (incluidas `/heap` y `/motion`) y marcar la 404 como `noindex` con estado 404; verificar con `curl -I` y el XML del sitemap
+- [ ] 6.4 Generar `sitemap` y `robots` desde slugs y rutas públicas (incluidas `/heap` y `/motion`) y marcar la 404 como `noindex` con estado 404; verificar con `curl -I` y el XML del sitemap; el change 07 ya crea un `app/sitemap.ts` mínimo (home, casos, `/heap`): ampliarlo en lugar de rehacerlo
 
 ## 7. Verificación integral
 

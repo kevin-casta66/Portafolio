@@ -16,6 +16,7 @@ export async function BytecodeSection() {
 
   return (
     <section
+      data-debug-name="BytecodeSection"
       id="bytecode"
       data-phase="bytecode"
       aria-labelledby="bytecode-title"

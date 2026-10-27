@@ -29,6 +29,7 @@ export async function ParserSection() {
 
   return (
     <section
+      data-debug-name="ParserSection"
       id="parser"
       data-phase="parser"
       aria-labelledby="parser-title"

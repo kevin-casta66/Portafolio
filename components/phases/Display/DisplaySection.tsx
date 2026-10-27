@@ -13,6 +13,7 @@ export async function DisplaySection() {
 
   return (
     <section
+      data-debug-name="DisplaySection"
       id="display"
       data-phase="display"
       aria-labelledby="display-title"

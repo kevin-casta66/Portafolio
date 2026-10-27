@@ -24,6 +24,7 @@ const ASCII = Array.from({ length: 95 }, (_, i) => String.fromCharCode(0x20 + i)
 const SPANISH = "áéíóúüñÁÉÍÓÚÜÑ¿¡·–—…’‘“”«»";
 
 // Ambas fuentes llevan los acentos: la línea de código del hero (monoespaciada) incluye el nombre del perfil.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- la firma por fuente se mantiene para el script y el test
 export function msdfCharset(_font: MsdfFontName): string {
   return ASCII + SPANISH;
 }

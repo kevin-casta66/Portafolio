@@ -1,6 +1,6 @@
 ## Purpose
 
-Define el armazón común de todas las páginas de «COMPILE»: estructura accesible, header con accesos para reclutadores, internacionalización es/en y estado global base que los sistemas posteriores reutilizan.
+Define el armazón común de todas las páginas de «Portafolio»: estructura accesible, header con accesos para reclutadores, internacionalización es/en y estado global base que los sistemas posteriores reutilizan.
 
 ## Requirements
 

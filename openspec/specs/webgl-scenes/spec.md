@@ -1,6 +1,6 @@
 ## Purpose
 
-Define las escenas 3D de cada fase de «COMPILE» que convierten la narrativa token → nodo → instrucción → proceso → vértice → píxel en imagen, siempre como capa sobre contenido DOM autosuficiente.
+Define las escenas 3D de cada fase de «Portafolio» que convierten la narrativa token → nodo → instrucción → proceso → vértice → píxel en imagen, siempre como capa sobre contenido DOM autosuficiente.
 
 ## Requirements
 

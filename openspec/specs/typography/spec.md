@@ -1,6 +1,6 @@
 ## Purpose
 
-Garantiza que las tres familias tipográficas de «COMPILE» (display, texto y código) se sirvan desde el propio dominio, rápido, sin saltos de layout y con roles claros.
+Garantiza que las tres familias tipográficas de «Portafolio» (display, texto y código) se sirvan desde el propio dominio, rápido, sin saltos de layout y con roles claros.
 
 ## Requirements
 

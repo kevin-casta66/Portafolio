@@ -1,6 +1,6 @@
 ## Purpose
 
-Ofrecer una vista de mundo «Memory Heap» donde todos los proyectos y experimentos se exploran como bloques de memoria en una cuadrícula infinita, con reorganización, lente de vidrio y equivalentes accesibles, reforzando la narrativa COMPILE.
+Ofrecer una vista de mundo «Memory Heap» donde todos los proyectos y experimentos se exploran como bloques de memoria en una cuadrícula infinita, con reorganización, lente de vidrio y equivalentes accesibles, reforzando la narrativa Portafolio.
 
 ## ADDED Requirements
 

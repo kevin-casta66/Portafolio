@@ -8,12 +8,13 @@ import { LexerSection } from "@/components/phases/Lexer/LexerSection";
 import { ParserSection } from "@/components/phases/Parser/ParserSection";
 import { RuntimeSection } from "@/components/phases/Runtime/RuntimeSection";
 import { SourceSection } from "@/components/phases/Source/SourceSection";
+import { QuickView } from "@/components/quick-view/QuickView";
 import { HashFocus } from "@/components/systems/HashFocus";
 import { routing } from "@/i18n/routing";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ grep?: string | string[] }>;
+  searchParams: Promise<{ grep?: string | string[]; view?: string | string[] }>;
 };
 
 /**
@@ -26,8 +27,12 @@ export default async function HomePage({ params, searchParams }: Props) {
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const { grep } = await searchParams;
+  const { grep, view } = await searchParams;
   const filter = Array.isArray(grep) ? grep[0] : grep;
+  const viewMode = Array.isArray(view) ? view[0] : view;
+
+  // Vista Rápida (`?view=quick`): el currículum de una página, renderizado en el servidor.
+  if (viewMode === "quick") return <QuickView />;
 
   return (
     <>

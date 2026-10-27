@@ -10,6 +10,15 @@ export const uTime = uniform(0);
 export const uScrollVelocity = uniform(0);
 /** Aberración cromática 0..1: pulso de cambio de fase (< 300 ms) + velocidad acotada. */
 export const uChroma = uniform(0);
+/**
+ * Parámetros del postprocesado ajustables en vivo (modo Debug, `webgl/tweakables.ts`). Son uniforms de
+ * MÓDULO: sobreviven a los cambios de tier (que reasignan `outputNode`) sin recompilar.
+ */
+export const uBloomStrength = uniform(0.9);
+/** Multiplica la aberración cromática calculada (1 = la del diseño). */
+export const uChromaGain = uniform(1);
+/** Multiplica la intensidad del grano de película (1 = la del diseño). */
+export const uGrainGain = uniform(1);
 /** Puntero en píxeles de viewport (origen arriba-izquierda). */
 export const uPointer = uniform(new Vector2(0, 0));
 /** Tamaño del viewport en píxeles CSS. */

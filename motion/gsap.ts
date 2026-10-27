@@ -15,9 +15,9 @@ import { cssEase, easing } from "./tokens";
  * Este módulo vive en el chunk diferido: nunca se importa desde código del bundle inicial.
  */
 export const EASE = {
-  inExpo: "compile-in-expo",
-  scene: "compile-scene",
-  spring: "compile-spring",
+  inExpo: "portafolio-in-expo",
+  scene: "portafolio-scene",
+  spring: "portafolio-spring",
 } as const;
 
 let registered = false;

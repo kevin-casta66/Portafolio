@@ -1,4 +1,4 @@
-# Roadmap OpenSpec — «COMPILE»
+# Roadmap OpenSpec — «Portafolio»
 
 Fuentes: [BRIEF.md](./BRIEF.md) y [ADDENDUM-v2.md](./ADDENDUM-v2.md) (el addendum manda en motor 3D,
 shaders, postprocesado, transiciones e interacciones). Implementa y archiva **en orden**: cada change

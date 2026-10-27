@@ -63,10 +63,35 @@ const motionRules = [
 // llevar duraciones y easings propios, pero nunca su propio bucle de frame.
 const frameRules = motionRules.filter((rule) => rule.selector.includes("requestAnimationFrame"));
 
+// Vidrio líquido: solo el Call Stack, la terminal y la lente del Heap (change 07) pueden importarlo.
+const GLASS_IMPORT = {
+  patterns: [
+    {
+      group: ["**/ui/Glass", "**/ui/Glass.tsx"],
+      message:
+        "`Glass` (vidrio líquido) solo puede usarse en CallStack, Terminal y la lente del Heap: usa los tokens opacos del tema.",
+    },
+  ],
+};
+
 export default defineConfig([
   ...nextCoreWebVitals,
   ...nextTypescript,
-  { rules: { "no-restricted-syntax": ["error", ...colorRules, ...motionRules, ...glslRules] } },
+  {
+    rules: {
+      "no-restricted-syntax": ["error", ...colorRules, ...motionRules, ...glslRules],
+      "no-restricted-imports": ["error", GLASS_IMPORT],
+    },
+  },
+  {
+    files: [
+      "components/systems/CallStack/**",
+      "components/systems/Terminal/**",
+      "components/heap/**",
+      "components/ui/Glass.tsx",
+    ],
+    rules: { "no-restricted-imports": "off" },
+  },
   // Dentro de motion/ sí pueden vivir duraciones, curvas y el bucle de frame; los colores, no.
   { files: ["motion/**"], rules: { "no-restricted-syntax": ["error", ...colorRules, ...glslRules] } },
   { files: ["webgl/transitions/**"], rules: { "no-restricted-syntax": ["error", ...colorRules, ...frameRules, ...glslRules] } },

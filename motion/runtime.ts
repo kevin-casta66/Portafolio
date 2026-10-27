@@ -46,7 +46,7 @@ export interface MotionRuntime {
   clock: Clock;
 }
 
-interface CompileMotionTestHook {
+interface PortafolioMotionTestHook {
   triggerCount(): number;
   clockSubscribers(): number;
   variantOf(id: string): string | undefined;
@@ -78,7 +78,7 @@ interface CompileMotionTestHook {
 
 declare global {
   interface Window {
-    __compileMotion?: CompileMotionTestHook;
+    __portafolioMotion?: PortafolioMotionTestHook;
   }
 }
 
@@ -186,7 +186,7 @@ export function startMotionRuntime(): MotionRuntime {
     window.addEventListener("resize", onResize);
 
     if (testMode) {
-      window.__compileMotion = {
+      window.__portafolioMotion = {
         triggerCount: () => ScrollTrigger.getAll().length,
         clockSubscribers: () => clock.subscriberCount(),
         variantOf: (id) => controller?.variantOf(id),
@@ -263,10 +263,10 @@ export function startMotionRuntime(): MotionRuntime {
           observer: typeof Observer.create === "function",
           drawSVG: Boolean(gsap.plugins.drawSVG),
           morphSVG: Boolean(gsap.plugins.morphSVG),
-          customEase: ["compile-in-expo", "compile-scene"].every(
+          customEase: ["portafolio-in-expo", "portafolio-scene"].every(
             (n) => gsap.parseEase(n) !== gsap.parseEase("none"),
           ),
-          springEase: gsap.parseEase("compile-spring") !== gsap.parseEase("none"),
+          springEase: gsap.parseEase("portafolio-spring") !== gsap.parseEase("none"),
         }),
         counts: () => ({ triggers: ScrollTrigger.getAll().length, clock: clock.subscriberCount() }),
       };
@@ -284,7 +284,7 @@ export function startMotionRuntime(): MotionRuntime {
       scope.revert();
       stopPhase();
       delete document.documentElement.dataset.motionReady;
-      delete window.__compileMotion;
+      delete window.__portafolioMotion;
     };
   };
 

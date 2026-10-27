@@ -26,7 +26,7 @@ describe("validateContent", () => {
     const content = validateContent(clone(), opts);
     expect((content.projectsBySkill["mcp"] ?? []).map((p) => p.slug)).toEqual(["arquelume-ai-agent"]);
     const slugs = (content.projectsBySkill["react"] ?? []).map((p) => p.slug).sort();
-    expect(slugs).toEqual(["compile-portfolio", "facturas-app"]);
+    expect(slugs).toEqual(["facturas-app", "portafolio-site"]);
   });
 
   it("falla con una habilidad huérfana indicando su id", () => {

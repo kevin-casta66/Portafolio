@@ -17,12 +17,24 @@ export const runtimeChoreography: Choreography = (ctx) => {
   interface TiltState {
     rotX: (v: number) => void;
     rotY: (v: number) => void;
+    /**
+     * `false` mientras la tarjeta vuelve a reposo: ese tween ha anulado los `quickTo` de rotación, así que
+     * hay que recrearlos en el siguiente hover (causa raíz del bug «la inclinación solo se ve la primera vez»).
+     */
+    bound: boolean;
     glareX: (v: number) => void;
     glareY: (v: number) => void;
     glare: HTMLElement;
     glareFade: gsap.core.Tween;
   }
   const states = new WeakMap<HTMLElement, TiltState>();
+  const tiltOpts = { duration: seconds(duration.micro), ease: "power2.out" };
+
+  /** (Re)crea los `quickTo` de inclinación de una tarjeta. */
+  const bindTilt = (card: HTMLElement) => ({
+    rotX: gsap.quickTo(card, "rotationX", tiltOpts) as (v: number) => void,
+    rotY: gsap.quickTo(card, "rotationY", tiltOpts) as (v: number) => void,
+  });
 
   const ensure = (card: HTMLElement): TiltState => {
     let state = states.get(card);
@@ -32,12 +44,11 @@ export const runtimeChoreography: Choreography = (ctx) => {
     glare.setAttribute("aria-hidden", "true");
     card.appendChild(glare);
     gsap.set(card, { transformPerspective: 900, transformStyle: "preserve-3d" });
-    const opts = { duration: seconds(duration.micro), ease: "power2.out" };
     state = {
-      rotX: gsap.quickTo(card, "rotationX", opts) as (v: number) => void,
-      rotY: gsap.quickTo(card, "rotationY", opts) as (v: number) => void,
-      glareX: gsap.quickTo(glare, "x", opts) as (v: number) => void,
-      glareY: gsap.quickTo(glare, "y", opts) as (v: number) => void,
+      ...bindTilt(card),
+      bound: true,
+      glareX: gsap.quickTo(glare, "x", tiltOpts) as (v: number) => void,
+      glareY: gsap.quickTo(glare, "y", tiltOpts) as (v: number) => void,
       glare,
       glareFade: gsap.to(glare, { opacity: 0, duration: 0 }),
     };
@@ -54,6 +65,12 @@ export const runtimeChoreography: Choreography = (ctx) => {
     const card = cardOf(event.target);
     if (!card) return;
     const state = ensure(card);
+    if (!state.bound) {
+      // Vuelve el puntero mientras la tarjeta se asienta: se detiene el resorte de reposo y se recrean
+      // los `quickTo` (el tween de reposo los dejó sin propiedades que animar).
+      gsap.killTweensOf(card, "rotationX,rotationY");
+      Object.assign(state, bindTilt(card), { bound: true });
+    }
     const r = card.getBoundingClientRect();
     const nx = (event.clientX - r.left) / r.width - 0.5; // -0,5…0,5
     const ny = (event.clientY - r.top) / r.height - 0.5;
@@ -69,13 +86,15 @@ export const runtimeChoreography: Choreography = (ctx) => {
   const rest = (card: HTMLElement) => {
     const state = states.get(card);
     if (!state) return;
-    // Vuelta a reposo con el resorte de UI.
+    // Vuelta a reposo con el resorte de UI. Se anulan EXPLÍCITAMENTE los `quickTo` de rotación (en vez de
+    // `overwrite: "auto"`, que los dejaba muertos para siempre) y se marca la tarjeta para recrearlos.
+    gsap.killTweensOf(card, "rotationX,rotationY");
+    state.bound = false;
     gsap.to(card, {
       rotationX: 0,
       rotationY: 0,
       duration: seconds(duration.reveal),
       ease: EASE.spring,
-      overwrite: "auto",
     });
     state.glareFade.kill();
     state.glareFade = gsap.to(state.glare, { opacity: 0, duration: seconds(duration.ui) });

@@ -1,5 +1,6 @@
 "use client";
 
+import { MagneticButton } from "@/components/ui/Magnetic";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
@@ -204,13 +205,14 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
           />
         </div>
 
-        <button
+        <MagneticButton
           type="submit"
           aria-busy={isPending}
-          className="mt-2 inline-flex h-12 items-center justify-center self-start rounded-md bg-accent px-6 font-medium text-bg hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+          surfaceClassName="rounded-md bg-accent group-hover:opacity-90 group-disabled:opacity-60"
+          className="mt-2 inline-flex h-12 items-center justify-center self-start px-6 font-medium text-bg disabled:cursor-wait"
         >
           {isPending ? t("form.sending") : t("form.submit")}
-        </button>
+        </MagneticButton>
       </fieldset>
 
       <div className="mt-4">

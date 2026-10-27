@@ -15,16 +15,16 @@ La secuencia de arranque SHALL reflejar el progreso real de recursos (fuentes, a
 - **WHEN** un recurso rastreado termina de cargar
 - **THEN** el indicador de progreso avanza y su línea de estado pasa a `[ OK ]`
 
-### Requirement: Letras de COMPILE escalonadas
-Durante el arranque, las letras de la palabra COMPILE SHALL entrar una a una, escalonadas, con animación de resorte. La palabra MUST estar expuesta a tecnologías de asistencia como un único texto, no letra a letra.
+### Requirement: Letras de la marca escalonadas
+Durante el arranque, las letras del nombre del proyecto («Portafolio» en español, «Portfolio» en inglés) SHALL entrar una a una, escalonadas, con animación de resorte. La palabra MUST estar expuesta a tecnologías de asistencia como un único texto, no letra a letra.
 
 #### Scenario: Entrada de la marca
 - **WHEN** comienza la secuencia de arranque
-- **THEN** las 7 letras de COMPILE aparecen en orden con el stagger de caracteres y un rebote de resorte
+- **THEN** las letras del nombre (todas, sea cual sea su número) aparecen en orden con el stagger de caracteres y un rebote de resorte
 
 #### Scenario: Lectura accesible
 - **WHEN** un lector de pantalla recorre la puerta
-- **THEN** anuncia "COMPILE" una sola vez
+- **THEN** anuncia el nombre del proyecto («Portafolio» / «Portfolio») una sola vez
 
 ### Requirement: Duración máxima de los logs y salto
 La fase de logs POST SHALL durar como máximo 2,5 s; si los recursos no han terminado en ese tiempo, los logs terminan igualmente y la carga continúa en segundo plano. Un botón "Saltar ⏎" MUST ser visible y operable con teclado (Enter) desde el primer frame; saltar equivale a elegir "Iniciar en silencio".

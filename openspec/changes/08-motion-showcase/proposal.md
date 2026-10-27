@@ -1,6 +1,6 @@
 ## Why
 
-El sistema de movimiento de COMPILE (tokens de easing, duraciones y el catálogo de transiciones T1–T11) es una de las habilidades técnicas más fuertes del portafolio, pero dentro del recorrido narrativo pasa desapercibido: el visitante ve el resultado, no el oficio. El ADDENDUM v2 (docs/ADDENDUM-v2.md §6 y §8.3–8.4) pide una página pública `/motion` que exponga el propio sistema como prueba de habilidad, reproduciendo cada transición de forma aislada y enseñando cómo funciona por dentro.
+El sistema de movimiento de Portafolio (tokens de easing, duraciones y el catálogo de transiciones T1–T11) es una de las habilidades técnicas más fuertes del portafolio, pero dentro del recorrido narrativo pasa desapercibido: el visitante ve el resultado, no el oficio. El ADDENDUM v2 (docs/ADDENDUM-v2.md §6 y §8.3–8.4) pide una página pública `/motion` que exponga el propio sistema como prueba de habilidad, reproduciendo cada transición de forma aislada y enseñando cómo funciona por dentro.
 
 Depende de: `00-technique-teardown` (tabla de especificación T1–T11 y notas técnicas), `01-foundation-design-system` (tokens, i18n, app-shell), `02`–`03` (sistema de movimiento, transiciones DOM T1/T7/T11), `04-webgl-scenes` (prototipos aislados de las transiciones WebGL, tiers de calidad, render targets), `05-case-studies-view-transitions` (T6 Hold-to-Execute, T10), `06-global-systems` (terminal, registro de logros) y `07-memory-heap` (T7 en vista Heap).
 

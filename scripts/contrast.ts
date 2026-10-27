@@ -101,6 +101,42 @@ export const over = (fg: Rgb, alpha: number, bg: Rgb): Rgb => [
 
 const BACKDROPS: Record<string, Rgb> = { negro: [0, 0, 0], blanco: [1, 1, 1] };
 
+/** Colores de texto que pueden aparecer sobre vidrio (Call Stack, terminal, lente del Heap). */
+export const GLASS_TEXT_TOKENS = [
+  "text",
+  "text-muted",
+  "accent-source",
+  "accent-parser",
+  "accent-bytecode",
+  "accent-runtime",
+  "accent-gpu",
+] as const;
+
+/**
+ * Opacidad mínima del fondo del vidrio para que TODO el texto sobre él cumpla AA contra el peor
+ * fondo posible (negro y blanco puros detrás). Es la que fija el diseño: los tokens
+ * `--glass-bg-min-alpha` y `--glass-bg-strong-alpha` deben ser mayores o iguales. Búsqueda binaria,
+ * porque el contraste crece con la opacidad.
+ */
+export function minGlassAlpha(css: string, theme: Theme): number {
+  const v = themeVars(css, theme);
+  const surface = color("surface", v);
+  const passes = (alpha: number): boolean =>
+    Object.values(BACKDROPS).every((backdrop) => {
+      const glass = over(surface, alpha, backdrop);
+      return GLASS_TEXT_TOKENS.every((name) => contrast(color(name, v), glass) >= AA_TEXT);
+    });
+  if (!passes(1)) return Number.POSITIVE_INFINITY; // ni opaco alcanza: un color de texto no es válido
+  let low = 0;
+  let high = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (low + high) / 2;
+    if (passes(mid)) high = mid;
+    else low = mid;
+  }
+  return high;
+}
+
 export function runChecks(css: string): Check[] {
   const checks: Check[] = [];
   for (const theme of ["dark", "light"] as const) {
@@ -122,18 +158,26 @@ export function runChecks(css: string): Check[] {
       }
     }
 
-    // Texto sobre vidrio: peor caso = fondo extremo detrás de la superficie translúcida.
-    const alphaRaw = v["glass-bg-min-alpha"];
-    if (alphaRaw === undefined) throw new Error("Falta --glass-bg-min-alpha");
-    const alpha = Number(alphaRaw);
-    for (const [backdropName, backdrop] of Object.entries(BACKDROPS)) {
-      const glass = over(color("surface", v), alpha, backdrop);
-      push(
-        `text sobre vidrio (fondo ${backdropName})`,
-        ["text", "glass-bg-min-alpha"],
-        color("text", v),
-        glass,
-      );
+    // Texto sobre vidrio: peor caso = fondo extremo detrás de la superficie translúcida. Se comprueban
+    // los dos materiales (normal y fuerte) con TODOS los colores de texto que pueden ir sobre vidrio.
+    for (const [alphaName, label] of [
+      ["glass-bg-min-alpha", "vidrio"],
+      ["glass-bg-strong-alpha", "vidrio fuerte"],
+    ] as const) {
+      const alphaRaw = v[alphaName];
+      if (alphaRaw === undefined) throw new Error(`Falta --${alphaName}`);
+      const alpha = Number(alphaRaw);
+      for (const [backdropName, backdrop] of Object.entries(BACKDROPS)) {
+        const glass = over(color("surface", v), alpha, backdrop);
+        for (const fgName of GLASS_TEXT_TOKENS) {
+          push(
+            `${fgName} sobre ${label} (fondo ${backdropName})`,
+            [fgName, alphaName],
+            color(fgName, v),
+            glass,
+          );
+        }
+      }
     }
   }
   return checks;

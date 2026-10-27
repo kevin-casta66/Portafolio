@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { NotFoundMotion } from "@/components/phases/NotFound/NotFoundMotion";
+import { AchievementTrigger } from "@/components/systems/AchievementTrigger";
 import { Link } from "@/i18n/navigation";
 
 /** 16 bytes por línea, determinista: misma salida en cada build y en cada petición. */
@@ -54,6 +55,7 @@ export default async function NotFound() {
         {dump.join("\n")}
       </pre>
       <NotFoundMotion />
+      <AchievementTrigger id="kernel_panic" />
     </section>
   );
 }

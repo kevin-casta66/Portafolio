@@ -9,7 +9,7 @@
 
 - [ ] 2.1 Crear `app/[locale]/heap/page.tsx` como Server Component con encabezado, total de bloques y `<ul>` accesible con dirección, tipo, nombre, año, tecnologías y enlace; verificar con JS desactivado en `/es/heap` y `/en/heap`
 - [ ] 2.2 Añadir textos de interfaz del heap a los mensajes i18n es/en y verificar que no quedan cadenas sin traducir en `/en/heap`
-- [ ] 2.3 Definir metadatos (título, descripción, canonical, hreflang, OG) y añadir la ruta al sitemap; verificar inspeccionando el `<head>` y `sitemap.xml`
+- [ ] 2.3 Definir metadatos (título, descripción, canonical, hreflang, OG) con `generateMetadata` y crear un `app/sitemap.ts` mínimo generado desde el contenido (home, casos de estudio y `/heap` en es/en; aún no existe: el change 09 lo ampliará con `/motion`, robots y JSON-LD); verificar inspeccionando el `<head>` y `sitemap.xml`
 - [ ] 2.4 Resolver destinos de apertura (caso de estudio, demo o experimento del laboratorio) y verificar que ningún enlace del heap devuelve 404
 
 ## 3. Cuadrícula 2D, teclado y Run GC (sin WebGL)
@@ -22,7 +22,7 @@
 ## 4. Escena 3D del heap
 
 - [ ] 4.1 Crear `webgl/scenes/heap` con carga dinámica y registro en el registro de escenas; verificar en la pestaña de red que el home no descarga el chunk
-- [ ] 4.2 Dibujar los bloques con instancing y etiquetas de dirección MSDF (material TSL) con envoltura modular infinita; verificar en Modo Debug < 100 draw calls con todos los bloques
+- [ ] 4.2 Dibujar los bloques con instancing y etiquetas de dirección MSDF (material TSL, reutilizando `webgl/text/`) con envoltura modular infinita; verificar en Modo Debug (06) y en `scenes.drawCalls` del store < 100 draw calls con todos los bloques
 - [ ] 4.3 Implementar arrastre e inercia con Observer sobre el ticker único (umbral clic/arrastre 6 px, `touch-action` acotado); verificar con ratón, trackpad y táctil (emulación y dispositivo real) que no bloquea el scroll fuera del heap
 - [ ] 4.4 Sincronizar foco de teclado ↔ cámara (centrar bloque enfocado, instantáneo con reduced motion) y verificar que el bloque enfocado siempre es visible
 - [ ] 4.5 Animar «Run GC» en 3D interpolando instancias (stagger 60–80 ms, quart in-out) desde el layout de 1.3; verificar que coincide con el orden de la lista
@@ -30,7 +30,7 @@
 
 ## 5. Lente de liquid glass
 
-- [ ] 5.1 Montar la lente con el nodo de refracción de `liquid-glass` (06) sobre el render target del heap, solo en tier medio/alto, puntero fino y sin reduced motion; verificar visualmente ampliación y refracción
+- [ ] 5.1 Extraer el nodo de lente de T6 a `webgl/nodes/lens.ts` (T6 lo importa, sin cambio visual: verificar con su prototipo `/prototypes/T6`) y montar la lente del heap con ese nodo (magnificación + refracción de borde) más un marco DOM con `Glass` de 06, solo en tier medio/alto, puntero fino y sin reduced motion; verificar visualmente ampliación y refracción
 - [ ] 5.2 Suscribir la lente al store de calidad para desmontarla en caliente; verificar forzando tier bajo desde Modo Debug sin recargar
 - [ ] 5.3 Verificar contraste AA del texto sobre la lente en ambos temas con la herramienta de contraste del change 01
 

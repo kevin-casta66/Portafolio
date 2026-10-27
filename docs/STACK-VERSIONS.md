@@ -1,4 +1,4 @@
-# STACK-VERSIONS — versiones verificadas de «COMPILE»
+# STACK-VERSIONS — versiones verificadas de «Portafolio»
 
 > Verificado el **2026-10-26** con `npm view <pkg> version`, documentación oficial y una instalación
 > real (`npm install --ignore-scripts`) en una carpeta temporal. Node 24.14.1 / npm 11.11.0.
@@ -28,6 +28,7 @@ Sin `^` ni `~` (usar `npm install --save-exact`). Se instalan como `dependencies
 | `@dimforge/rapier3d-compat` | `0.21.0` | [rapier.rs](https://rapier.rs/docs/user_guides/javascript/getting_started_js) | Se usa **directo** (Web Worker en el laboratorio) |
 | `stats-gl` | `4.2.3` | npm | Modo Debug. Ver `overrides` |
 | `tweakpane` | `4.0.5` | [tweakpane.github.io](https://tweakpane.github.io/docs/) | Modo Debug (ajuste de uniforms) |
+| `@tweakpane/core` (devDependency) | `2.0.5` | npm | Solo tipos: los `.d.ts` de `tweakpane` 4.0.5 lo importan; sin él `Pane.addBinding` no compila |
 | `detect-gpu` | `5.0.70` | npm | Tier gráfico inicial |
 | `react-hook-form` | `7.91.0` | npm | |
 | `resend` | `6.34.1` | npm | Solo servidor |

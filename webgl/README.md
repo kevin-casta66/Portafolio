@@ -1,6 +1,6 @@
 # webgl
 
-Capa 3D de «COMPILE» (change 04): un único canvas persistente con `WebGPURenderer` (`three/webgpu`,
+Capa 3D de «Portafolio» (change 04): un único canvas persistente con `WebGPURenderer` (`three/webgpu`,
 fallback automático a WebGL2), shaders **solo en TSL** y render selectivo por rango de scroll. Todo
 se carga **después del LCP** (`components/systems/WebglLoader.tsx`) en chunks diferidos; sin ningún
 backend no se monta nada y el sitio es el HTML completo con las transiciones DOM del change 03.
@@ -28,6 +28,7 @@ backend no se monta nada y el sitio es el HTML completo con las transiciones DOM
 | `core/engine.ts` | Registro de escenas, carga/liberación por rango, composición con `RenderPipeline`, monitor de FPS |
 | `core/twins.ts` | Gemelos DOM↔3D (`data-twin`), lectura de rects en lote |
 | `core/layout.ts`, `core/frame.ts`, `core/color.ts`, `core/camera.ts` | Rangos de sección, estado por frame, tokens, cámara a escala de píxel |
+| `core/debug.ts`, `tweakables.ts`, `postfx-tweakables.ts` | Modo Debug (change 06): puente motor↔Debug (renderer para stats-gl, CPU por frame), registro de parámetros ajustables en vivo y los uniforms de módulo del postprocesado (`uBloomStrength`, `uChromaGain`, `uGrainGain`), que sobreviven a los cambios de tier |
 | `quality.ts`, `detect.ts` | Tiers alto/medio/bajo, presets, regla de móvil, detect-gpu con benchmarks autoalojados |
 | `postfx.ts` | Composición de capas → aberración → bloom selectivo (MRT `glow`, tier alto) → grano → Bayer |
 | `scenes/` | SOURCE (retícula + fluido compute), RUNTIME (chip), GPU (pipeline), DISPLAY (monitor), lab, texto MSDF |

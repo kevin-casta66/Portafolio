@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { fontVariables } from "@/app/fonts";
 import { BootGateLoader } from "@/components/phases/Boot/BootGateLoader";
 import { Header } from "@/components/systems/Header";
 import { HoldLoader } from "@/components/systems/HoldLoader";
 import { MotionLoader } from "@/components/systems/MotionLoader";
+import { QuickViewSync } from "@/components/systems/QuickViewSync";
 import { StoreHydrator } from "@/components/systems/StoreHydrator";
+import { SystemsLoader } from "@/components/systems/SystemsLoader";
 import { WebglLoader } from "@/components/systems/WebglLoader";
+import { GlassFilters } from "@/components/ui/GlassFilters";
 import { routing } from "@/i18n/routing";
 import { content } from "@/lib/content";
 import { motionScript } from "@/lib/motion-script";
@@ -44,6 +47,8 @@ export default async function LocaleLayout({ children, params }: Props) {
       </head>
       <body>
         <NextIntlClientProvider>
+          {/* Primero: su efecto (hidratación del store y puente de eventos) debe ejecutarse antes que el de cualquier página */}
+          <StoreHydrator />
           <div className="read-progress" aria-hidden="true" />
           <a href="#content" className="skip-link">
             {t("skipToContent")}
@@ -58,7 +63,11 @@ export default async function LocaleLayout({ children, params }: Props) {
               <p className="col-span-12 font-mono text-sm text-fg-muted">{t("footerNote")}</p>
             </div>
           </footer>
-          <StoreHydrator />
+          <GlassFilters />
+          <Suspense fallback={null}>
+            <QuickViewSync />
+          </Suspense>
+          <SystemsLoader />
           <MotionLoader />
           <WebglLoader />
           <HoldLoader />

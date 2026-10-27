@@ -138,7 +138,7 @@ export function createBootController(options: BootControllerOptions = {}) {
       return mode;
     },
 
-    /** La animación de entrada de las letras de COMPILE terminó. */
+    /** La animación de entrada de las letras de Portafolio terminó. */
     lettersFinished() {
       lettersDone = true;
       maybeChoose();

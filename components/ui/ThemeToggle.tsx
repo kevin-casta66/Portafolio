@@ -1,13 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useAppStore, appStore, type Theme } from "@/lib/store";
+import { applyTheme } from "@/lib/actions";
+import { useAppStore, type Theme } from "@/lib/store";
 
 /**
  * Control de tema: aplica `data-theme` y persiste la elección explícita, que prevalece sobre la
  * preferencia del sistema. El cambio es un revelado circular desde el botón (transición de vista; sin
  * soporte, fundido cruzado; con movimiento reducido, instantáneo): `motion/uiTransition.ts`, que se
- * carga bajo demanda y NO forma parte del JS inicial.
+ * carga bajo demanda y NO forma parte del JS inicial. El atajo `T` y el comando `theme` usan la misma
+ * acción (`lib/actions.ts`), así que producen exactamente el mismo efecto.
  */
 export function ThemeToggle() {
   const t = useTranslations("Header");
@@ -17,19 +19,12 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
+      data-theme-toggle
       onPointerEnter={() => void import("@/motion/uiTransition")}
       onFocus={() => void import("@/motion/uiTransition")}
       onClick={(event) => {
-        const apply = () => {
-          document.documentElement.setAttribute("data-theme", next);
-          appStore.getState().setTheme(next);
-        };
         const box = event.currentTarget.getBoundingClientRect();
-        const origin = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
-        // Si el módulo de la transición no carga (red, bloqueo), el tema se cambia igualmente.
-        void import("@/motion/uiTransition")
-          .then((m) => m.revealTheme({ update: apply, origin }))
-          .catch(apply);
+        applyTheme(next, { x: box.left + box.width / 2, y: box.top + box.height / 2 });
       }}
       aria-label={next === "light" ? t("themeToLight") : t("themeToDark")}
       className="inline-flex size-10 items-center justify-center rounded-md border border-border bg-surface text-fg hover:border-accent"

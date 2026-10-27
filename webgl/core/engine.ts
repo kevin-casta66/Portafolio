@@ -24,6 +24,7 @@ import {
   uView,
 } from "../nodes/globals";
 import { backendOf } from "./backend";
+import { debugBridge } from "./debug";
 import { accentRgb, readTokenColors, type TokenColors } from "./color";
 import { frame } from "./frame";
 import { twins } from "./twins";
@@ -211,6 +212,8 @@ export class Engine {
   needsFrame(): boolean {
     if (this.disposed || this.lost) return false;
     if (document.hidden) return false;
+    // Modo Debug: render continuo para medir FPS y tiempos de CPU/GPU de forma honesta.
+    if (appStore.getState().debug) return true;
     if (this.dirty || this.pointer.moved) return true;
     if (window.scrollY !== this.lastScroll) return true;
     if (performance.now() < this.chromaUntil) return true;
@@ -246,6 +249,8 @@ export class Engine {
     }
     for (const st of this.states.values()) if (!active.includes(st)) st.animating = false;
 
+    this.syncWireframe();
+    const cpuStart = performance.now();
     this.renderer.info.reset();
     try {
       this.pipeline.render();
@@ -253,6 +258,8 @@ export class Engine {
       this.options.onError?.(error);
       return;
     }
+    debugBridge.lastCpuMs = performance.now() - cpuStart;
+    debugBridge.onFrame?.();
 
     this.dirty = false;
     this.pointer.moved = false;
@@ -448,6 +455,35 @@ export class Engine {
       layers.length === 0 ? TSL.vec4(0, 0, 0, 0) : buildOutput(layers, { preset: frame.preset });
     this.pipeline.needsUpdate = true;
     appStore.getState().setActiveScenes(active.map((s) => s.def.id));
+  }
+
+  /** Materiales que ya se pusieron en wireframe (para restaurarlos al apagar Debug sin recorrer de más). */
+  private readonly wireframed = new WeakMap<object, boolean>();
+  private wireframeApplied = false;
+
+  /**
+   * Wireframe de las escenas (modo Debug, design D6): un flag del store que se aplica a los
+   * `NodeMaterial` de las escenas cargadas sin recrearlos. Los materiales que no lo soportan
+   * (puntos, líneas) se ignoran.
+   */
+  private syncWireframe(): void {
+    const { debug, debugTools } = appStore.getState();
+    const want = debug && debugTools.wireframe;
+    if (!want && !this.wireframeApplied) return;
+    // TODAS las escenas cargadas (no solo las visibles): al apagar Debug ninguna debe quedarse en wireframe.
+    for (const st of this.states.values()) {
+      st.instance?.scene.traverse((object) => {
+        const material = (object as { material?: unknown }).material;
+        const list = Array.isArray(material) ? material : material ? [material] : [];
+        for (const m of list as { wireframe?: boolean; needsUpdate?: boolean }[]) {
+          if (!("wireframe" in m) || this.wireframed.get(m) === want) continue;
+          m.wireframe = want;
+          m.needsUpdate = true;
+          this.wireframed.set(m, want);
+        }
+      });
+    }
+    this.wireframeApplied = want;
   }
 
   private publishStats(nowMs: number, active: DefState[]): void {

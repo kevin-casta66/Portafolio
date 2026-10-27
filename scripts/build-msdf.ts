@@ -25,7 +25,7 @@ const wawoff2 = require("wawoff2") as { decompress(input: Uint8Array): Promise<U
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "public", "webgl", "msdf");
-const work = mkdtempSync(join(tmpdir(), "compile-msdf-"));
+const work = mkdtempSync(join(tmpdir(), "portafolio-msdf-"));
 mkdirSync(outDir, { recursive: true });
 
 function generate(name: string, ttf: string, charset: string): Promise<void> {

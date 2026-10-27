@@ -1,5 +1,5 @@
 /*
- * Design tokens de «COMPILE» — única fuente de verdad visual y de movimiento.
+ * Design tokens de «Portafolio» — única fuente de verdad visual y de movimiento.
  *
  * - Los colores literales (hex / oklch) SOLO pueden vivir en este archivo (lo hacen cumplir
  *   Stylelint y ESLint). Los componentes usan los tokens semánticos.
@@ -144,12 +144,18 @@
   --syntax-string: var(--lime-400);
   --syntax-punct: var(--ink-400);
 
-  /* Superficie translúcida (liquid glass): la opacidad mínima garantiza AA sobre el peor fondo */
-  --glass-bg-min-alpha: 0.72;
+  /* Superficie translúcida (liquid glass): la opacidad mínima garantiza AA sobre el peor fondo; `pnpm tokens:contrast` calcula el mínimo y falla si estos valores no lo alcanzan */
+  --glass-bg-min-alpha: 0.9;
+  --glass-bg-strong-alpha: 0.97;
   --glass-blur: 16px;
   --glass-bg: color-mix(
     in srgb,
     var(--surface) calc(var(--glass-bg-min-alpha) * 100%),
+    transparent
+  );
+  --glass-bg-strong: color-mix(
+    in srgb,
+    var(--surface) calc(var(--glass-bg-strong-alpha) * 100%),
     transparent
   );
 
@@ -179,11 +185,17 @@
   --syntax-string: var(--lime-700);
   --syntax-punct: var(--ink-600);
 
-  --glass-bg-min-alpha: 0.72;
+  --glass-bg-min-alpha: 0.94;
+  --glass-bg-strong-alpha: 0.97;
   --glass-blur: 16px;
   --glass-bg: color-mix(
     in srgb,
     var(--surface) calc(var(--glass-bg-min-alpha) * 100%),
+    transparent
+  );
+  --glass-bg-strong: color-mix(
+    in srgb,
+    var(--surface) calc(var(--glass-bg-strong-alpha) * 100%),
     transparent
   );
 

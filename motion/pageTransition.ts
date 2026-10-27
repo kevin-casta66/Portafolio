@@ -23,7 +23,7 @@ import type { AttachLabel, Rect, Surface, SurfaceState } from "./t6";
  * reducido es un fundido de WAAPI y no se carga nada más. Un fallo en cualquier punto «rescata»: restaura
  * la tarjeta y la página y deja la navegación hecha.
  */
-const RECORD_KEY = "compile:t6";
+const RECORD_KEY = "portafolio:t6";
 /** Tope de espera a que la página destino se monte antes de rescatar con un fundido. */
 const ARRIVAL_TIMEOUT_MS = 3000;
 /** Tope para que el rectángulo de la cabecera se estabilice antes de rescatar con un fundido. */

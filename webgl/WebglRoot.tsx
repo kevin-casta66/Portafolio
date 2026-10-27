@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { appStore } from "@/lib/store";
 import { subscribeClock, t6 } from "@/motion/shared";
 import { TEST_PARAM } from "@/motion/config";
+import { debugBridge } from "./core/debug";
+import { registerPostTweakables } from "./postfx-tweakables";
+import { tweakablesFor } from "./tweakables";
 import { backendOf, forcedBackend, hasAnyBackend } from "./core/backend";
 import { Engine } from "./core/engine";
 import { twins } from "./core/twins";
@@ -41,11 +44,15 @@ interface TestHook {
   twinDeviation(): number;
   signals(): { velocity: number; chroma: number };
   sceneDebug(id: string): Record<string, unknown> | null;
+  /** Parámetros ajustables (modo Debug) y su valor actual. */
+  tweakables(): { id: string; value: number; defaultValue: number }[];
+  /** Materiales de las escenas activas que están en wireframe / el total que lo soporta. */
+  wireframeCount(): { on: number; total: number };
 }
 
 declare global {
   interface Window {
-    __compileWebgl?: TestHook;
+    __portafolioWebgl?: TestHook;
   }
 }
 
@@ -91,13 +98,17 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
     // Variantes `canvas` de las transiciones: se registran ANTES de marcar el canvas como listo.
     const uninstallVariants = installCanvasVariants(engine);
 
+    // Modo Debug (change 06): stats-gl mide el renderer actual; los parámetros del postprocesado son ajustables.
+    debugBridge.setRenderer(renderer);
+    const unregisterTweakables = registerPostTweakables();
+
     const store = appStore.getState();
     store.setBackend(backendOf(renderer));
     store.setTier(boot.tier);
     store.setCanvasReady(true);
 
     if (new URLSearchParams(window.location.search).has(TEST_PARAM)) {
-      window.__compileWebgl = {
+      window.__portafolioWebgl = {
         engine: () => engineRef.current,
         stats: () => engineRef.current?.stats ?? null,
         info: () => {
@@ -123,6 +134,23 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
         },
         signals: () => ({ velocity: Number(uScrollVelocity.value), chroma: Number(uChroma.value) }),
         sceneDebug: (id) => engineRef.current?.sceneDebug(id) ?? null,
+        tweakables: () => tweakablesFor([]).map((p) => ({ id: p.id, value: p.get(), defaultValue: p.defaultValue })),
+        wireframeCount: () => {
+          let on = 0;
+          let total = 0;
+          const states = (engineRef.current as unknown as { states?: Map<string, { instance: { scene: { traverse(fn: (o: unknown) => void): void } } | null }> } | null)?.states;
+          states?.forEach((st) => {
+            st.instance?.scene.traverse((o) => {
+              const material = (o as { material?: unknown }).material;
+              for (const m of (Array.isArray(material) ? material : material ? [material] : []) as { wireframe?: boolean }[]) {
+                if (!("wireframe" in m)) continue;
+                total++;
+                if (m.wireframe) on++;
+              }
+            });
+          });
+          return { on, total };
+        },
         loseContext: () => {
           const backend = renderer.backend as {
             isWebGPUBackend?: boolean;
@@ -143,7 +171,9 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
     }
 
     return () => {
-      delete window.__compileWebgl;
+      delete window.__portafolioWebgl;
+      debugBridge.setRenderer(null);
+      unregisterTweakables();
       mo.disconnect();
       unsubscribeClock();
       stopClock?.();

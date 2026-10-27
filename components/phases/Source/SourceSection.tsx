@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { MagneticLink } from "@/components/ui/Magnetic";
 import { content } from "@/lib/content";
 
 /**
@@ -14,6 +15,7 @@ export async function SourceSection() {
 
   return (
     <section
+      data-debug-name="SourceSection"
       id="source"
       data-phase="source"
       aria-labelledby="source-title"
@@ -50,21 +52,23 @@ export async function SourceSection() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <a
+            <MagneticLink
               href="#runtime"
               data-anim="cta"
-              className="inline-flex h-12 items-center rounded-md bg-accent px-6 font-medium text-bg hover:opacity-90"
+              surfaceClassName="rounded-md bg-accent group-hover:opacity-90"
+              className="inline-flex h-12 items-center px-6 font-medium text-bg"
             >
               {t("ctaProjects")}
-            </a>
-            <a
+            </MagneticLink>
+            <MagneticLink
               href={cvHref}
               download
               data-anim="cta"
-              className="inline-flex h-12 items-center rounded-md border border-accent px-6 font-medium text-accent hover:bg-phase-tint"
+              surfaceClassName="rounded-md border border-accent group-hover:bg-phase-tint"
+              className="inline-flex h-12 items-center px-6 font-medium text-accent"
             >
               {t("ctaCv")}
-            </a>
+            </MagneticLink>
           </div>
 
           <p data-anim="value-prop" className="mt-6 max-w-prose text-lg text-fg-muted">

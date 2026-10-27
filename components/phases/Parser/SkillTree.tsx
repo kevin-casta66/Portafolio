@@ -341,6 +341,7 @@ export function SkillTree({ categories }: { categories: TreeCategory[] }) {
         role="tree"
         aria-label={t("treeLabel")}
         onKeyDown={onKeyDown}
+        data-cursor="drag"
         className="md:overflow-x-auto md:pb-4"
       >
         {renderNode(ROOT)}

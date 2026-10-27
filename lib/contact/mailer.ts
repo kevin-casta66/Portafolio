@@ -27,7 +27,7 @@ export async function deliver({
     throw new Error("Falta RESEND_API_KEY o CONTACT_TO_EMAIL en el entorno del servidor");
   }
 
-  const from = process.env.CONTACT_FROM_EMAIL ?? "COMPILE Portfolio <onboarding@resend.dev>";
+  const from = process.env.CONTACT_FROM_EMAIL ?? "Portafolio <onboarding@resend.dev>";
   // Sin saltos de línea en el asunto: evita inyección de cabeceras.
   const subject = `Nuevo mensaje de ${name.replace(/[\r\n]+/g, " ")}`;
 

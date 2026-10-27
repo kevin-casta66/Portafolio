@@ -36,6 +36,7 @@ export async function RuntimeSection({ grep }: { grep?: string | undefined }) {
 
   return (
     <section
+      data-debug-name="RuntimeSection"
       id="runtime"
       data-phase="runtime"
       aria-labelledby="runtime-title"

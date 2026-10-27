@@ -1,6 +1,6 @@
 ## Why
 
-El ADDENDUM v2 (docs/ADDENDUM-v2.md §4 T7, §5 «Memory Heap» y §9) pide una vista de mundo donde todos los proyectos y experimentos se exploran como bloques de memoria en una cuadrícula infinita. Es la técnica de «mundo arrastrable» de los referentes reinterpretada en la narrativa COMPILE: el visitante inspecciona el heap del proceso `Developer`. Demuestra dominio de instancing, inercia, refracción en GPU y accesibilidad de interfaces no lineales. Complementa la sección RUNTIME del BRIEF (docs/BRIEF.md §2.5) sin sustituirla.
+El ADDENDUM v2 (docs/ADDENDUM-v2.md §4 T7, §5 «Memory Heap» y §9) pide una vista de mundo donde todos los proyectos y experimentos se exploran como bloques de memoria en una cuadrícula infinita. Es la técnica de «mundo arrastrable» de los referentes reinterpretada en la narrativa Portafolio: el visitante inspecciona el heap del proceso `Developer`. Demuestra dominio de instancing, inercia, refracción en GPU y accesibilidad de interfaces no lineales. Complementa la sección RUNTIME del BRIEF (docs/BRIEF.md §2.5) sin sustituirla.
 
 Depende de: `00-technique-teardown` (técnicas y tabla T1–T11), `01-foundation-design-system` (tokens, content-model, i18n), `02-static-semantic-sections` (tarjetas de proyecto y experimentos), `03-scroll-choreography` (motion-system), `04-webgl-scenes` (canvas persistente, gemelos DOM↔WebGL, tiers de calidad), `05-case-studies-view-transitions` (Hold-to-Execute y casos de estudio) y `06-global-systems` (liquid-glass, logros, cursor, terminal).
 

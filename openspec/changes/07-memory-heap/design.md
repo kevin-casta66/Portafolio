@@ -4,7 +4,8 @@ Motivación en proposal.md. Este change se apoya en piezas que definen los chang
 
 - **04**: canvas persistente único, registro de escenas con renderizado selectivo, gemelos DOM↔WebGL, tiers de calidad con cambio en caliente, `dispose` estricto.
 - **05**: interacción Hold-to-Execute y transición al caso de estudio.
-- **06**: material/capability `liquid-glass`, sistema de logros, cursor contextual, registro de comandos de la terminal, Modo Debug (stats-gl).
+- **06**: material `liquid-glass` como componente DOM (`components/ui/Glass.tsx` + filtros SVG de `GlassFilters.tsx`; el lint ya permite su uso en `components/heap/**`), logros (`unlock()` de `lib/achievements.ts`; `heap_explorer` ya está definido en `content/achievements.ts`), cursor contextual, registro de comandos de la terminal (`COMMAND_IDS` de `lib/commands.ts`), Modo Debug (stats-gl, draw calls en `scenes.drawCalls`).
+- **05**: nodo TSL de lente (barrel) + aberración por canal en `webgl/transitions/T6.scene.ts`, reutilizable para la lente del heap.
 - **03**: tokens de movimiento, reloj único (ticker de GSAP), Flip.
 
 Restricciones: shaders solo TSL/NodeMaterial; presupuesto < 100 draw calls por escena; JS inicial del home intacto; contenido completo en el DOM.
@@ -44,7 +45,11 @@ Entrada vía GSAP Observer (pointer, touch, wheel) con umbral de 6 px para disti
 *Alternativa*: Draggable + InertiaPlugin. Viable; se prefiere Observer para no añadir un plugin más al chunk y controlar la envoltura modular.
 
 ### D6. Lente de liquid glass reutilizando la capability de 06
-La lente es un plano en espacio de pantalla con el nodo de refracción de `liquid-glass` (06) que muestrea el render target de la escena del heap y aplica magnificación radial. Se monta solo si `tier ∈ {medium, high}`, puntero `fine` y sin reduced motion; se suscribe al store de calidad para desmontarse en caliente.
+**Corrección tras aplicar 05 y 06:** `liquid-glass` se implementó en 06 como material DOM (CSS `backdrop-filter` + filtro SVG), no como nodo TSL, y un `backdrop-filter` no puede ampliar el contenido del canvas. Por eso la lente se compone de dos piezas:
+- **Efecto en GPU (este change):** un nodo TSL en `webgl/nodes/lens.ts` que aplica magnificación radial y refracción/aberración en el borde, extraído del nodo de lente de T6 (`webgl/transitions/T6.scene.ts`) para no duplicarlo (T6 pasa a importarlo). Se aplica dentro de la escena del heap muestreando su propia capa; si necesita un render target, se dimensiona con `rtSize()` (píxeles físicos, r186) y se libera con la escena. Se compone en el `RenderPipeline` existente (`buildOutput`), sin otro pipeline.
+- **Marco DOM:** el anillo/etiqueta de la lente usa `Glass` de 06 (permitido por el lint en `components/heap/**`), con `aria-hidden` y `pointer-events: none`.
+
+Se monta solo si `tier ∈ {medium, high}`, puntero `fine` y sin reduced motion; se suscribe al store de calidad para desmontarse en caliente.
 
 ### D7. «Run GC» con interpolación de instancias y Flip en DOM
 El layout destino se calcula con D3; en 3D cada instancia interpola de su posición anterior a la nueva con un atributo `progress` animado por GSAP (stagger 60–80 ms, ease quart in-out). En 2D/lista se usa Flip; con reduced motion, fundido. El criterio se guarda en `?gc=tech|year`. Un `aria-live="polite"` anuncia el resultado.
@@ -57,7 +62,7 @@ El conmutador Grid / Lista / Heap de RUNTIME, al elegir Heap, ejecuta en el home
 *Alternativa*: View Transitions de documento. Descartada por el addendum: las transiciones cinematográficas viven en el canvas.
 
 ### D10. Carga diferida y registro de escena
-`webgl/scenes/heap` se importa dinámicamente solo en `/heap` o al pulsar Heap; se registra en el registro de escenas con rango «ruta completa» y libera geometrías, texturas y render targets al salir. El logro `heap_explorer` se emite en el montaje de la página vía la API de logros de 06 (idempotente).
+`webgl/scenes/heap` se importa dinámicamente solo en `/heap` o al pulsar Heap; se registra en `SCENE_DEFS` (`webgl/scenes/index.ts`) con un rango que cubre toda la ruta (p. ej. `sectionRange("heap")` sobre el contenedor de la página, o un rango infinito mientras la ruta esté activa, como hace T6 con su estado) y vuelve a `null` fuera de ella, de modo que el motor del 04 la libera (geometrías, texturas y render targets) al salir. El logro `heap_explorer` se emite en el montaje de la página vía la API de logros de 06 (idempotente).
 
 ## Risks / Trade-offs
 

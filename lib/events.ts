@@ -6,6 +6,8 @@
 export interface AppEvents {
   /** Un logro se desbloquea (el sistema de logros del change 06 deduplica y persiste). */
   "achievement:unlock": { id: string };
+  /** Pide un sonido de interfaz (tecleo, control, logro…). Solo suena con el sonido activado. */
+  "ui:sound": { name: "key" | "enter" | "toggle" | "achievement" | "open" };
 }
 
 type Handler<K extends keyof AppEvents> = (payload: AppEvents[K]) => void;
@@ -22,9 +24,9 @@ export function on<K extends keyof AppEvents>(event: K, handler: Handler<K>): ()
 
 /** Emite un evento. Un suscriptor que falla no impide que los demás lo reciban. */
 export function emit<K extends keyof AppEvents>(event: K, payload: AppEvents[K]): void {
-  // Gancho de pruebas en navegador: si la página define `window.__compileEventLog = []`, se anota aquí.
+  // Gancho de pruebas en navegador: si la página define `window.__portafolioEventLog = []`, se anota aquí.
   if (typeof window !== "undefined") {
-    (window as { __compileEventLog?: unknown[] }).__compileEventLog?.push({ event, payload });
+    (window as { __portafolioEventLog?: unknown[] }).__portafolioEventLog?.push({ event, payload });
   }
   for (const handler of [...(handlers.get(event) ?? [])]) {
     try {
@@ -50,7 +52,7 @@ const sessionOnce = (): OnceStorage | null => {
 };
 
 /** Claves de sesión de los eventos «una sola vez». */
-export const PROCESS_EXECUTED_KEY = "compile:event:process_executed";
+export const PROCESS_EXECUTED_KEY = "portafolio:event:process_executed";
 
 /**
  * Emite `achievement:unlock` con `process_executed` SOLO la primera vez de la sesión (primer

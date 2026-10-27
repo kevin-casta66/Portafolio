@@ -1,0 +1,364 @@
+/*
+ * Sistemas globales (change 06): vidrio líquido, Call Stack, terminal, avisos de logros, Debug,
+ * Vista Rápida, cursor e impresión. Los colores salen SIEMPRE de los tokens de `tokens.css`.
+ */
+
+/* ───────────────────────── Vidrio líquido ───────────────────────── */
+
+.glass {
+  border: 1px solid var(--border);
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+}
+
+.glass[data-glass="strong"] {
+  background-color: var(--glass-bg-strong);
+}
+
+/* Refracción de borde: solo puntero fino y sin tier bajo (el desplazamiento SVG es caro en móvil) */
+@media (pointer: fine) {
+  html:not([data-tier="low"]) .glass[data-refract="true"] {
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4) url("#glass-refraction");
+  }
+}
+
+/* Sin soporte de filtros de fondo: superficie elevada opaca de los tokens del tema */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass[data-glass="strong"] {
+    background-color: var(--surface-elevated);
+  }
+}
+
+/* Preferencia de transparencia reducida: lo mismo */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass[data-glass="strong"],
+  html:not([data-tier="low"]) .glass[data-refract="true"] {
+    background-color: var(--surface-elevated);
+    backdrop-filter: none;
+  }
+}
+
+/* ───────────────────────── Call Stack ───────────────────────── */
+
+.callstack {
+  max-width: 2.25rem;
+  overflow: hidden;
+}
+
+/* Oculto solo a la vista (técnica «visually hidden»): el texto sigue en el árbol de accesibilidad */
+.callstack-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Se expande al pasar el puntero o al enfocarla con teclado */
+.callstack:hover,
+.callstack:focus-within {
+  max-width: 12rem;
+}
+
+.callstack:hover .callstack-name,
+.callstack:focus-within .callstack-name {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}
+
+.callstack-frame {
+  color: var(--text-muted);
+}
+
+.callstack-frame[data-on-stack="true"] {
+  color: var(--text);
+}
+
+.callstack-frame[data-active="true"] {
+  color: var(--frame-accent);
+  background-color: color-mix(in srgb, var(--frame-accent) 12%, transparent);
+}
+
+.callstack-frame:hover {
+  background-color: color-mix(in srgb, var(--frame-accent) 18%, transparent);
+}
+
+.callstack-dot {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--text-muted);
+}
+
+.callstack-frame[data-on-stack="true"] .callstack-dot {
+  border-color: var(--frame-accent);
+}
+
+.callstack-frame[data-active="true"] .callstack-dot {
+  background-color: var(--frame-accent);
+  box-shadow: 0 0 0.5rem var(--frame-accent);
+}
+
+.callstack-popover {
+  margin: auto;
+  inset: auto;
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .callstack {
+    transition: max-width var(--dur-ui) var(--ease-in-expo);
+  }
+
+  .callstack-frame {
+    transition:
+      background-color var(--dur-micro),
+      color var(--dur-micro);
+  }
+}
+
+/* Barra inferior móvil */
+.callstack-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.callstack-progress {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background-image: var(--accent-active-gradient);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: 0 50%;
+}
+
+.callstack-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Reserva el alto de la barra para que no tape el final de la página */
+html[data-callstack-bar="on"] body {
+  padding-bottom: calc(3rem + env(safe-area-inset-bottom));
+}
+
+/* ───────────────────────── Avisos de logros ───────────────────────── */
+
+/* Con movimiento reducido solo hay fundido; sin preferencia, fundido + un pequeño desplazamiento */
+.toast {
+  animation: toast-fade var(--dur-ui) var(--ease-in-expo) both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation-name: toast-in;
+  }
+}
+
+@keyframes toast-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ───────────────────────── Terminal ───────────────────────── */
+
+dialog.terminal {
+  max-height: 85dvh;
+  overflow: hidden;
+}
+
+dialog.terminal::backdrop {
+  background-color: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.terminal[open] {
+    animation: toast-in var(--dur-ui) var(--ease-in-expo) both;
+  }
+}
+
+/* ───────────────────────── Vista Rápida ───────────────────────── */
+
+/* Sin escenas 3D, sin capas de movimiento y sin barra de progreso en la vista de currículum */
+html[data-view="quick"] .webgl-layer,
+html[data-view="quick"] .read-progress {
+  display: none;
+}
+
+/* ───────────────────────── Puerta de arranque: marca ───────────────────────── */
+
+/*
+ * El nombre tiene longitud distinta según el idioma: la tipografía se escala para que SIEMPRE quepa en
+ * una línea (≈ 1 em por letra con el espaciado) sin superar el tamaño display de los tokens.
+ */
+.boot-brand {
+  container-type: inline-size;
+}
+
+.boot-brand > p {
+  font-size: min(var(--fs-display), calc(100cqw / (var(--letters, 8) * 1.08)));
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* ───────────────────────── Modo Debug ───────────────────────── */
+
+/* Contorno de los componentes principales: `outline` no afecta al layout (CLS 0 al alternar) */
+html[data-debug-boxes="on"] [data-debug-name] {
+  outline: 1px dashed var(--accent);
+  outline-offset: -1px;
+}
+
+/* Etiquetas de las cajas: capa fija que ignora el puntero */
+.debug-box-labels {
+  position: fixed;
+  inset: 0;
+  z-index: 71;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.debug-box-labels > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0 0.25rem;
+  background-color: var(--accent);
+  color: var(--bg);
+  font-family: var(--ff-code);
+  font-size: 0.625rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Tweakpane con los tokens del tema (los valores por defecto de la librería son los suyos) */
+.debug-tweakpane {
+  --tp-base-background-color: var(--surface);
+  --tp-base-shadow-color: transparent;
+  --tp-container-background-color: var(--surface);
+  --tp-container-background-color-hover: var(--surface);
+  --tp-container-background-color-focus: var(--surface);
+  --tp-container-background-color-active: var(--surface);
+  --tp-container-foreground-color: var(--text);
+  --tp-label-foreground-color: var(--text-muted);
+  --tp-input-background-color: var(--surface-elevated);
+  --tp-input-background-color-hover: var(--surface-elevated);
+  --tp-input-background-color-focus: var(--surface-elevated);
+  --tp-input-background-color-active: var(--surface-elevated);
+  --tp-input-foreground-color: var(--text);
+  --tp-button-background-color: var(--surface-elevated);
+  --tp-button-background-color-hover: var(--surface-elevated);
+  --tp-button-background-color-focus: var(--surface-elevated);
+  --tp-button-background-color-active: var(--surface-elevated);
+  --tp-button-foreground-color: var(--text);
+  --tp-groove-foreground-color: var(--border);
+}
+
+.debug-tweakpane input:focus-visible,
+.debug-tweakpane button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ───────────────────────── Cursor y botones magnéticos ───────────────────────── */
+
+/* Spring de UI aproximado con linear(): los CTAs y el cursor «aterrizan» con un rebote casi imperceptible */
+:root {
+  --ease-magnetic: linear(0, 0.31 8%, 0.82 22%, 1.04 36%, 1.01 52%, 1);
+}
+
+/* El cursor del sistema se oculta solo con el cursor propio activo; en diálogos y popovers (capa superior) se mantiene */
+html[data-cursor="custom"],
+html[data-cursor="custom"] * {
+  cursor: none !important;
+}
+
+html[data-cursor="custom"] dialog,
+html[data-cursor="custom"] dialog *,
+html[data-cursor="custom"] [popover],
+html[data-cursor="custom"] [popover] * {
+  cursor: auto !important;
+}
+
+.custom-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  color: var(--accent);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+}
+
+.custom-cursor[data-visible="true"] {
+  opacity: 1;
+}
+
+.custom-cursor > [data-glyph] {
+  position: absolute;
+  display: none;
+  translate: -50% -50%;
+  color: var(--accent);
+}
+
+.custom-cursor[data-shape="caret"] > [data-glyph="caret"],
+.custom-cursor[data-shape="target"] > [data-glyph="target"],
+.custom-cursor[data-shape="code"] > [data-glyph="code"],
+.custom-cursor[data-shape="drag"] > [data-glyph="drag"] {
+  display: block;
+}
+
+.custom-cursor-caret {
+  width: 2px;
+  height: 1.4rem;
+  background-color: var(--accent);
+}
+
+.custom-cursor[data-pressed="true"] > [data-glyph] {
+  scale: 0.8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .custom-cursor {
+    transition: transform var(--dur-micro) var(--ease-magnetic);
+  }
+
+  .custom-cursor-caret {
+    animation: caret-blink 1.1s steps(1) infinite;
+  }
+
+  .magnetic-layer {
+    transition: transform var(--dur-ui) var(--ease-magnetic);
+  }
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}

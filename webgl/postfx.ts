@@ -1,6 +1,6 @@
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { bayer } from "./nodes/bayer";
-import { uChroma, uTime } from "./nodes/globals";
+import { uBloomStrength, uChroma, uChromaGain, uGrainGain, uTime } from "./nodes/globals";
 import { TSL, type N } from "./nodes/tsl";
 import type { QualityPreset } from "./quality";
 
@@ -39,7 +39,7 @@ export interface PostOptions {
 export function buildOutput(layers: readonly LayerTextures[], { preset, bloomStrength }: PostOptions) {
   // Aberración cromática: desplazamiento radial por canal (uChroma ∈ [0,1]).
   const dir = screenUV.sub(0.5);
-  const amount = uChroma.mul(0.012);
+  const amount = uChroma.mul(0.012).mul(uChromaGain);
   const base = composeAt(layers, screenUV);
   const hasChroma = layers.length > 0;
   const r = hasChroma ? composeAt(layers, screenUV.add(dir.mul(amount))).r : base.r;
@@ -51,8 +51,9 @@ export function buildOutput(layers: readonly LayerTextures[], { preset, bloomStr
     const glows = layers.map((l) => l.glow).filter((g): g is N => g !== null);
     if (glows.length > 0) {
       const glowSum = glows.reduce<N>((acc, g) => acc.add(g), vec4(0, 0, 0, 0));
-      const blurred = bloom(glowSum, bloomStrength ?? 0.9, 0.5, 0.0);
-      const added = blurred.rgb;
+      // La intensidad es un uniform de módulo (ajustable en Debug): se aplica sobre el bloom unitario.
+      const blurred = bloom(glowSum, 1, 0.5, 0.0);
+      const added = blurred.rgb.mul(bloomStrength ?? uBloomStrength);
       out = vec4(out.rgb.add(added), clamp(out.a.add(max(added.r, max(added.g, added.b))), 0, 1));
     }
   }
@@ -60,7 +61,7 @@ export function buildOutput(layers: readonly LayerTextures[], { preset, bloomStr
   // Grano de película (solo donde hay imagen: se multiplica por alfa).
   if (preset.grain) {
     const px = screenCoordinate;
-    const noise = grainNoise(px.add(floor(uTime.mul(24)).mul(7.31))).sub(0.5).mul(0.004); // en lineal: el OETF sRGB amplifica los oscuros, por eso es tan bajo
+    const noise = grainNoise(px.add(floor(uTime.mul(24)).mul(7.31))).sub(0.5).mul(0.004).mul(uGrainGain); // en lineal: el OETF sRGB amplifica los oscuros, por eso es tan bajo
     out = vec4(out.rgb.add(vec3(noise).mul(out.a)), out.a);
   }
 

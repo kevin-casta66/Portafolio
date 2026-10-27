@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { armAudioUnlockOnFirstGesture, audioUnlock } from "@/lib/audio";
 import { appStore } from "@/lib/store";
@@ -12,7 +12,6 @@ import { SPRING_SETTLE_MS, springLinear } from "@/motion/spring";
 import { cssEase, duration, stagger } from "@/motion/tokens";
 import { createBootController, type BootController } from "./boot-controller";
 
-const LETTERS = Array.from("COMPILE");
 const SCROLL_KEYS = new Set([" ", "PageDown", "PageUp", "ArrowDown", "ArrowUp", "End", "Home"]);
 /** Grosor del «punto» del CRT. */
 const LINE_SCALE = 0.006;
@@ -60,13 +59,15 @@ function heroCaretPoint(): { x: number; y: number } | null {
 
 /**
  * T1 · Puerta de arranque. Capa visual superpuesta al contenido SSR (que nunca se oculta ni se retrasa):
- * logs POST con progreso real, letras de COMPILE escalonadas con resorte, elección con/sin sonido,
+ * logs POST con progreso real, letras del nombre escalonadas con resorte, elección con/sin sonido,
  * «Saltar ⏎» desde el primer frame y salida tipo CRT (línea → punto) hacia el cursor del hero.
  * No es modal: el skip link, la Vista Rápida y el CV quedan por encima y operables, y hacer scroll,
  * pulsar Escape o activar cualquiera de ellos la cierra en silencio.
  */
 export function BootGate({ projectCount }: { projectCount: number }) {
   const t = useTranslations("Boot");
+  // Las letras salen del nombre traducido: cualquier longitud funciona (Portafolio = 10, Portfolio = 9).
+  const letters = Array.from(t("brand").toUpperCase());
   const pathname = usePathname();
   const [controller] = useState<BootController>(() =>
     createBootController({
@@ -129,7 +130,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Letras de COMPILE: entran una a una con resorte (sin resorte y con fundido si hay movimiento reducido).
+  // Letras del nombre: entran una a una con resorte (sin resorte y con fundido si hay movimiento reducido).
   useEffect(() => {
     if (snapshot.mode !== "full" || !lettersRef.current) return;
     const letters = Array.from(lettersRef.current.children) as HTMLElement[];
@@ -276,7 +277,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
         ref={overlayRef}
         data-boot-gate
         data-stage={snapshot.stage}
-        className="boot-gate fixed inset-0 z-[60] flex items-center justify-center bg-bg font-mono text-fg"
+        className="boot-gate fixed inset-0 z-[60] flex items-center justify-center bg-bg font-mono text-fg max-sm:pt-40"
       >
         <div
           ref={contentRef}
@@ -285,22 +286,31 @@ export function BootGate({ projectCount }: { projectCount: number }) {
           <button
             type="button"
             onClick={() => controller.skip()}
-            className="absolute -top-20 right-[var(--page-margin)] inline-flex h-11 items-center rounded-md border border-border px-4 text-sm text-fg-muted hover:border-accent hover:text-fg sm:-top-28"
+            className="self-end inline-flex h-11 items-center rounded-md border border-border px-4 text-sm text-fg-muted hover:border-accent hover:text-fg"
           >
             {t("skip")}
           </button>
 
-          {/* La palabra se anuncia una sola vez: las letras animadas son decorativas. */}
-          <p className="font-display text-3xl font-semibold tracking-[0.2em] sm:text-display">
-            <span className="sr-only">{t("brand")}</span>
-            <span ref={lettersRef} aria-hidden="true" className="inline-flex">
-              {LETTERS.map((letter, index) => (
-                <span key={index} style={{ opacity: 0 }} className="inline-block">
-                  {letter}
-                </span>
-              ))}
-            </span>
-          </p>
+          {/*
+            La palabra se anuncia una sola vez: las letras animadas son decorativas. El número de letras
+            depende del idioma (Portafolio / Portfolio), así que el tamaño de la tipografía se ajusta al
+            ancho disponible (`.boot-brand`, unidades de contenedor) y la animación recorre las que haya.
+          */}
+          <div className="boot-brand">
+            <p
+              className="font-display font-semibold tracking-[0.2em]"
+              style={{ "--letters": letters.length } as CSSProperties}
+            >
+              <span className="sr-only">{t("brand")}</span>
+              <span ref={lettersRef} aria-hidden="true" className="inline-flex">
+                {letters.map((letter, index) => (
+                  <span key={index} style={{ opacity: 0 }} className="inline-block">
+                    {letter}
+                  </span>
+                ))}
+              </span>
+            </p>
+          </div>
 
           <ul
             role="status"

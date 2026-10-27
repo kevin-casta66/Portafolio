@@ -1,0 +1,67 @@
+/*
+ * Impresión (Vista Rápida, change 06): fondo claro, sin controles ni capas decorativas y con la URL
+ * de cada enlace visible en papel. Los colores se reasignan a los tokens del tema claro (no hay
+ * literales: todo apunta a las primitivas de `tokens.css`).
+ */
+@media print {
+  :root,
+  [data-theme="dark"],
+  [data-theme="light"] {
+    color-scheme: light;
+
+    --bg: var(--paper-0);
+    --surface: var(--paper-0);
+    --surface-elevated: var(--paper-0);
+    --border: var(--paper-300);
+    --text: var(--ink-900);
+    --text-muted: var(--ink-600);
+    --accent: var(--ink-900);
+    --accent-active: var(--ink-900);
+    --accent-tint: transparent;
+    --phase-tint: transparent;
+  }
+
+  html,
+  body {
+    background: none;
+    font-size: 11pt;
+  }
+
+  /* Navegación, controles y capas decorativas: fuera del papel */
+  header.sticky,
+  footer,
+  .skip-link,
+  .read-progress,
+  .webgl-layer,
+  [data-callstack],
+  [data-achievement-toasts],
+  [data-debug-overlay],
+  [data-custom-cursor],
+  dialog,
+  .quick-controls,
+  .boot-gate {
+    display: none !important;
+  }
+
+  [data-quick-view] {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  [data-quick-view] section,
+  [data-quick-view] li {
+    break-inside: avoid;
+  }
+
+  /* Muestra la URL de cada enlace (menos las anclas internas) */
+  [data-quick-view] a[href]:not([href^="#"])::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  [data-quick-view] a[href^="mailto:"]::after {
+    content: "";
+  }
+}

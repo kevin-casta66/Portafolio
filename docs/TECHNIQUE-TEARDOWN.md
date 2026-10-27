@@ -1,4 +1,4 @@
-# Technique Teardown — «COMPILE»
+# Technique Teardown — «Portafolio»
 
 > Primer entregable del [ADDENDUM-v2](./ADDENDUM-v2.md) §1. Cada fila explica **cómo funciona por dentro**,
 > **cómo lo haremos** con nuestro stack ([STACK-VERSIONS](./STACK-VERSIONS.md)) y **en qué fase** vive.
@@ -32,7 +32,7 @@
 
 Regla: de cada referente se toma **la técnica**, nunca su diseño, assets, textos ni código.
 
-| Referente | Se toma | Reinterpretación en COMPILE |
+| Referente | Se toma | Reinterpretación en Portafolio |
 |---|---|---|
 | Unseen Studio | Puerta de sonido, letras escalonadas, hold, mundo arrastrable, hotspots | Los logs POST → puerta; el hold «ejecuta» un proceso; el mundo es un heap de memoria con direcciones hex |
 | Igloo Inc | Texto SDF, glitch barato, fluidos | Títulos de fase y glitch en cambios de fase; el fluido es «calor» sobre un circuito |
