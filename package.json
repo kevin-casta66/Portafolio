@@ -32,6 +32,7 @@
     "resend": "6.34.1",
     "stats-gl": "4.2.3",
     "three": "0.186.1",
+    "tone": "15.1.22",
     "tweakpane": "4.0.5",
     "yaml": "2.9.1",
     "zod": "4.6.7",
@@ -87,6 +88,7 @@
     "webgl:msdf": "tsx scripts/build-msdf.ts",
     "check:no-glsl": "tsx scripts/check-no-glsl.ts",
     "webgl:budget": "tsx scripts/check-3d-budget.ts",
+    "motion:posters": "tsx scripts/build-motion-posters.ts",
     "webgl:assets": "tsx scripts/optimize-assets.ts"
   }
 }

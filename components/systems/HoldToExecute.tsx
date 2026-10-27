@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { audio } from "@/audio";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { announceProcessExecuted } from "@/lib/events";
 import { prefersReducedMotion } from "@/motion/reduced";
@@ -33,6 +34,13 @@ export default function HoldToExecute() {
   const frame = useRef<SVGSVGElement>(null);
   const progress = useRef<SVGGeometryElement | null>(null);
   const running = useRef<Animation | null>(null);
+  /** Temporizador que informa del progreso del anillo al audio (riser); sin estado de React. */
+  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopProgressReport = () => {
+    if (progressTimer.current) clearInterval(progressTimer.current);
+    progressTimer.current = null;
+  };
+  useEffect(() => stopProgressReport, []);
 
   // El código de la transición (GSAP, etc.) se precarga: el primer hold no espera a la red. Además se
   // engancha lo que no pasa por una tarjeta: «Volver a proyectos» y el botón «atrás» del navegador.
@@ -136,9 +144,18 @@ export default function HoldToExecute() {
           fill: "forwards",
         }) ?? null;
       announce(t("executing"));
+      // Riser del audio: arranca con el anillo y recibe su progreso real cada ~100 ms.
+      audio.emit("hold:start");
+      stopProgressReport();
+      progressTimer.current = setInterval(() => {
+        const current = Number(running.current?.currentTime ?? 0);
+        audio.emit("hold:progress", { progress: Math.min(1, current / duration.hold) });
+      }, 100);
     },
 
     onCancel(_card, reason: CancelReason) {
+      stopProgressReport();
+      audio.emit("hold:cancel"); // el riser cae y se desvanece (también tras un clic corto)
       const anim = running.current;
       if (reason === "click" || !anim || !progress.current) {
         hide(true);
@@ -157,6 +174,9 @@ export default function HoldToExecute() {
     },
 
     onComplete(card) {
+      stopProgressReport();
+      audio.emit("hold:progress", { progress: 1 });
+      audio.emit("hold:complete"); // impacto + acorde resuelto, cuantizados al siguiente tiempo
       hide(false);
       announceProcessExecuted();
       announce(t("opening", { name: card.dataset.holdTitle ?? "" }));

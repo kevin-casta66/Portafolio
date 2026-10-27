@@ -6,8 +6,6 @@
 export interface AppEvents {
   /** Un logro se desbloquea (el sistema de logros del change 06 deduplica y persiste). */
   "achievement:unlock": { id: string };
-  /** Pide un sonido de interfaz (tecleo, control, logro…). Solo suena con el sonido activado. */
-  "ui:sound": { name: "key" | "enter" | "toggle" | "achievement" | "open" };
 }
 
 type Handler<K extends keyof AppEvents> = (payload: AppEvents[K]) => void;

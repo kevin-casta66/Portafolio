@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type KeyboardEvent,
 } from "react";
+import { audio, type SkillCategory } from "@/audio";
 import { prefersReducedMotion } from "@/motion/reduced";
 import { cssEase, duration } from "@/motion/tokens";
 
@@ -161,8 +162,17 @@ export function SkillTree({ categories }: { categories: TreeCategory[] }) {
     };
   }, [selected, uid]);
 
+  /** Nota según la categoría de la tecnología o rama (la raíz no tiene categoría y no suena). */
+  const soundHover = (node: TreeNode) => {
+    if (node.category) audio.emit("hover:skill", { category: node.category as SkillCategory });
+  };
+
   const activate = (node: TreeNode) => {
     if (node.kind === "leaf" && node.skill) {
+      // Seleccionar (no quitar la selección) abre el acorde con el barrido hacia los proyectos.
+      if (selected !== node.skill.id && node.category) {
+        audio.emit("select:skill", { category: node.category as SkillCategory });
+      }
       setSelected((current) => (current === node.skill?.id ? null : (node.skill?.id ?? null)));
     } else {
       setExpanded(node.id, !expanded.has(node.id));
@@ -260,8 +270,13 @@ export function SkillTree({ categories }: { categories: TreeCategory[] }) {
           aria-owns={isOpen ? groupId : undefined}
           aria-labelledby={node.kind === "leaf" ? `${labelId} ${metaId}` : labelId}
           tabIndex={activeId === id ? 0 : -1}
+          onPointerEnter={(e) => {
+            if (e.pointerType === "mouse") soundHover(node);
+          }}
           onFocus={(e) => {
             setActiveId(id);
+            // Solo foco de teclado: con ratón ya sonó el hover (y al hacer clic no debe sonar dos veces).
+            if (e.currentTarget.matches(":focus-visible")) soundHover(node);
             // En escritorio el árbol se desplaza para mantener visible el nodo enfocado (navegación por
             // teclado sin arrastre): el foco nativo no recoloca un nodo parcialmente visible.
             e.currentTarget.scrollIntoView({ block: "nearest", inline: "nearest" });

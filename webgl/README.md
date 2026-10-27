@@ -48,3 +48,11 @@ backend no se monta nada y el sitio es el HTML completo con las transiciones DOM
 
 `/[locale]/prototypes/T2…T9|T11` y `T6` (tarjeta + cabecera del caso; control de progreso y «Ver máscara de la lente») (solo en desarrollo; en producción 404) monta las dos secciones que
 conecta cada transición y un control de progreso 0–1, con selector de variante canvas/DOM/reducida.
+
+## «Ver internos» de las transiciones (change 08)
+
+Cada escena de `transitions/T*.scene.ts` (y la de texto para T11) lee `state.internals` (`TransitionState`,
+`transitions/state.ts`) en cada `update`; solo lo escribe `setTransitionInternals(id, on)` (también disponible en el gancho de
+pruebas `__portafolioWebgl.setInternals`). Las vistas de internos son capas superpuestas ocultas con el flag apagado, así que
+el render normal no cambia. `transitionHooks` (`markDirty`, `sceneLoaded`) permite a `/motion` pedir un frame y saber si la
+escena de una transición ya está cargada. Los escenarios aislados de la vitrina viven en `app/stage/` (ver `motion/README.md`).

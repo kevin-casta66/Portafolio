@@ -1,0 +1,60 @@
+/*
+ * Memory Heap 3D (change 07): el escenario donde el canvas persistente dibuja la cuadrícula infinita.
+ * Los colores salen SIEMPRE de los tokens de `tokens.css` (aquí no hay ninguno propio).
+ */
+
+/* Área del heap: es la ÚNICA zona donde se captura el gesto (fuera de ella el scroll de la página es nativo). */
+.heap-stage {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  overscroll-behavior: contain;
+}
+
+.heap-stage[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.heap-stage[data-hover="true"] {
+  cursor: pointer;
+}
+
+/*
+ * Caja invisible que se coloca sobre el bloque que hay bajo el puntero: recibe el clic o el hold
+ * (Hold-to-Execute de `[data-hold]`, change 05) o es el enlace de su destino. Solo captura eventos
+ * mientras está sobre un bloque y no se está arrastrando.
+ */
+.heap-proxy {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: none;
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+}
+
+.heap-proxy[data-active="true"] {
+  display: block;
+  pointer-events: auto;
+}
+
+/*
+ * Con la escena 3D activa, la cuadrícula DOM sigue en el árbol (es la capa accesible: un único punto de
+ * tabulación, flechas, Enter) pero se oculta visualmente: el foco se ve dibujado en 3D sobre el bloque.
+ */
+html[data-heap3d] [data-heap-grid-wrap]:not([hidden]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heap-stage {
+    cursor: default;
+  }
+}

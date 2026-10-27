@@ -76,3 +76,14 @@ Con movimiento reducido el aviso SHALL aparecer y desaparecer con un fundido, si
 #### Scenario: Reduced motion
 - **WHEN** la preferencia de movimiento reducido está activa y se desbloquea un logro
 - **THEN** el aviso aparece con un fundido, sin animación de desplazamiento
+
+### Requirement: Logro de ingeniero de sonido
+El catálogo de logros SHALL incluir `sound_engineer` («ingeniero de sonido»), que se desbloquea la primera vez que el visitante abre el mezclador de capas, con textos en español e inglés, y que se comporta como el resto de logros (aviso discreto, anuncio accesible, contador y persistencia).
+
+#### Scenario: Abrir el mezclador por primera vez
+- **WHEN** el visitante abre el mezclador de capas por primera vez
+- **THEN** se desbloquea el logro `sound_engineer` y aparece su aviso
+
+#### Scenario: Volver a abrir el mezclador
+- **WHEN** el visitante abre el mezclador en otra ocasión
+- **THEN** el logro no vuelve a anunciarse

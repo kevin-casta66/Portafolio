@@ -107,5 +107,7 @@ export default defineConfig([
     "next-env.d.ts",
     "openspec/**",
     ".claude/**",
+    // Scripts de verificación en navegador (Playwright): esperas y tiempos de prueba, no animaciones de la app.
+    "scripts/audio/**",
   ]),
 ]);

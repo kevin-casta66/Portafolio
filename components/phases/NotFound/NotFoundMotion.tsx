@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { audio } from "@/audio";
 import { prefersReducedMotion } from "@/motion/reduced";
 import { duration } from "@/motion/tokens";
 
@@ -12,6 +13,19 @@ import { duration } from "@/motion/tokens";
  * queda en su estado final.
  */
 export function NotFoundMotion() {
+  // Sonido de la 404: «cinta que se detiene» al entrar y «cinta que arranca» al reiniciar el proceso.
+  // Es independiente del movimiento reducido (el audio tiene su propia preferencia).
+  useEffect(() => {
+    audio.emit("notfound:enter");
+    const onClick = (event: MouseEvent) => {
+      if ((event.target as HTMLElement | null)?.closest("[data-notfound-restart]")) {
+        audio.emit("notfound:restart");
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   useEffect(() => {
     if (prefersReducedMotion()) return;
     const pre = document.querySelector<HTMLElement>("pre[data-anim='memory-dump']");

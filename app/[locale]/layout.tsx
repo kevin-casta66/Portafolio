@@ -13,7 +13,10 @@ import { StoreHydrator } from "@/components/systems/StoreHydrator";
 import { SystemsLoader } from "@/components/systems/SystemsLoader";
 import { WebglLoader } from "@/components/systems/WebglLoader";
 import { GlassFilters } from "@/components/ui/GlassFilters";
+import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { siteUrl } from "@/lib/site";
+import { stemsCreditLine } from "@/lib/audio-credits";
 import { content } from "@/lib/content";
 import { motionScript } from "@/lib/motion-script";
 import { themeScript } from "@/lib/theme-script";
@@ -29,7 +32,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("title"), description: t("description") };
+  return { metadataBase: new URL(siteUrl), title: t("title"), description: t("description") };
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
@@ -38,6 +41,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: "Layout" });
+  // Créditos de la música producida (solo si hay stems publicados; la música generada no los necesita).
+  const musicCredit = stemsCreditLine();
 
   return (
     <html lang={locale} className={fontVariables} suppressHydrationWarning>
@@ -61,6 +66,12 @@ export default async function LocaleLayout({ children, params }: Props) {
           <footer className="border-t border-border py-8">
             <div className="grid-12">
               <p className="col-span-12 font-mono text-sm text-fg-muted">{t("footerNote")}</p>
+              {musicCredit ? <p className="col-span-12 font-mono text-xs text-fg-muted">{musicCredit}</p> : null}
+              <nav aria-label={t("footerNav")} className="col-span-12 mt-3 font-mono text-sm">
+                <Link href="/motion" className="text-fg-muted underline-offset-4 hover:text-accent hover:underline">
+                  {t("footerMotion")}
+                </Link>
+              </nav>
             </div>
           </footer>
           <GlassFilters />

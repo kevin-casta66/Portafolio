@@ -9,6 +9,7 @@ import { runtimeChoreography } from "./choreography/runtime";
 import { createClock, type Clock } from "./clock";
 import { TEST_PARAM, motionConfig } from "./config";
 import { Flip, Observer, ScrollTrigger, SplitText, gsap, registerGsap } from "./gsap";
+import { landOnBar } from "./audio-sync";
 import { onPhaseChange, phaseState } from "./phase-state";
 import { startPhaseTracking } from "./phase-runtime";
 import { hasFinePointer, isCompact, onReducedMotionChange, prefersReducedMotion } from "./reduced";
@@ -133,8 +134,11 @@ export function startMotionRuntime(): MotionRuntime {
       const title = document.getElementById(`${phase}-title`);
       if (!title) return;
       // Con el gemelo MSDF activo el glitch lo hace el canvas (T11 canvas); el DOM queda de respaldo.
-      if (canvasState.glitch?.(title)) return;
-      glitchTitle(title);
+      // Con el audio activo, el glitch cae en el primer tiempo del compás (≤ 350 ms de espera; ver `audio-sync.ts`).
+      landOnBar(() => {
+        if (canvasState.glitch?.(title)) return;
+        glitchTitle(title);
+      });
     });
 
     // Transiciones scrubbed: se montan con el layout estable (fuentes cargadas).

@@ -1,3 +1,4 @@
+import { audio } from "@/audio";
 import { EASE, gsap, seconds } from "../gsap";
 import { duration } from "../tokens";
 import type { Choreography } from "./context";
@@ -60,6 +61,9 @@ export const runtimeChoreography: Choreography = (ctx) => {
     (target as HTMLElement | null)?.closest<HTMLElement>("article[data-anim='process-card']") ??
     null;
 
+  /** Tarjeta sobre la que ya sonó el destello de entrada (se libera al salir, en `rest`). */
+  let soundedCard: HTMLElement | null = null;
+
   const onMove = (event: PointerEvent) => {
     if (event.pointerType !== "mouse") return;
     const card = cardOf(event.target);
@@ -70,6 +74,13 @@ export const runtimeChoreography: Choreography = (ctx) => {
       // los `quickTo` (el tween de reposo los dejó sin propiedades que animar).
       gsap.killTweensOf(card, "rotationX,rotationY");
       Object.assign(state, bindTilt(card), { bound: true });
+    }
+    // Entrada en la tarjeta (una sola vez por entrada, no por movimiento): destello panoramizado como el del núcleo.
+    if (soundedCard !== card) {
+      soundedCard = card;
+      audio.emit("runtime:core-hover", {
+        x: Math.min(1, Math.max(0, event.clientX / window.innerWidth)),
+      });
     }
     const r = card.getBoundingClientRect();
     const nx = (event.clientX - r.left) / r.width - 0.5; // -0,5…0,5
@@ -84,6 +95,7 @@ export const runtimeChoreography: Choreography = (ctx) => {
   };
 
   const rest = (card: HTMLElement) => {
+    if (soundedCard === card) soundedCard = null;
     const state = states.get(card);
     if (!state) return;
     // Vuelta a reposo con el resorte de UI. Se anulan EXPLÍCITAMENTE los `quickTo` de rotación (en vez de

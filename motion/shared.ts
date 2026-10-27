@@ -39,7 +39,7 @@ export const canvasState: {
    * Glitch del título (T11) hecho por el canvas: devuelve `true` si el título tiene gemelo MSDF y el
    * canvas lo animó; con `false` (o sin canvas) se usa el glitch DOM de respaldo.
    */
-  glitch: ((title: HTMLElement) => boolean) | null;
+  glitch: ((title: HTMLElement, speed?: number) => boolean) | null;
 } = {
   glitch: null,
 };

@@ -34,6 +34,9 @@ export function createBootRegistry(): BootRegistry {
 
   return {
     track(id, promise, value) {
+      // Idempotente por id: el modo estricto de React (y un remontaje de la puerta) ejecutan el efecto de
+      // registro más de una vez, y dos líneas con el mismo id duplicarían la `key` del log.
+      if (list.some((track) => track.id === id)) return;
       const entry: BootTrack = { id, done: false, value };
       list = [...list, entry];
       emit();

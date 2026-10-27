@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { audio } from "@/audio";
 import { prefersReducedMotion } from "@/motion/reduced";
 
 export interface BreakpointItem {
@@ -25,6 +26,20 @@ interface BreakpointNavProps {
 export function BreakpointNav({ items, label, toggleLabel, currentTemplate }: BreakpointNavProps) {
   const [active, setActive] = useState(items[0]?.id ?? "");
   const details = useRef<HTMLDetailsElement>(null);
+
+  // Ambiente de lectura mientras dura la página del caso (la música baja y quedan pad y teclas).
+  useEffect(() => {
+    audio.emit("case:enter");
+    return () => audio.emit("case:leave");
+  }, []);
+
+  // Tick suave al cambiar de breakpoint (no en la carga inicial).
+  const previousActive = useRef(active);
+  useEffect(() => {
+    if (previousActive.current === active) return;
+    previousActive.current = active;
+    audio.emit("case:breakpoint");
+  }, [active]);
 
   useEffect(() => {
     const sections = items

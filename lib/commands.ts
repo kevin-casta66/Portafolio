@@ -15,6 +15,9 @@ export const COMMAND_IDS = [
   "skills",
   "cv",
   "contact",
+  "heap",
+  "motion",
+  "mixer",
   "theme",
   "debug",
   "clear",
@@ -46,6 +49,15 @@ export interface CommandActions {
   toggleDebug(): boolean;
   /** Cierra la terminal y se desplaza a DISPLAY. */
   goToContact(): void;
+  /** Cierra la terminal y navega a la vista Memory Heap (`/heap`). */
+  goToHeap(): void;
+  /** Cierra la terminal y navega a la vitrina de movimiento (`/motion`, change 08). */
+  goToMotion(): void;
+  /**
+   * Cierra la terminal y abre el mezclador de capas (change 08b). Devuelve `false` y no abre nada si
+   * el sonido está desactivado.
+   */
+  openMixer(): boolean;
 }
 
 export interface CommandContext {
@@ -76,6 +88,13 @@ const TEXT = {
   caseStudy: { es: "caso de estudio", en: "case study" },
   cvStarted: { es: "Descargando", en: "Downloading" },
   contactJump: { es: "Saltando a DISPLAY…", en: "Jumping to DISPLAY…" },
+  heapJump: { es: "Abriendo el Memory Heap…", en: "Opening the Memory Heap…" },
+  motionJump: { es: "Abriendo la vitrina de movimiento…", en: "Opening the motion showcase…" },
+  mixerOpen: { es: "Abriendo el mezclador de capas…", en: "Opening the layer mixer…" },
+  mixerOff: {
+    es: "El sonido está desactivado. Actívalo con la tecla M o el botón de sonido y vuelve a escribir «mixer».",
+    en: "Sound is off. Turn it on with the M key or the sound button and type “mixer” again.",
+  },
   themeNow: { es: "tema activo", en: "active theme" },
   debugNow: { es: "modo debug", en: "debug mode" },
   dark: { es: "oscuro", en: "dark" },
@@ -170,6 +189,36 @@ export const COMMANDS: readonly Command[] = [
         ],
       };
     },
+  },
+  {
+    id: "heap",
+    description: { es: "Abre la vista Memory Heap", en: "Open the Memory Heap view" },
+    run: ({ locale, actions }) => {
+      actions.goToHeap();
+      return { lines: [{ text: text("heapJump", locale), href: "/heap" }] };
+    },
+  },
+  {
+    id: "motion",
+    description: {
+      es: "Abre la vitrina de movimiento (T1–T11)",
+      en: "Open the motion showcase (T1–T11)",
+    },
+    run: ({ locale, actions }) => {
+      actions.goToMotion();
+      return { lines: [{ text: text("motionJump", locale), href: "/motion" }] };
+    },
+  },
+  {
+    id: "mixer",
+    description: {
+      es: "Abre el mezclador de capas de la música",
+      en: "Open the music layer mixer",
+    },
+    run: ({ locale, actions }) =>
+      actions.openMixer()
+        ? { lines: [{ text: text("mixerOpen", locale) }] }
+        : { lines: [{ text: text("mixerOff", locale) }] },
   },
   {
     id: "theme",

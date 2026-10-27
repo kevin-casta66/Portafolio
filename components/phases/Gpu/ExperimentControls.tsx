@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useId, useSyncExternalStore } from "react";
+import { audio } from "@/audio";
 import { CONTROLS, defaultParams, type ExperimentKind } from "@/webgl/lab/definitions";
 import { getParams, getReadout, setParam, subscribeLab } from "@/webgl/lab/store";
 
@@ -47,7 +48,15 @@ export function ExperimentControls({ id, kind }: { id: string; kind: ExperimentK
                 step={control.step}
                 value={value}
                 aria-valuetext={control.valueText(value)}
-                onChange={(e) => setParam(id, kind, control.key, Number(e.target.value))}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setParam(id, kind, control.key, next);
+                  // Las demos modulan la música en vivo: el primer control abre el filtro, el segundo la reverb.
+                  const span = control.max - control.min;
+                  const norm = span > 0 ? Math.min(1, Math.max(0, (next - control.min) / span)) : 0;
+                  const ranges = CONTROLS[kind].filter((c) => c.type === "range");
+                  audio.emit("lab:modulate", ranges[0] === control ? { cutoff: norm } : { reverb: norm });
+                }}
                 className="h-6 w-full accent-[var(--accent)]"
               />
             </div>

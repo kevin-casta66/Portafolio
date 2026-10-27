@@ -5,7 +5,14 @@ import type { TransitionContext, TransitionHandle, TransitionId } from "@/motion
 import type { Engine } from "../core/engine";
 import type { Range } from "../core/layout";
 import { CANVAS_TRANSITIONS } from "./registry";
-import { prototypeMode, type CanvasTransition, type TransitionState } from "./state";
+import {
+  createTransitionState,
+  prototypeMode,
+  transitionHooks,
+  transitionStates,
+  type CanvasTransition,
+  type TransitionState,
+} from "./state";
 
 /** Margen (en viewports) alrededor del tramo de scroll en el que la escena de la transición existe. */
 const MARGIN_VIEWPORTS = 0.5;
@@ -27,7 +34,8 @@ export function transitionRange(id: TransitionId): Range | null {
  */
 export function canvasVariant(engine: Engine, config: CanvasTransition) {
   return (tctx: TransitionContext): TransitionHandle => {
-    const state: TransitionState = { p: 0 };
+    const state: TransitionState = createTransitionState();
+    transitionStates.set(config.id, state);
     let timeline!: gsap.core.Timeline;
     let cleanup: (() => void) | void;
     const scope = gsap.context(() => {
@@ -54,6 +62,7 @@ export function canvasVariant(engine: Engine, config: CanvasTransition) {
     return {
       timeline,
       destroy() {
+        if (transitionStates.get(config.id) === state) transitionStates.delete(config.id);
         unregister();
         cleanup?.();
         scope.revert();
@@ -66,7 +75,11 @@ export function canvasVariant(engine: Engine, config: CanvasTransition) {
 export function installCanvasVariants(engine: Engine): () => void {
   for (const config of CANVAS_TRANSITIONS)
     setCanvasVariant(config.id, canvasVariant(engine, config));
+  transitionHooks.markDirty = () => engine.markDirty();
+  transitionHooks.sceneLoaded = (id) => engine.sceneStates().some((s) => s.id === id && s.loaded);
   return () => {
+    transitionHooks.markDirty = null;
+    transitionHooks.sceneLoaded = null;
     for (const config of CANVAS_TRANSITIONS) setCanvasVariant(config.id, null);
   };
 }

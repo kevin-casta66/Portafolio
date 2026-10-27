@@ -1,14 +1,15 @@
 import { Scene } from "three/webgpu";
 import { createPixelCamera, fitPixelCamera } from "../core/camera";
 import { twins } from "../core/twins";
-import { uAccents } from "../nodes/globals";
-import { TSL } from "../nodes/tsl";
+import { uAccents, uText } from "../nodes/globals";
+import { TSL, type N } from "../nodes/tsl";
 import { BEZEL, STAND, spectral } from "../objects/monitor";
 import { createParticles } from "../objects/particles";
 import { particlesFor } from "../quality";
+import { internalsOn, SPEED_REFERENCE } from "./internals-math";
 import type { TransitionSceneFactory } from "./state";
 
-const { vec2, vec3, vec4, float, uniform, instanceIndex, hash, uint, mix, smoothstep, clamp, sin, step, select, atan } = TSL;
+const { vec2, vec3, vec4, float, uniform, instanceIndex, hash, uint, mix, smoothstep, clamp, sin, step, select, atan, length } = TSL;
 
 const GPU_ACCENT = 5;
 const TAU = Math.PI * 2;
@@ -28,8 +29,52 @@ export const createT9Scene: TransitionSceneFactory = (_ctx, state) => {
   const uForm = uniform(vec4(0, 0, 600, 400)); // formulario (documento): x, y, w, h
 
   let system: ReturnType<typeof createParticles> | null = null;
+  // «Ver internos» (MOTION-SPEC §3, T9): posiciones objetivo (la silueta del monitor muestreada) y
+  // campo de velocidad (cada partícula en su sitio actual, teñida por su velocidad). Se crean la
+  // primera vez que se enciende el flag, con el mismo grafo de nodos que el sistema normal, y se
+  // vuelven a crear cuando cambia el número de partículas (calidad). Apagado no existen ni se dibujan.
+  let targets: ReturnType<typeof createParticles> | null = null;
+  let velocity: ReturnType<typeof createParticles> | null = null;
+  let graph: { targetView: N; view: N; rel: N; alive: N; distance: N } | null = null;
   let built = -1;
   const release = twins.acquire();
+
+  const dropInternals = () => {
+    for (const s of [targets, velocity]) {
+      if (!s) continue;
+      scene.remove(s.sprite);
+      s.dispose();
+    }
+    targets = null;
+    velocity = null;
+  };
+
+  const buildInternals = (count: number) => {
+    if (!graph || count <= 0) return;
+    const { targetView, view, rel, alive, distance } = graph;
+    // Destinos: puntos fijos en la silueta, visibles durante todo el viaje.
+    const envelope = smoothstep(0, 0.12, uP).mul(float(1).sub(smoothstep(0.93, 1, uP)));
+    targets = createParticles(count, {
+      position: vec3(targetView.x, targetView.y.negate(), 0),
+      size: vec2(1.6, 1.6),
+      color: vec3(uText),
+      opacity: envelope.mul(0.7),
+    });
+    targets.sprite.renderOrder = 10;
+    scene.add(targets.sprite);
+    // Velocidad: derivada del suavizado por la distancia origen → destino (ver `particleSpeed`), 0 en
+    // reposo; solo se dibujan las partículas en movimiento.
+    const speed = distance.mul(6).mul(rel).mul(float(1).sub(rel)).div(0.58).div(SPEED_REFERENCE);
+    const moving = step(0.001, rel).mul(step(rel, 0.999));
+    velocity = createParticles(count, {
+      position: vec3(view.x, view.y.negate(), 0),
+      size: vec2(2.6, 2.6),
+      color: mix(vec3(uAccents.element(GPU_ACCENT)), vec3(uAccents.element(4)), clamp(speed, 0, 1)),
+      opacity: alive.mul(moving).mul(0.95),
+    });
+    velocity.sprite.renderOrder = 11;
+    scene.add(velocity.sprite);
+  };
 
   const build = (count: number) => {
     if (system) {
@@ -37,6 +82,7 @@ export const createT9Scene: TransitionSceneFactory = (_ctx, state) => {
       system.dispose();
       system = null;
     }
+    dropInternals();
     built = count;
     if (count <= 0) return;
     // Cuatro números pseudoaleatorios independientes por partícula (hash PCG de TSL sobre el índice).
@@ -82,6 +128,14 @@ export const createT9Scene: TransitionSceneFactory = (_ctx, state) => {
     const landed = step(0.999, rel);
     const front = float(1).sub(smoothstep(0, 0.18, rel)).mul(alive).add(landed.mul(alive).mul(0.25));
 
+    graph = {
+      targetView: vec2(target.x, target.y.sub(uScroll)),
+      view,
+      rel,
+      alive,
+      distance: length(target.sub(start)),
+    };
+
     system = createParticles(count, {
       position: vec3(view.x, view.y.negate(), 0),
       size: vec2(r3.mul(0.0).add(1.9), 1.9),
@@ -100,6 +154,11 @@ export const createT9Scene: TransitionSceneFactory = (_ctx, state) => {
       fitPixelCamera(camera, frame.viewW, frame.viewH);
       const want = particlesFor(frame.tier, frame.mobile);
       if (want !== built) build(want);
+      const internals = internalsOn(state);
+      if (internals && !targets) buildInternals(built);
+      if (system) system.sprite.visible = !internals; // con internos, las partículas normales dejan paso a las vistas
+      if (targets) targets.sprite.visible = internals;
+      if (velocity) velocity.sprite.visible = internals;
       const field = twins.get("pipeline");
       const form = twins.get("monitor");
       if (field) uField.value.set(field.rect.x, field.rect.y + frame.scrollY, field.rect.w, field.rect.h);
@@ -117,6 +176,7 @@ export const createT9Scene: TransitionSceneFactory = (_ctx, state) => {
         scene.remove(system.sprite);
         system.dispose();
       }
+      dropInternals();
     },
   };
 };

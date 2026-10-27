@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useId, useRef, useState } from "react";
+import { audio } from "@/audio";
 import { coreLayout } from "@/webgl/chip-layout";
 
 export interface ChipProject {
@@ -12,6 +13,9 @@ export interface ChipProject {
   stack: string[];
   metric: { label: string; value: string };
 }
+
+/** Posición horizontal normalizada 0..1 (para el panorama). */
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /** Relación ancho/alto del escenario (la comparten el CSS y la disposición de los núcleos). */
 const ASPECT = 2.2;
@@ -69,6 +73,8 @@ export function ChipStage({ projects }: { projects: ChipProject[] }) {
                 if (e.pointerType === "mouse") {
                   setHover(project.slug);
                   setActiveAttr(project.slug);
+                  // Destello panoramizado según la posición horizontal del cursor en la pantalla.
+                  audio.emit("runtime:core-hover", { x: clamp01(e.clientX / window.innerWidth) });
                 }
               }}
               onPointerLeave={(e) => {
@@ -77,9 +83,13 @@ export function ChipStage({ projects }: { projects: ChipProject[] }) {
                   if (!pinned) setActiveAttr(null);
                 }
               }}
-              onFocus={() => {
+              onFocus={(e) => {
                 setHover(project.slug);
                 setActiveAttr(project.slug);
+                const box = e.currentTarget.getBoundingClientRect();
+                audio.emit("runtime:core-hover", {
+                  x: clamp01((box.left + box.width / 2) / window.innerWidth),
+                });
               }}
               onBlur={() => {
                 setHover(null);

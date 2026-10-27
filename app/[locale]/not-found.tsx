@@ -40,6 +40,7 @@ export default async function NotFound() {
         <p className="mt-4 max-w-prose text-lg text-fg-muted">{t("body")}</p>
         <Link
           href="/"
+          data-notfound-restart
           className="mt-8 inline-flex h-12 items-center rounded-md bg-accent px-6 font-medium text-bg hover:opacity-90"
         >
           {t("restart")}

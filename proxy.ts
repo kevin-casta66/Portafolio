@@ -5,5 +5,6 @@ import { routing } from "./i18n/routing";
 export default createMiddleware(routing);
 
 export const config = {
-  matcher: "/((?!api|_next|_vercel|.*\..*).*)",
+  // `stage`: escenarios de /motion (change 08), con su propio layout raíz y sin prefijo de idioma implícito.
+  matcher: "/((?!api|_next|_vercel|stage|.*\..*).*)",
 };

@@ -18,6 +18,8 @@ export const EASE = {
   inExpo: "portafolio-in-expo",
   scene: "portafolio-scene",
   spring: "portafolio-spring",
+  /** Sin curva (progreso lineal): fundidos y uniforms que acompañan a otra animación. */
+  linear: "none",
 } as const;
 
 let registered = false;

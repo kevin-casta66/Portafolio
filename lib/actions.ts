@@ -1,3 +1,4 @@
+import { audio } from "@/audio";
 import { audioUnlock } from "@/lib/audio";
 import { emit } from "@/lib/events";
 import { appStore, type Theme } from "@/lib/store";
@@ -31,7 +32,7 @@ export function applyTheme(next: Theme, origin: { x: number; y: number } = theme
 
 export function toggleTheme(origin?: { x: number; y: number }): Theme {
   const next: Theme = appStore.getState().theme === "dark" ? "light" : "dark";
-  emit("ui:sound", { name: "toggle" });
+  audio.emit("theme", { theme: next });
   applyTheme(next, origin);
   return next;
 }
@@ -40,7 +41,7 @@ export function toggleTheme(origin?: { x: number; y: number }): Theme {
 export function toggleDebug(): boolean {
   const next = !appStore.getState().debug;
   appStore.getState().setDebug(next);
-  emit("ui:sound", { name: "toggle" });
+  audio.emit("ui:toggle");
   if (next) emit("achievement:unlock", { id: "debugger_attached" });
   return next;
 }
@@ -60,12 +61,13 @@ export function toggleSound(): boolean {
 export function toggleQuickView(): boolean {
   const next = !appStore.getState().quickView;
   appStore.getState().setQuickView(next);
-  emit("ui:sound", { name: "toggle" });
+  audio.emit("ui:toggle");
+  audio.emit(next ? "quickview:on" : "quickview:off");
   return next;
 }
 
 export function openTerminal(): void {
-  emit("ui:sound", { name: "open" });
+  audio.emit("ui:open");
   appStore.getState().setUi({ terminalOpen: true, shortcutsOpen: false });
 }
 

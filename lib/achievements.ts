@@ -1,3 +1,4 @@
+import { audio } from "@/audio";
 import { appStore } from "@/lib/store";
 
 /** Texto visible en ambos idiomas. */
@@ -39,7 +40,9 @@ export const achievementTotal = (): number => registry.size;
  */
 export function unlock(id: string): boolean {
   if (!registry.has(id)) return false;
-  return appStore.getState().unlockAchievement(id);
+  const first = appStore.getState().unlockAchievement(id);
+  if (first) audio.emit("achievement", { id });
+  return first;
 }
 
 /** Solo para pruebas. */

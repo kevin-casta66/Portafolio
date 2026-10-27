@@ -11,6 +11,12 @@ export const uScrollVelocity = uniform(0);
 /** Aberración cromática 0..1: pulso de cambio de fase (< 300 ms) + velocidad acotada. */
 export const uChroma = uniform(0);
 /**
+ * Energía de la música 0..1 (pad + bombo, suavizada; change 08b). Hace «respirar» el bloom y las
+ * partículas con un factor ≤ 5 %. Vale 0 con el sonido apagado o con movimiento reducido: el render es
+ * entonces idéntico al de antes.
+ */
+export const uAudioEnergy = uniform(0);
+/**
  * Parámetros del postprocesado ajustables en vivo (modo Debug, `webgl/tweakables.ts`). Son uniforms de
  * MÓDULO: sobreviven a los cambios de tier (que reasignan `outputNode`) sin recompilar.
  */

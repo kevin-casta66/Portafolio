@@ -1,3 +1,4 @@
+import { audio } from "@/audio";
 import { EASE, ScrollTrigger, gsap, seconds } from "../gsap";
 import { duration } from "../tokens";
 import { docRect, qa } from "../transitions/dom";
@@ -38,8 +39,17 @@ export const bytecodeChoreography: Choreography = (ctx) => {
     ease: EASE.inExpo,
   });
 
-  const select = (index: number) => {
+  let lastSoundAt = 0;
+  /** `audible`: solo el desplazamiento del usuario suena (no el posicionado inicial ni los refrescos). */
+  const select = (index: number, audible = false) => {
     if (index === active) return;
+    if (audible) {
+      const now = performance.now();
+      if (now - lastSoundAt >= 90) {
+        lastSoundAt = now;
+        audio.emit("bytecode:instruction"); // pluck apagado al resaltar la instrucción
+      }
+    }
     instructions[active]?.removeAttribute("data-pc-active");
     active = index;
     const el = instructions[index] as HTMLElement;
@@ -54,6 +64,7 @@ export const bytecodeChoreography: Choreography = (ctx) => {
     // Registros: se actualizan (pulso breve) al entrar en una función distinta.
     const fn = el.closest("li[data-anim='function']");
     if (fn && fn !== activeFunction) {
+      if (audible && activeFunction) audio.emit("bytecode:function"); // platillo al cambiar de empleo
       activeFunction = fn;
       const registers = fn.querySelector("[data-anim='registers']");
       if (registers) {
@@ -91,7 +102,7 @@ export const bytecodeChoreography: Choreography = (ctx) => {
     trigger: section,
     start: "top bottom",
     end: "bottom top",
-    onUpdate: () => select(nearestToCenter()),
+    onUpdate: () => select(nearestToCenter(), true),
     onRefresh: () => {
       active = -1; // fuerza el reposicionado tras un cambio de layout
       select(nearestToCenter());

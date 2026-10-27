@@ -1,12 +1,13 @@
 import { Mesh, MeshBasicNodeMaterial, PlaneGeometry, Scene } from "three/webgpu";
 import { createPixelCamera, fitPixelCamera } from "../core/camera";
 import { bayer } from "../nodes/bayer";
-import { uAccents } from "../nodes/globals";
+import { uAccents, uBg, uBorder, uText } from "../nodes/globals";
 import { TSL } from "../nodes/tsl";
 import { chipBoot } from "../objects/chip-state";
+import { internalsOn } from "./internals-math";
 import type { TransitionSceneFactory } from "./state";
 
-const { vec3, vec4, float, uniform, uv, floor, step, smoothstep, clamp, mrt, screenCoordinate } = TSL;
+const { vec3, vec4, float, uniform, uv, floor, step, smoothstep, clamp, mrt, screenCoordinate, mix, abs, max } = TSL;
 
 /**
  * Escena de T5. Un quad a pantalla completa: el frente del barrido baja con el progreso y detrás de
@@ -45,6 +46,44 @@ export const createT5Scene: TransitionSceneFactory = (_ctx, state) => {
   quad.frustumCulled = false;
   scene.add(quad);
 
+  // ── «Ver internos» (MOTION-SPEC §3, T5): el umbral de la matriz de Bayer como máscara en espacio de
+  // pantalla (gris = umbral de cada celda; lo que supera la densidad del frente es lo que se pinta),
+  // el frente del barrido y la banda de dithering (40 %), más la matriz 8×8 en una leyenda. T5 no
+  // tiene render target propio: la escena entrante (el die de RUNTIME) la compone el motor, así que
+  // «bajo el barrido» se muestra con la zona ya barrida, que es donde la escena entrante se revela.
+  // Capas aparte y ocultas con el flag apagado: el render normal no cambia ni un píxel.
+  const maskMat = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+  {
+    const threshold = bayer(cell.x, cell.y, 3);
+    const swept = step(0, behind);
+    const frontLine = float(1).sub(smoothstep(0.0, 0.004, abs(behind)));
+    const bandEdge = float(1).sub(smoothstep(0.0, 0.004, abs(behind.sub(0.4))));
+    const gray = mix(vec3(uBg), vec3(uText), threshold);
+    maskMat.colorNode = mix(gray, amber, clamp(frontLine.add(bandEdge), 0, 1));
+    maskMat.opacityNode = clamp(swept.mul(tail).mul(0.82).add(frontLine).add(bandEdge.mul(0.7)), 0, 1).mul(uAlpha);
+  }
+  const maskQuad = new Mesh(new PlaneGeometry(1, 1), maskMat);
+  maskQuad.frustumCulled = false;
+  maskQuad.renderOrder = 10;
+  maskQuad.visible = false;
+  scene.add(maskQuad);
+
+  const LEGEND = 128; // px CSS de lado
+  const legendMat = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+  {
+    const lx = floor(uv().x.mul(8));
+    const ly = floor(uv().y.oneMinus().mul(8));
+    const value = bayer(lx, ly, 3);
+    const border = step(0.485, max(abs(uv().x.sub(0.5)), abs(uv().y.sub(0.5))));
+    legendMat.colorNode = mix(mix(vec3(uBg), vec3(uText), value), vec3(uBorder), border);
+    legendMat.opacityNode = float(0.95);
+  }
+  const legend = new Mesh(new PlaneGeometry(1, 1), legendMat);
+  legend.frustumCulled = false;
+  legend.renderOrder = 11;
+  legend.visible = false;
+  scene.add(legend);
+
   return {
     scene,
     camera,
@@ -57,6 +96,15 @@ export const createT5Scene: TransitionSceneFactory = (_ctx, state) => {
       // El frente baja de −0,3 a 1,6 (alto de pantalla), igual que el barrido de la versión DOM.
       uFront.value = -0.3 + easeScene(p) * 1.9;
       uAlpha.value = p <= 0 || p >= 1 ? 0 : 1;
+      const internals = internalsOn(state);
+      maskQuad.visible = internals;
+      legend.visible = internals;
+      if (internals) {
+        maskQuad.position.copy(quad.position);
+        maskQuad.scale.copy(quad.scale);
+        legend.position.set(frame.viewW - 24 - LEGEND / 2, -(88 + LEGEND / 2), 0);
+        legend.scale.set(LEGEND, LEGEND, 1);
+      }
       // Los núcleos del chip se encienden uno a uno bajo el barrido.
       chipBoot.value = Math.min(1, Math.max(0, (p - 0.3) / 0.45));
       return false;
@@ -65,6 +113,10 @@ export const createT5Scene: TransitionSceneFactory = (_ctx, state) => {
       chipBoot.value = 1;
       quad.geometry.dispose();
       material.dispose();
+      maskQuad.geometry.dispose();
+      maskMat.dispose();
+      legend.geometry.dispose();
+      legendMat.dispose();
     },
   };
 };

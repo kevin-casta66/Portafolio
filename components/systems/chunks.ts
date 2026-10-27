@@ -29,4 +29,6 @@ export const loadTerminal = once<Module>("terminal", () => import("./Terminal"))
 export const loadShortcuts = once<Module>("shortcuts", () => import("./ShortcutsPanel"));
 export const loadCursor = once<Module>("cursor", () => import("./Cursor"));
 export const loadSound = once<Module>("sound", () => import("./Sound/SoundManager"));
+export const loadMixer = once<Module>("mixer", () => import("./Sound/Mixer"));
+export const loadSoundHint = once<Module>("sound-hint", () => import("./Sound/SoundHint"));
 export const loadDebug = once<Module>("debug", () => import("./Debug/DebugOverlay"));

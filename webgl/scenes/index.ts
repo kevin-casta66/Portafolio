@@ -1,4 +1,5 @@
 import { t6 } from "@/motion/shared";
+import { heapView } from "./heap/state";
 import { sectionRange } from "../core/layout";
 import type { SceneDef } from "../core/types";
 import { textRanges } from "./text-ranges";
@@ -20,6 +21,15 @@ export const SCENE_DEFS: readonly SceneDef[] = [
     order: 20,
     range: () => sectionRange("runtime"),
     load: () => import("./runtime").then((m) => m.createRuntimeScene),
+  },
+  {
+    // Memory Heap (change 07): existe solo mientras la ruta /heap está activa (la isla DOM lo declara en
+    // `heapView`); al salir el rango vuelve a `null` y el motor libera sus mallas.
+    id: "heap",
+    order: 25,
+    range: () => (heapView.active ? { start: -Infinity, end: Infinity } : null),
+    preload: 0,
+    load: () => import("./heap/scene").then((m) => m.createHeapScene),
   },
   {
     id: "gpu",

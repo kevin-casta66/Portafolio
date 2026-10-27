@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { audio, type AudioEvent } from "@/audio";
 import "@/content/achievements";
 import { appStore } from "@/lib/store";
 import {
@@ -13,8 +14,16 @@ import {
 const catalog = getAchievements().map((a) => a.id);
 
 describe("registro de logros", () => {
-  it("el catálogo inicial tiene los 5 logros del spec con texto en ambos idiomas", () => {
-    expect(catalog).toEqual(["root_access", "process_executed", "heap_explorer", "kernel_panic", "debugger_attached"]);
+  it("el catálogo tiene los 7 logros (5 del change 06, motion_inspector del 08 y sound_engineer del 08b) con texto en ambos idiomas", () => {
+    expect(catalog).toEqual([
+      "root_access",
+      "process_executed",
+      "heap_explorer",
+      "motion_inspector",
+      "sound_engineer",
+      "kernel_panic",
+      "debugger_attached",
+    ]);
     for (const a of getAchievements()) {
       for (const field of [a.title, a.description, a.hint]) {
         expect(field.es.length).toBeGreaterThan(0);
@@ -56,6 +65,31 @@ describe("unlock", () => {
     expect(unlock("root_access")).toBe(false);
     expect(appStore.getState().achievements).toEqual(snapshot.achievements);
     expect(appStore.getState().toastQueue).toEqual(["root_access"]);
+  });
+
+  describe("sonido del logro (change 08b)", () => {
+    const heard: { event: AudioEvent; payload: unknown }[] = [];
+    beforeEach(() => {
+      heard.length = 0;
+      audio.registerEngine(
+        { handle: (event, payload) => void heard.push({ event, payload }) },
+        audio.controls,
+      );
+    });
+    afterEach(() => audio.reset());
+
+    it("suena una sola vez por logro, con su id (la variación del motivo es estable por id)", () => {
+      unlock("heap_explorer");
+      unlock("heap_explorer");
+      unlock("sound_engineer");
+      const sounds = heard.filter((h) => h.event === "achievement");
+      expect(sounds.map((h) => (h.payload as { id: string }).id)).toEqual(["heap_explorer", "sound_engineer"]);
+    });
+
+    it("un id desconocido no suena", () => {
+      unlock("no_existe");
+      expect(heard.filter((h) => h.event === "achievement")).toEqual([]);
+    });
   });
 
   it("ignora un id que no está en el registro", () => {

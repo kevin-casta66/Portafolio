@@ -7,6 +7,7 @@ import { velocity } from "@/motion/velocity";
 import { effectiveDpr } from "../rt-size";
 import { PRESETS, createFpsMonitor, stepTierDown, type QualityPreset, type Tier } from "../quality";
 import { buildOutput, type LayerTextures } from "../postfx";
+import { audio } from "@/audio";
 import { TSL, type N } from "../nodes/tsl";
 import {
   uAccent,
@@ -16,6 +17,7 @@ import {
   uChroma,
   uKeyword,
   uPointer,
+  uAudioEnergy,
   uScrollVelocity,
   uString,
   uText,
@@ -294,6 +296,7 @@ export class Engine {
 
     uTime.value = frame.time;
     uScrollVelocity.value = frame.reduced ? 0 : frame.velocity;
+    uAudioEnergy.value = frame.reduced ? 0 : audio.controls.energy();
     const pulse = Math.max(0, (this.chromaUntil - nowMs) / CHROMA_PULSE_MS);
     // Velocidad ACOTADA (≤ 0,35): el texto nunca pierde legibilidad por la aberración del scroll.
     uChroma.value = frame.reduced ? 0 : Math.min(1, pulse + Math.min(0.35, Math.abs(frame.velocity) * 0.35));
@@ -388,9 +391,17 @@ export class Engine {
       });
   }
 
+  /**
+   * Programa la limpieza de escenas fuera de rango. NO se reinicia en cada frame: con una escena que
+   * anima sin parar (el chip de RUNTIME renderiza a 60 fps mientras es visible) el plazo se renovaría
+   * siempre y una escena ajena —p. ej. la del heap tras salir de `/heap`— nunca se liberaría.
+   */
   private scheduleSweep(): void {
-    clearTimeout(this.sweepTimer);
-    this.sweepTimer = setTimeout(() => this.sweep(), RELEASE_MS + 100);
+    if (this.sweepTimer !== undefined) return;
+    this.sweepTimer = setTimeout(() => {
+      this.sweepTimer = undefined;
+      this.sweep();
+    }, RELEASE_MS + 100);
   }
 
   /**
@@ -418,7 +429,10 @@ export class Engine {
     }
     if (Number.isFinite(next)) {
       clearTimeout(this.sweepTimer);
-      this.sweepTimer = setTimeout(() => this.sweep(), next + 50);
+      this.sweepTimer = setTimeout(() => {
+        this.sweepTimer = undefined;
+        this.sweep();
+      }, next + 50);
     }
   }
 

@@ -43,7 +43,7 @@
 /* ───────────────────────── Call Stack ───────────────────────── */
 
 .callstack {
-  max-width: 2.25rem;
+  max-width: 2.5rem;
   overflow: hidden;
 }
 
@@ -72,8 +72,11 @@
   clip-path: none;
 }
 
+/* Objetivo táctil mínimo de WCAG 2.2 (2.5.8): 24 × 24 px incluso con la pila contraída */
 .callstack-frame {
   color: var(--text-muted);
+  min-width: 1.5rem;
+  min-height: 1.5rem;
 }
 
 .callstack-frame[data-on-stack="true"] {

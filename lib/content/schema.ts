@@ -94,6 +94,8 @@ export const experimentSchema = z.object({
   id: idSchema,
   name: localizedSchema,
   kind: z.enum(EXPERIMENT_KINDS),
+  /** Año del experimento (opcional): el heap lo muestra; si falta usa el del proyecto más reciente. */
+  year: z.number().int().min(2000).optional(),
   image: z.string().min(1),
   alt: localizedSchema,
   summary: localizedSchema,

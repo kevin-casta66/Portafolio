@@ -14,10 +14,17 @@ import { layoutWords, type PlacedWord } from "./glyph-layout";
 import type { MsdfFont } from "./msdf-font";
 import { createMsdfSampler } from "./msdf-nodes";
 
-const { uniform, uv, vec2, vec3, positionLocal } = TSL;
+const { uniform, uv, vec2, vec3, float, mix, positionLocal } = TSL;
 
 /** Duración del glitch (T11): < 300 ms (`glitch-max`); coincide con la versión DOM. */
 export const TITLE_GLITCH_MS = 240;
+/**
+ * Duración (ms) del glitch a una velocidad dada: `TITLE_GLITCH_MS / speed` (1 = la de producción).
+ * `/motion` la usa para el control 0,25×/0,5×/1× y para saber cuándo termina la demo.
+ */
+export const titleGlitchMs = (speed = 1): number => TITLE_GLITCH_MS / clampSpeed(speed);
+const clampSpeed = (speed: number): number => (Number.isFinite(speed) && speed > 0 ? Math.min(speed, 4) : 1);
+
 /** Saltos discretos de offset (px) de las dos capas de canal y salto de la textura SDF. */
 const GLITCH_STEPS = [
   { a: -7, b: 6, jump: 0.012 },
@@ -26,6 +33,20 @@ const GLITCH_STEPS = [
   { a: 2, b: -1, jump: 0 },
   { a: 0, b: 0, jump: 0 },
 ] as const;
+
+/**
+ * Interruptor «Ver internos» de T11 (change 08, docs/MOTION-SPEC.md §3): con `on` los títulos MSDF
+ * dibujan el campo de distancia (SDF) con el salto de offset aplicado y mantienen visibles las dos
+ * capas de canal desplazadas. Apagado (por defecto) el render no cambia. Lo enciende `setTitleInternals`;
+ * `invalidate` lo registra la capa de texto para pedir un frame al alternarlo.
+ */
+export const titleInternals: { on: boolean; invalidate: (() => void) | null } = { on: false, invalidate: null };
+
+export function setTitleInternals(on: boolean): void {
+  if (titleInternals.on === on) return;
+  titleInternals.on = on;
+  titleInternals.invalidate?.();
+}
 
 const toLinear = (rgb: [number, number, number]) =>
   new Color().setRGB(rgb[0], rgb[1], rgb[2], "srgb");
@@ -69,6 +90,7 @@ export class TitleText {
   private geometry: BufferGeometry | null = null;
   private readonly uOpacity = uniform(1);
   private readonly uJump = uniform(0);
+  private readonly uInternals = uniform(0);
   private readonly shifts = [uniform(0), uniform(0)];
   private readonly skews = [uniform(0), uniform(0)];
   private readonly uGlyphsHidden = uniform(0);
@@ -79,6 +101,7 @@ export class TitleText {
   private text = "";
   private layoutVersion = -1;
   private glitchStart = -1;
+  private glitchDuration = TITLE_GLITCH_MS;
   private covered = false;
 
   constructor(
@@ -90,8 +113,10 @@ export class TitleText {
     const alpha = (offset: N) => sampler.alphaAt(uv().add(offset));
 
     const mainMat = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide });
-    mainMat.colorNode = this.uColor;
-    mainMat.opacityNode = alpha(vec2(this.uJump, 0)).mul(this.uOpacity);
+    // Internos: la mediana del SDF en gris (con el mismo salto de offset) en lugar del color del texto;
+    // con 0 las dos mezclas devuelven exactamente la vista normal.
+    mainMat.colorNode = mix(this.uColor, vec3(sampler.distanceAt(uv().add(vec2(this.uJump, 0)))), this.uInternals);
+    mainMat.opacityNode = mix(alpha(vec2(this.uJump, 0)), float(0.92), this.uInternals).mul(this.uOpacity);
     this.main = new Mesh(undefined, mainMat);
 
     const copyMat = (index: 0 | 1, color: N) => {
@@ -159,8 +184,10 @@ export class TitleText {
     this.el.classList.toggle("msdf-covered", covered);
   }
 
-  glitch(nowMs: number): void {
+  /** Lanza el glitch; `speed` (por defecto 1) escala su duración a `titleGlitchMs(speed)`. */
+  glitch(nowMs: number, speed = 1): void {
     this.glitchStart = nowMs;
+    this.glitchDuration = titleGlitchMs(speed);
   }
 
   /** Cancela un glitch pendiente (el título salió de pantalla). */
@@ -181,10 +208,10 @@ export class TitleText {
     let animating = false;
     if (this.glitchStart >= 0) {
       const t = nowMs - this.glitchStart;
-      if (t >= TITLE_GLITCH_MS) {
+      if (t >= this.glitchDuration) {
         this.glitchStart = -1;
       } else {
-        const step = GLITCH_STEPS[Math.min(GLITCH_STEPS.length - 1, Math.floor((t / TITLE_GLITCH_MS) * GLITCH_STEPS.length))]!;
+        const step = GLITCH_STEPS[Math.min(GLITCH_STEPS.length - 1, Math.floor((t / this.glitchDuration) * GLITCH_STEPS.length))]!;
         this.shifts[0]!.value = step.a;
         this.shifts[1]!.value = step.b;
         this.skews[0]!.value = step.a * 0.012;
@@ -194,11 +221,24 @@ export class TitleText {
         animating = true;
       }
     }
+    const inspect = titleInternals.on;
+    this.uInternals.value = inspect ? 1 : 0;
     if (this.glitchStart < 0) {
-      this.uCopyOpacity.value = 0;
-      this.uJump.value = 0;
+      if (inspect) {
+        // Sin glitch en curso se deja a la vista el paso de mayor desplazamiento para poder inspeccionarlo.
+        const peak = GLITCH_STEPS[0];
+        this.shifts[0]!.value = peak.a;
+        this.shifts[1]!.value = peak.b;
+        this.skews[0]!.value = peak.a * 0.012;
+        this.skews[1]!.value = peak.b * 0.012;
+        this.uJump.value = peak.jump;
+        this.uCopyOpacity.value = 0.7;
+      } else {
+        this.uCopyOpacity.value = 0;
+        this.uJump.value = 0;
+      }
     }
-    for (const m of this.copies) m.visible = animating;
+    for (const m of this.copies) m.visible = animating || inspect;
     return animating;
   }
 

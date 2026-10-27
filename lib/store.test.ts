@@ -32,7 +32,14 @@ describe("store global", () => {
   it("arranca con los valores por defecto del spec", () => {
     const s = createAppStore(mem().storages).getState();
     expect(s.phase).toBe(DEFAULT_STATE.phase);
-    expect(s.sound).toEqual({ enabled: false, gateChoice: null });
+    expect(s.sound).toEqual({
+      enabled: false,
+      gateChoice: null,
+      volume: 0.35,
+      music: true,
+      sfx: true,
+      hintShown: false,
+    });
     expect(s.debug).toBe(false);
     expect(s.quickView).toBe(false);
     expect(s.graphics).toEqual({ tier: "auto", backend: "pending", ready: false });
@@ -44,13 +51,13 @@ describe("store global", () => {
     createAppStore(storages).getState().setGateChoice("silent");
     const next = createAppStore(storages);
     next.getState().hydrate();
-    expect(next.getState().sound).toEqual({ enabled: false, gateChoice: "silent" });
+    expect(next.getState().sound).toMatchObject({ enabled: false, gateChoice: "silent" });
   });
 
   it("«con sonido» activa el sonido", () => {
     const store = createAppStore(mem().storages);
     store.getState().setGateChoice("sound");
-    expect(store.getState().sound).toEqual({ enabled: true, gateChoice: "sound" });
+    expect(store.getState().sound).toMatchObject({ enabled: true, gateChoice: "sound" });
   });
 
   it("los logros persisten entre visitas y no se duplican", () => {
@@ -112,8 +119,38 @@ describe("slices de preferencias, sesión y UI (change 06)", () => {
 
     const reloaded = createAppStore(storages);
     reloaded.getState().hydrate();
-    expect(reloaded.getState().sound).toEqual({ enabled: true, gateChoice: null });
+    expect(reloaded.getState().sound).toMatchObject({ enabled: true, gateChoice: null });
     expect(reloaded.getState().prefs.cursor).toBe("system");
+  });
+
+  it("«Iniciar con sonido» queda registrada en la puerta (sesión) y en las preferencias guardadas", () => {
+    const { storages, session, local } = mem();
+    createAppStore(storages).getState().setGateChoice("sound");
+    expect(session.getItem(STORAGE_KEYS.gateChoice)).toBe("sound");
+    expect(JSON.parse(local.getItem(STORAGE_KEYS.prefs) ?? "{}")).toMatchObject({ sound: true });
+  });
+
+  it("volumen, música, efectos y aviso persisten, con el volumen acotado a 0–1", () => {
+    const { storages } = mem();
+    const first = createAppStore(storages);
+    first.getState().setVolume(2);
+    expect(first.getState().sound.volume).toBe(1);
+    first.getState().setVolume(0.6);
+    first.getState().setMusic(false);
+    first.getState().setSfx(false);
+    first.getState().markHintShown();
+
+    const reloaded = createAppStore(storages);
+    reloaded.getState().hydrate();
+    expect(reloaded.getState().sound).toMatchObject({ volume: 0.6, music: false, sfx: false, hintShown: true });
+  });
+
+  it("ignora valores de sonido inválidos en las preferencias guardadas", () => {
+    const { storages, local } = mem();
+    local.setItem(STORAGE_KEYS.prefs, JSON.stringify({ volume: "alto", music: 3, hintShown: "sí" }));
+    const store = createAppStore(storages);
+    store.getState().hydrate();
+    expect(store.getState().sound).toMatchObject({ volume: 0.35, music: true, hintShown: false });
   });
 
   it("la elección de la puerta de esta sesión manda sobre la preferencia guardada", () => {

@@ -2,6 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { audio, type TokenKind } from "@/audio";
+
+const TOKEN_KINDS: readonly string[] = ["keyword", "identifier", "string", "number"];
 
 interface TokenTooltipProps {
   /** Tipo inferido (`keyword`, `identifier`, `string`, `number`). */
@@ -27,6 +30,11 @@ export function TokenTooltip({ type, note, children }: TokenTooltipProps) {
   const focusFromPointer = useRef(false);
   const [open, setOpen] = useState(false);
   const [alignEnd, setAlignEnd] = useState(false);
+
+  // Una nota afinada según el tipo del token cada vez que se abre (hover, foco o toque).
+  useEffect(() => {
+    if (open && TOKEN_KINDS.includes(type)) audio.emit("hover:token", { kind: type as TokenKind });
+  }, [open, type]);
 
   // Evita que el tooltip se salga del viewport (y cause scroll horizontal) en pantallas estrechas.
   useLayoutEffect(() => {

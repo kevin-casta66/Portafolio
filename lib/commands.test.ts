@@ -17,6 +17,9 @@ const actions = (): CommandActions => ({
   toggleTheme: vi.fn(() => "light" as const),
   toggleDebug: vi.fn(() => true),
   goToContact: vi.fn(),
+  goToHeap: vi.fn(),
+  goToMotion: vi.fn(),
+  openMixer: vi.fn(() => true),
 });
 const ctx = (locale: "es" | "en" = "es", a = actions()): CommandContext => ({
   locale,
@@ -35,6 +38,9 @@ describe("registro de comandos", () => {
       "skills",
       "cv",
       "contact",
+      "heap",
+      "motion",
+      "mixer",
       "theme",
       "debug",
       "clear",
@@ -174,5 +180,53 @@ describe("historial", () => {
     h.push("help");
     h.push("help");
     expect(h.entries()).toEqual(["help"]);
+  });
+});
+
+describe("comando motion (change 08)", () => {
+  it("navega a la vitrina /motion y enlaza a ella", () => {
+    const a = actions();
+    const result = runCommand("motion", ctx("es", a));
+    expect(a.goToMotion).toHaveBeenCalledTimes(1);
+    expect(result.lines[0]?.href).toBe("/motion");
+    expect(runCommand("motion", ctx("en")).lines[0]?.text).toContain("motion showcase");
+  });
+
+  it("aparece en help y en el autocompletado", () => {
+    expect(textOf("help")).toContain("motion");
+    expect([...COMMAND_IDS]).toContain("motion");
+  });
+});
+
+describe("comando heap (change 07)", () => {
+  it("navega a la vista Memory Heap y enlaza a /heap", () => {
+    const a = actions();
+    const result = runCommand("heap", ctx("es", a));
+    expect(a.goToHeap).toHaveBeenCalledTimes(1);
+    expect(result.lines[0]?.href).toBe("/heap");
+    expect(runCommand("heap", ctx("en")).lines[0]?.text).toContain("Memory Heap");
+  });
+});
+
+describe("comando mixer (change 08b)", () => {
+  it("abre el mezclador con el sonido activo y lo confirma en la salida", () => {
+    const a = actions();
+    const result = runCommand("mixer", ctx("es", a));
+    expect(a.openMixer).toHaveBeenCalledTimes(1);
+    expect(result.lines[0]?.text).toContain("mezclador");
+    expect(runCommand("mixer", ctx("en")).lines[0]?.text).toContain("mixer");
+  });
+
+  it("con el sonido apagado lo explica y no reproduce nada", () => {
+    const a = { ...actions(), openMixer: vi.fn(() => false) };
+    const result = runCommand("mixer", ctx("es", a));
+    expect(a.openMixer).toHaveBeenCalledTimes(1);
+    expect(result.lines[0]?.text).toContain("desactivado");
+    expect(result.error).toBeUndefined();
+  });
+
+  it("aparece en help y se autocompleta", () => {
+    expect(textOf("help")).toContain("mixer");
+    expect(completeCommand("mix")).toEqual({ kind: "unique", value: "mixer" });
   });
 });

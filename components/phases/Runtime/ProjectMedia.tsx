@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { audio } from "@/audio";
 import { prefersReducedMotion } from "@/motion/reduced";
 
 interface ProjectMediaProps {
@@ -47,6 +48,33 @@ export function ProjectMedia({ image, alt, video, poster, fallbackMessage }: Pro
     return () => {
       observer.disconnect();
       el.pause();
+    };
+  }, [hasVideo]);
+
+  // Ducking: si un vídeo con sonido (no silenciado) se reproduce, la música baja mientras dure.
+  // Los vídeos de las tarjetas van silenciados (`muted`), así que hoy no emiten; el gancho queda listo.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!hasVideo || !el) return;
+    let playing = false;
+    const start = () => {
+      if (playing || el.muted) return;
+      playing = true;
+      audio.emit("media:play");
+    };
+    const stop = () => {
+      if (!playing) return;
+      playing = false;
+      audio.emit("media:stop");
+    };
+    el.addEventListener("play", start);
+    el.addEventListener("pause", stop);
+    el.addEventListener("ended", stop);
+    return () => {
+      el.removeEventListener("play", start);
+      el.removeEventListener("pause", stop);
+      el.removeEventListener("ended", stop);
+      stop();
     };
   }, [hasVideo]);
 

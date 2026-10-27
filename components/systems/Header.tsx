@@ -10,6 +10,7 @@ import {
   SoundToggle,
   TerminalButton,
 } from "./HeaderControls";
+import { SoundSettings } from "./Sound/SoundPopover";
 
 /**
  * Header presente en todas las páginas y renderizado en el servidor: nombre, CV, Vista Rápida,
@@ -44,9 +45,13 @@ export async function Header() {
             </a>
             <QuickViewToggle />
             <SoundToggle />
+            <SoundSettings />
             <DebugToggle />
             <TerminalButton />
-            <ShortcutsButton />
+            {/* Los atajos de teclado no sirven en pantallas táctiles: en móvil se oculta para que la cabecera no pase de 2 filas. */}
+            <div className="hidden sm:contents">
+              <ShortcutsButton />
+            </div>
             <ThemeToggle />
             <LocaleSwitcher />
           </div>

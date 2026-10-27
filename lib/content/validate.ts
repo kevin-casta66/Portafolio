@@ -1,4 +1,5 @@
 import type { ZodType } from "zod";
+import { buildHeapBlocks, findHeapProblems } from "@/lib/heap/blocks";
 import { buildCaseNav, type CaseNav } from "./cases";
 import {
   experienceSchema,
@@ -132,6 +133,15 @@ export function validateContent(raw: RawContent, { caseExists }: ValidateOptions
   for (const s of skills) {
     if ((projectsBySkill[s.id] ?? []).length === 0) {
       problems.push(`habilidad huérfana «${s.id}»: ningún proyecto la usa en su stack`);
+    }
+  }
+
+  // Memory Heap (change 07): cada proyecto y experimento es un bloque con dirección única.
+  if (problems.length === 0) {
+    try {
+      problems.push(...findHeapProblems(buildHeapBlocks(projects, experiments)));
+    } catch (error) {
+      problems.push(error instanceof Error ? error.message : String(error));
     }
   }
 

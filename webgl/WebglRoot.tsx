@@ -14,6 +14,7 @@ import { twins } from "./core/twins";
 import { uChroma, uScrollVelocity } from "./nodes/globals";
 import { SCENE_DEFS } from "./scenes";
 import { installCanvasVariants } from "./transitions/install";
+import { setTransitionInternals } from "./transitions/state";
 import { disposeRenderer, liveContexts, trackContext, whenDisposed } from "./dispose";
 import { detectTier } from "./detect";
 import type { Tier } from "./quality";
@@ -38,6 +39,8 @@ interface TestHook {
   canvasCount(): number;
   liveContexts(): number;
   setTier(tier: Tier): void;
+  /** «Ver internos» de una transición en canvas (change 08): devuelve `false` si no hay variante viva. */
+  setInternals(id: string, on: boolean): boolean;
   loseContext(): boolean;
   renderRequests(): number;
   /** Máxima desviación (px) entre el rectángulo de cada gemelo y el de su elemento DOM ahora mismo. */
@@ -123,6 +126,7 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
         canvasCount: () => document.querySelectorAll("canvas[data-engine]").length,
         liveContexts,
         setTier: (tier) => engineRef.current?.setTier(tier),
+        setInternals: (id, on) => setTransitionInternals(id, on, () => engineRef.current?.markDirty()),
         renderRequests: () => requests.current,
         twinDeviation: () => {
           let max = 0;

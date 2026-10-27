@@ -15,9 +15,10 @@ import {
 } from "three/webgpu";
 import { chipBitmap } from "@/motion/chip";
 import { createPixelCamera, fitPixelCamera } from "../core/camera";
-import { uAccents } from "../nodes/globals";
+import { uAccents, uText } from "../nodes/globals";
 import { TSL, type N } from "../nodes/tsl";
 import { createParticles, instanceAttribute, type ParticleSystem } from "../objects/particles";
+import { internalsOn } from "./internals-math";
 import type { TransitionSceneFactory } from "./state";
 import { triangulateInWorker } from "./triangulate-client";
 import type { Triangulation } from "./triangulate";
@@ -77,10 +78,38 @@ export const createT8Scene: TransitionSceneFactory = (ctx, state, tctx) => {
   image.frustumCulled = false;
   scene.add(image);
 
+  // ── «Ver internos» (MOTION-SPEC §3, T8): mapa de tamaño de píxel. Rejilla de los bloques del mosaico
+  // (su trazo se ensancha con el bloque) teñida de acento GPU → RUNTIME según el tamaño del bloque.
+  // Capa aparte y oculta con el flag apagado: el render normal no cambia.
+  const mosaicMat = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+  {
+    const cell = vec2(uv().x.mul(COLS), float(1).sub(uv().y).mul(ROWS));
+    const block = mix(float(1), float(12), smoothstep(0.1, 0.55, uP)); // mismo tamaño que `imageMat`
+    const inner = fract(cell.div(block));
+    const w = float(1.5).div(uRect.z.div(COLS).mul(block)); // trazo de 1,5 px CSS en unidades de bloque
+    const line = max(
+      max(step(float(1).sub(w), inner.x), step(inner.x, w)),
+      max(step(float(1).sub(w), inner.y), step(inner.y, w)),
+    );
+    const size = block.sub(1).div(11);
+    const fade = float(1).sub(smoothstep(0.5, 0.66, uP));
+    mosaicMat.colorNode = mix(vec3(uAccents.element(GPU_ACCENT)), vec3(uAccents.element(RUNTIME_ACCENT)), size);
+    mosaicMat.opacityNode = line.mul(0.85).add(size.mul(0.2)).mul(fade).mul(env);
+  }
+  const mosaic = new Mesh(new PlaneGeometry(1, 1), mosaicMat);
+  mosaic.frustumCulled = false;
+  mosaic.renderOrder = 10;
+  mosaic.visible = false;
+  scene.add(mosaic);
+
   // ── Malla triangulada (Web Worker) ──────────────────────────────────────────────────────────────
   let lines: LineSegments | null = null;
   let fill: Mesh | null = null;
   let dots: ParticleSystem | null = null;
+  // «Ver internos»: malla ANTES de triangular (vértices siempre visibles) y DESPUÉS (aristas aún no
+  // reveladas en tenue, para ver qué falta por triangular). Se crean con la malla y se ocultan apagado.
+  let ghostLines: LineSegments | null = null;
+  let ghostDots: ParticleSystem | null = null;
   const owned: { dispose(): void }[] = [];
   let disposed = false;
 
@@ -162,6 +191,26 @@ export const createT8Scene: TransitionSceneFactory = (ctx, state, tctx) => {
       glow: vec4(vec3(uAccents.element(GPU_ACCENT)), step(dotReveal, uMesh.mul(1.15)).mul(0.5)),
     });
     scene.add(dots.sprite);
+
+    const gm = new LineBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+    gm.positionNode = toLocal(positionLocal);
+    gm.colorNode = vec3(uText);
+    gm.opacityNode = float(1).sub(step(lr, uMesh.mul(1.15))).mul(0.4).mul(env);
+    ghostLines = new LineSegments(lg, gm);
+    ghostLines.frustumCulled = false;
+    ghostLines.renderOrder = 10;
+    ghostLines.visible = internalsOn(state);
+    scene.add(ghostLines);
+    owned.push(gm);
+    ghostDots = createParticles(pointCount, {
+      position: place,
+      size: vec2(6, 6),
+      color: vec3(uAccents.element(RUNTIME_ACCENT)),
+      opacity: env.mul(0.95),
+    });
+    ghostDots.sprite.renderOrder = 11;
+    ghostDots.sprite.visible = internalsOn(state);
+    scene.add(ghostDots.sprite);
     ctx.markDirty();
   };
 
@@ -179,6 +228,14 @@ export const createT8Scene: TransitionSceneFactory = (ctx, state, tctx) => {
       uRect.value.set(r.x, r.y, r.w, r.h);
       image.position.set(r.x + r.w / 2, -(r.y + r.h / 2 - frame.scrollY), 0);
       image.scale.set(r.w, r.h, 1);
+      const internals = internalsOn(state);
+      mosaic.visible = internals;
+      if (internals) {
+        mosaic.position.copy(image.position);
+        mosaic.scale.copy(image.scale);
+      }
+      if (ghostLines) ghostLines.visible = internals;
+      if (ghostDots) ghostDots.sprite.visible = internals;
       uP.value = state.p;
       uScroll.value = frame.scrollY;
       // La malla se triangula entre p = 0,45 y 0,8.
@@ -191,6 +248,9 @@ export const createT8Scene: TransitionSceneFactory = (ctx, state, tctx) => {
       imageMat.dispose();
       tex.dispose();
       dots?.dispose();
+      ghostDots?.dispose();
+      mosaic.geometry.dispose();
+      mosaicMat.dispose();
       owned.forEach((o) => o.dispose());
     },
   };

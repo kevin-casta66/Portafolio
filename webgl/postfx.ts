@@ -1,6 +1,6 @@
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { bayer } from "./nodes/bayer";
-import { uBloomStrength, uChroma, uChromaGain, uGrainGain, uTime } from "./nodes/globals";
+import { uAudioEnergy, uBloomStrength, uChroma, uChromaGain, uGrainGain, uTime } from "./nodes/globals";
 import { TSL, type N } from "./nodes/tsl";
 import type { QualityPreset } from "./quality";
 
@@ -53,7 +53,9 @@ export function buildOutput(layers: readonly LayerTextures[], { preset, bloomStr
       const glowSum = glows.reduce<N>((acc, g) => acc.add(g), vec4(0, 0, 0, 0));
       // La intensidad es un uniform de módulo (ajustable en Debug): se aplica sobre el bloom unitario.
       const blurred = bloom(glowSum, 1, 0.5, 0.0);
-      const added = blurred.rgb.mul(bloomStrength ?? uBloomStrength);
+      // El bloom «respira» con la música: factor 1 + 0,05·energía (1 con el sonido apagado).
+      const breath = float(1).add(uAudioEnergy.mul(0.05));
+      const added = blurred.rgb.mul(bloomStrength ?? uBloomStrength).mul(breath);
       out = vec4(out.rgb.add(added), clamp(out.a.add(max(added.r, max(added.g, added.b))), 0, 1));
     }
   }

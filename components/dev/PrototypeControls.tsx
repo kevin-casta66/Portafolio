@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Player } from "@/components/showcase/stage/players";
 import { useAppStore } from "@/lib/store";
+import type { DemoId } from "@/motion/showcase";
 
 type Variant = "canvas" | "dom" | "reduced";
-
-interface Handle {
-  timeline: { progress(value?: number): number | unknown };
-  destroy(): void;
-}
 
 /**
  * Controles del prototipo de una transición (herramienta de desarrollo, no se muestra en producción):
  * un deslizador de progreso 0–1 que mueve la transición a mano, un selector de variante (canvas, DOM,
- * reducida) y el estado del backend. Crea la transición con `replay()` del registro reproducible
- * (el mismo que usará `/motion`), con el modo prototipo activo (la escena del canvas está siempre
- * viva) y sin enganche al scroll.
+ * reducida) y el estado del backend. Crea la transición con el MISMO reproductor que usa la vitrina
+ * `/motion` (`components/showcase/stage/players.ts`, change 08), con el modo prototipo activo (la
+ * escena del canvas está siempre viva) y sin enganche al scroll.
  */
 export function PrototypeControls({ id }: { id: string }) {
   const ready = useAppStore((s) => s.graphics.ready);
@@ -24,7 +21,7 @@ export function PrototypeControls({ id }: { id: string }) {
   const [variant, setVariant] = useState<Variant>("canvas");
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState(id === "T11" ? "T11: el glitch se dispara con el botón" : "esperando el motor 3D…");
-  const handle = useRef<Handle | null>(null);
+  const player = useRef<Player | null>(null);
   const progressRef = useRef(0);
   const [mask, setMask] = useState(false);
 
@@ -32,98 +29,46 @@ export function PrototypeControls({ id }: { id: string }) {
     progressRef.current = progress;
   }, [progress]);
 
-  // T6: la superficie (gemelo de la tarjeta) se reproduce con `playT6`, sin navegar.
+  // La vista de máscara de la lente (T6) se aplica con el interruptor «ver internos» del reproductor.
   useEffect(() => {
-    if (id !== "T6") return;
-    if (variant === "canvas" && !ready) return;
-    let cancelled = false;
-    void (async () => {
-      const [t6mod, shared] = await Promise.all([import("@/motion/t6"), import("@/motion/shared")]);
-      if (cancelled) return;
-      const card = document.querySelector<HTMLElement>("[data-hold]");
-      const header = document.querySelector<HTMLElement>("[data-case-header]");
-      if (!card || !header) return;
-      handle.current?.destroy();
-      if (variant === "canvas") shared.armT6();
-      const playback = t6mod.playT6({
-        from: t6mod.rectOf(card),
-        to: t6mod.rectOf(header),
-        intensity: "full",
-        surface: variant === "canvas" ? "canvas" : "dom",
-        label: "Attaching debugger…",
-      });
-      playback.timeline.progress(progressRef.current);
-      handle.current = playback;
-      setStatus(`T6 · superficie ${variant === "canvas" ? "en el canvas (lente)" : "DOM (2D)"}`);
-    })();
-    return () => {
-      cancelled = true;
-      handle.current?.destroy();
-      handle.current = null;
-      void import("@/motion/shared").then((s) => s.disarmT6());
-    };
-  }, [id, variant, ready]);
-
-  useEffect(() => {
-    void import("@/motion/shared").then((s) => {
-      s.t6.maskView = mask;
-      s.t6.markDirty?.();
-    });
+    player.current?.setInternals(mask);
   }, [mask]);
 
   useEffect(() => {
-    if (id === "T11" || id === "T6") return;
     if (variant === "canvas" && !ready) return;
     let cancelled = false;
     void (async () => {
-      const [{ replay }, { subscribeClock }, { prototypeMode }, { isCompact }] = await Promise.all([
-        import("@/motion/transitions"),
-        import("@/motion/shared"),
-        import("@/webgl/transitions/state"),
-        import("@/motion/reduced"),
-      ]);
-      const clock = await new Promise<NonNullable<Parameters<Parameters<typeof subscribeClock>[0]>[0]>>(
-        (resolve) => {
-          // `subscribeClock` llama de inmediato si ya hay reloj: la baja se hace tras asignar `stop`.
-          const sub: { stop?: () => void } = {};
-          let done = false;
-          sub.stop = subscribeClock((c) => {
-            if (!c || done) return;
-            done = true;
-            resolve(c);
-            queueMicrotask(() => sub.stop?.());
-          });
-        },
-      );
+      const { playerFor, waitForClock } = await import("@/components/showcase/stage/players");
+      const clock = await waitForClock(15000);
       if (cancelled) return;
-      prototypeMode.active = variant === "canvas";
-      handle.current?.destroy();
-      handle.current = replay(
-        id as Parameters<typeof replay>[0],
-        progressRef.current,
-        variant,
-        { root: document.body, compact: isCompact(), clock },
+      player.current?.destroy();
+      const created = await playerFor(id as DemoId)({ variant, clock, reduced: variant === "reduced" });
+      if (cancelled) {
+        created?.destroy();
+        return;
+      }
+      player.current = created;
+      created?.seek?.(progressRef.current);
+      created?.setInternals(mask);
+      setStatus(
+        created
+          ? id === "T6"
+            ? `T6 · superficie ${variant === "canvas" ? "en el canvas (lente)" : "DOM (2D)"}`
+            : `variante ${variant} activa`
+          : `sin variante ${variant}`,
       );
-      setStatus(handle.current ? `variante ${variant} activa` : `sin variante ${variant}`);
-      // Coloca el límite entre las dos secciones en el centro del viewport.
-      const sections = document.querySelectorAll<HTMLElement>("[data-transition-prototype] > section");
-      const boundary = sections[1];
-      if (boundary && window.scrollY === 0)
-        window.scrollTo(0, boundary.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4);
     })();
     return () => {
       cancelled = true;
-      handle.current?.destroy();
-      handle.current = null;
+      player.current?.destroy();
+      player.current = null;
     };
+    // `mask` solo se aplica con su propio efecto: cambiarlo no recrea la transición.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, variant, ready]);
 
   const glitch = () => {
-    void import("@/motion/transitions/glitch").then(async ({ glitchTitle }) => {
-      const { canvasState } = await import("@/motion/shared");
-      const title = document.getElementById("lexer-title");
-      if (title && !canvasState.glitch?.(title)) glitchTitle(title);
-    });
+    void player.current?.play();
   };
 
   return (
@@ -143,7 +88,7 @@ export function PrototypeControls({ id }: { id: string }) {
             onChange={(e) => {
               const value = Number(e.target.value);
               setProgress(value);
-              handle.current?.timeline.progress(value);
+              player.current?.seek?.(value);
             }}
             className="flex-1"
           />

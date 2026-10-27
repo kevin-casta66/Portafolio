@@ -69,3 +69,12 @@ describe("registro de arranque (progreso real)", () => {
     expect(BOOT_SHORT_MS).toBeLessThanOrEqual(400);
   });
 });
+
+describe("registro de arranque: idempotencia", () => {
+  it("registrar dos veces el mismo id no duplica la línea (modo estricto de React)", () => {
+    const registry = createBootRegistry();
+    registry.track("skills", Promise.resolve());
+    registry.track("skills", Promise.resolve());
+    expect(registry.tracks().map((t) => t.id)).toEqual(["skills"]);
+  });
+});

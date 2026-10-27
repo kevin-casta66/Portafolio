@@ -1,0 +1,31 @@
+/*
+ * «Ver internos» de las demos DOM de /motion (change 08): con `data-internals="on"` en <html> del
+ * escenario se dibujan las cajas de los elementos animados (los de inicio y fin son las mismas cajas
+ * antes y después de reproducir) y, en T10, el anillo del revelado circular. Sin el atributo no hay
+ * ninguna regla activa: el sitio real no cambia. Solo tokens de color.
+ */
+html[data-internals="on"] [data-anim],
+html[data-internals="on"] [data-boot-gate] [data-boot-letters] > *,
+html[data-internals="on"] [data-boot-gate] [data-boot-line],
+html[data-internals="on"] #runtime-list > * {
+  outline: 1px dashed var(--accent-active);
+  outline-offset: -1px;
+}
+
+html[data-internals="on"] [data-boot-gate] {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    color-mix(in srgb, var(--accent-active) 14%, transparent) 2px 3px
+  );
+}
+
+/* Anillo del revelado circular de T10: crece desde el botón con el mismo radio que la máscara. */
+.stage-reveal-ring {
+  position: fixed;
+  z-index: 90;
+  pointer-events: none;
+  border: 2px solid var(--accent-active);
+  border-radius: 50%;
+  translate: -50% -50%;
+}

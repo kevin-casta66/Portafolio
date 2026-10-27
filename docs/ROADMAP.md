@@ -17,6 +17,7 @@ Documentos de referencia (change 00): [TECHNIQUE-TEARDOWN.md](./TECHNIQUE-TEARDO
 | 6 | `06-global-systems` | Brief §3 · Add. §2 (debug), §5 (logros, sonido, liquid glass) | `call-stack-navigation`, `terminal`, `debug-mode`, `quick-view`, `custom-cursor`, `magnetic-buttons`, `sound`, `keyboard-shortcuts`, `achievements`, `liquid-glass` |
 | 7 | `07-memory-heap` | Add. §4 (T7), §5 Memory Heap | `memory-heap` |
 | 8 | `08-motion-showcase` | Add. §6, §8.3–8.4 | `motion-showcase` |
+| 8b | `08b-adaptive-sound` | ADDENDUM-v3 (sonido adaptativo) | `sound` (modifica), `achievements`, `terminal`, `call-stack-navigation` |
 | 9 | `09-performance-a11y-fallbacks` | Brief §9–§11 · Add. §7, §9 | `performance-budgets`, `reduced-motion`, `webgl-fallback`, `accessibility`, `seo` |
 | 10 | `10-testing-deployment` | Brief §7, §13 · Add. §7 (dispositivos), §8.5, §9 | `e2e-testing`, `lighthouse-ci`, `deployment` |
 

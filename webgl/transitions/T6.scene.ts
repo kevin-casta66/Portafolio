@@ -3,6 +3,7 @@ import { t6 } from "@/motion/shared";
 import { createPixelCamera, fitPixelCamera } from "../core/camera";
 import type { SceneFactory } from "../core/types";
 import { uAccent, uBg, uBorder, uText, uTime, uView } from "../nodes/globals";
+import { lensBarrel, lensChroma, lensEdgeWeight, lensSample } from "../nodes/lens";
 import { fillSd, gridLines, sdRoundRect, strokeSd } from "../nodes/sdf";
 import { TSL, type N } from "../nodes/tsl";
 import { twinPosition } from "../core/twins";
@@ -35,11 +36,11 @@ export const createT6Scene: SceneFactory = () => {
   const center = vec2(uRect.x.add(half.x), uRect.y.add(half.y));
   const q = px.sub(center).div(max(half, vec2(1, 1)));
   const r = max(abs(q.x), abs(q.y));
-  // Peso de la lente: 0 en el centro, 1 en el borde (smoothstep desde el 35 % del radio).
-  const edgeW = smoothstep(0.35, 1.0, r);
-  const barrel = uLens.mul(0.06).mul(edgeW).mul(edgeW);
-  // Separación entre canales: unos 8 px en el borde de una pantalla de 1280 px (flecos finos, no bandas).
-  const chroma = uLens.mul(0.12);
+  // Peso de la lente (0 en el centro, 1 en el borde), barril y separación de canales: los nodos
+  // compartidos de `nodes/lens.ts` (los usa también la lente del Memory Heap).
+  const edgeW = lensEdgeWeight(r);
+  const barrel = lensBarrel(edgeW, uLens);
+  const chroma = lensChroma(uLens);
 
   /** Cara de la tarjeta en las coordenadas locales `s` (−1..1): devuelve vec4(rgb sin premultiplicar, máscara). */
   const face = (s: N): N => {
@@ -58,7 +59,7 @@ export const createT6Scene: SceneFactory = () => {
   };
 
   // Un muestreo por canal: el barril empuja cada uno una fracción distinta (aberración en los bordes).
-  const at = (k: number): N => q.mul(float(1).sub(barrel.mul(float(1).add(chroma.mul(k)))));
+  const at = (k: number): N => lensSample(q, barrel, chroma, k);
   const fr = face(at(1));
   const fg = face(at(0));
   const fb = face(at(-1));

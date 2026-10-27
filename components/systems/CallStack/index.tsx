@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Glass } from "@/components/ui/Glass";
-import { usePathname } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { jumpToSection } from "@/lib/navigation";
 import { useAppStore } from "@/lib/store";
 import { ACCENT_TOKEN, PHASES, type PhaseId } from "@/motion/phase";
 import { AchievementsList, useAchievementCount } from "../Achievements/AchievementsList";
+import { NowPlaying } from "./NowPlaying";
 import { useMediaQuery } from "../useMediaQuery";
 
 const LIST_ID = "achievements-list";
@@ -106,7 +107,73 @@ function SidePanel({ active }: { active: PhaseId }) {
       </nav>
       <div className="mt-1 border-t border-border pt-1.5">
         <AchievementsButton />
+        <NowPlaying />
       </div>
+    </Glass>
+  );
+}
+
+/**
+ * Pila de llamadas en la vista Memory Heap (change 07): fuera del home no hay secciones por las que
+ * saltar, así que muestra el camino `main() › runtime() › heap()` con los dos primeros como enlaces de
+ * vuelta y `heap()` como frame activo.
+ */
+function HeapStack() {
+  const t = useTranslations("CallStack.heap");
+  const frames = [
+    { id: "main", href: "/" as const, name: "main", label: t("home") },
+    { id: "runtime", href: { pathname: "/", hash: "runtime" } as const, name: "runtime", label: t("runtime") },
+  ];
+  return (
+    <Glass
+      as="div"
+      refract
+      data-callstack="heap"
+      className="callstack fixed left-1.5 top-1/2 z-[50] -translate-y-1/2 rounded-lg p-1.5 text-fg"
+    >
+      <nav aria-label={t("label")}>
+        <ol className="flex flex-col gap-0.5">
+          {frames.map((frame, index) => (
+            <li key={frame.id}>
+              <Link
+                href={frame.href}
+                data-frame={frame.id}
+                data-on-stack="true"
+                style={frameStyle("runtime")}
+                className="callstack-frame flex items-center gap-2 rounded-md px-1.5 py-1 font-mono text-xs"
+              >
+                <span aria-hidden="true" className="callstack-dot" />
+                <span className="callstack-name">
+                  {index > 0 ? (
+                    <span aria-hidden="true" className="text-fg-muted">
+                      {"› "}
+                    </span>
+                  ) : null}
+                  {frame.name}()<span className="sr-only"> — {frame.label}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <span
+              aria-current="page"
+              data-frame="heap"
+              data-active="true"
+              data-on-stack="true"
+              style={frameStyle("runtime")}
+              className="callstack-frame flex items-center gap-2 rounded-md px-1.5 py-1 font-mono text-xs"
+            >
+              <span aria-hidden="true" className="callstack-dot" />
+              <span className="callstack-name">
+                <span aria-hidden="true" className="text-fg-muted">
+                  {"› "}
+                </span>
+                heap()
+              </span>
+            </span>
+          </li>
+        </ol>
+      </nav>
     </Glass>
   );
 }
@@ -205,7 +272,9 @@ export default function CallStack() {
   const desktop = useMediaQuery("(min-width: 1024px)");
 
   // Nada de pila mientras la puerta de arranque (z-index 60) cubre la página.
-  if (pathname !== "/" || quick || !bootDone) return null;
+  if (quick || !bootDone) return null;
+  if (pathname === "/heap") return desktop ? <HeapStack /> : null;
+  if (pathname !== "/") return null;
   const active: PhaseId = phase === "boot" ? "source" : phase;
   return desktop ? <SidePanel active={active} /> : <BottomBar active={active} />;
 }

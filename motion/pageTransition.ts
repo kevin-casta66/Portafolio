@@ -1,3 +1,4 @@
+import { heapView } from "@/webgl/scenes/heap/state";
 import { appStore } from "@/lib/store";
 import { prefersReducedMotion } from "./reduced";
 import { armT6, disarmT6, t6 } from "./shared";
@@ -208,9 +209,18 @@ function focusTitle(): void {
 export async function startCaseTransition(o: StartOptions): Promise<void> {
   if (flow) return;
   const { card } = o;
-  const from = rectOfElement(card);
+  const from = originRect(card);
   const expectsCase = (p: string) => casePathMatch.exec(p)?.[1] === o.slug;
-  writeRecord({ slug: o.slug, scrollY: window.scrollY });
+  // Solo se recuerda el scroll del HOME: desde otra ruta (p. ej. /heap) «Volver a proyectos» no debe
+  // restaurar un scroll ajeno ni buscar una tarjeta de origen que no es la de esa página.
+  if (isHome(lastPathname ?? "")) writeRecord({ slug: o.slug, scrollY: window.scrollY });
+  else {
+    try {
+      sessionStorage.removeItem(RECORD_KEY);
+    } catch {
+      /* sin sessionStorage: no hay registro que borrar */
+    }
+  }
 
   performance.mark("t6-start");
   const mode = await pickMode(o.intensity);
@@ -297,6 +307,23 @@ export async function startCaseTransition(o: StartOptions): Promise<void> {
     clearTimeout(safety);
     cleanup();
   }
+}
+
+/**
+ * Rectángulo de origen de la transición. Con la escena 3D del heap activa, la celda DOM del bloque está
+ * oculta (accesible pero de 1 px): el origen es entonces el bloque 3D bajo el puntero o, si se abre con
+ * el teclado, el centro del escenario, donde la escena centra el bloque enfocado.
+ */
+function originRect(card: HTMLElement): Rect {
+  const r = rectOfElement(card);
+  // Una tarjeta real mide cientos de px; la celda oculta de la escena 3D es una tira estrecha (p. ej. 42 × 207).
+  if (r.w >= 100 && r.h >= 60) return r;
+  const hover = heapView.hoverRect;
+  if (hover && heapView.hoverKey === card.dataset.key) return { x: hover.x, y: hover.y, w: hover.w, h: hover.h };
+  const stage = document.querySelector("[data-twin='heap']")?.getBoundingClientRect();
+  const cx = stage ? stage.left + stage.width / 2 : window.innerWidth / 2;
+  const cy = stage ? stage.top + stage.height / 2 : window.innerHeight / 2;
+  return { x: cx - 130, y: cy - 85, w: 260, h: 170 };
 }
 
 const rectOfElement = (el: Element): Rect => {

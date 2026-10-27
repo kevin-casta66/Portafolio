@@ -1,10 +1,12 @@
 import { OrthographicCamera, Scene } from "three/webgpu";
 import { canvasState } from "@/motion/shared";
+import { landOnBar } from "@/motion/audio-sync";
 import { onPhaseChange } from "@/motion/phase-state";
 import { layout } from "../core/layout";
 import type { EngineContext, SceneInstance } from "../core/types";
 import { loadMsdfFont, type MsdfFont } from "../text/msdf-font";
-import { TitleText } from "../text/title-text";
+import { setTitleInternals, TitleText, titleInternals } from "../text/title-text";
+import { transitionStates, type TransitionState } from "../transitions/state";
 import { TEXT_MARGIN as MARGIN } from "./text-ranges";
 
 /**
@@ -46,7 +48,7 @@ export async function createTextScene(ctx: EngineContext): Promise<SceneInstance
   };
 
   /** Glitch de un título por el canvas; `false` si no tiene gemelo activo (→ glitch DOM). */
-  const glitchByCanvas = (el: HTMLElement): boolean => {
+  const glitchByCanvas = (el: HTMLElement, speed = 1): boolean => {
     if (scanRequested || lastScan !== layout.version) scan();
     const title = titles.get(el);
     // El título puede estar entrando en pantalla en este mismo frame: basta con que su gemelo se
@@ -55,15 +57,28 @@ export async function createTextScene(ctx: EngineContext): Promise<SceneInstance
     // Solo títulos en pantalla (un cambio de fase rápido no deja glitches pendientes fuera de vista).
     const r = el.getBoundingClientRect();
     if (r.bottom < 0 || r.top > window.innerHeight) return false;
-    title.glitch(performance.now());
+    title.glitch(performance.now(), speed);
     ctx.markDirty();
     return true;
   };
   canvasState.glitch = glitchByCanvas;
+  titleInternals.invalidate = () => ctx.markDirty();
+  // T11 SDF no es una variante de scroll: se registra como «estado vivo» con el mismo contrato que las
+  // demás transiciones, así `setTransitionInternals("T11", on)` enciende «Ver internos» de los títulos.
+  const t11State: TransitionState = {
+    p: 0,
+    get internals() {
+      return titleInternals.on;
+    },
+    set internals(on: boolean) {
+      setTitleInternals(on);
+    },
+  };
+  transitionStates.set("T11", t11State);
   const stopPhase = onPhaseChange((phase) => {
     if (ctx.frame.reduced) return;
     const el = document.getElementById(`${phase}-title`);
-    if (el) glitchByCanvas(el);
+    if (el) landOnBar(() => glitchByCanvas(el)); // con audio activo, cae en el primer tiempo del compás
   });
 
   return {
@@ -106,6 +121,8 @@ export async function createTextScene(ctx: EngineContext): Promise<SceneInstance
     },
     dispose() {
       if (canvasState.glitch === glitchByCanvas) canvasState.glitch = null;
+      titleInternals.invalidate = null;
+      if (transitionStates.get("T11") === t11State) transitionStates.delete("T11");
       stopPhase();
       mo.disconnect();
       titles.forEach((t) => t.dispose());

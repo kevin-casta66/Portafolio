@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { audio } from "@/audio";
 import { usePathname } from "@/i18n/navigation";
 import { armAudioUnlockOnFirstGesture, audioUnlock } from "@/lib/audio";
 import { appStore } from "@/lib/store";
@@ -11,6 +12,7 @@ import { prefersReducedMotion } from "@/motion/reduced";
 import { SPRING_SETTLE_MS, springLinear } from "@/motion/spring";
 import { cssEase, duration, stagger } from "@/motion/tokens";
 import { createBootController, type BootController } from "./boot-controller";
+import { applyGateChoice } from "./gate-choice";
 
 const SCROLL_KEYS = new Set([" ", "PageDown", "PageUp", "ArrowDown", "ArrowUp", "End", "Home"]);
 /** Grosor del «punto» del CRT. */
@@ -64,17 +66,25 @@ function heroCaretPoint(): { x: number; y: number } | null {
  * No es modal: el skip link, la Vista Rápida y el CV quedan por encima y operables, y hacer scroll,
  * pulsar Escape o activar cualquiera de ellos la cierra en silencio.
  */
-export function BootGate({ projectCount }: { projectCount: number }) {
+export function BootGate({ projectCount, demo = false }: { projectCount: number; demo?: boolean }) {
   const t = useTranslations("Boot");
   // Las letras salen del nombre traducido: cualquier longitud funciona (Portafolio = 10, Portfolio = 9).
   const letters = Array.from(t("brand").toUpperCase());
   const pathname = usePathname();
   const [controller] = useState<BootController>(() =>
     createBootController({
-      onChoice: (choice) => appStore.getState().setGateChoice(choice),
-      onBooted: markBooted,
+      // La elección se registra en la puerta y en las preferencias, y habilita (o no) el motor de audio.
+      onChoice: (choice) =>
+        applyGateChoice(choice, {
+          setGateChoice: appStore.getState().setGateChoice,
+          emit: (event) => audio.emit(event),
+        }),
+      // En la demo de /motion (change 08) la puerta no marca la sesión como «ya arrancada».
+      onBooted: demo ? () => {} : markBooted,
       onDone: () => {
         appStore.getState().setBootDone(true);
+        // Fin del arranque: la firma sonora completa (una sola vez; sin motor se descarta).
+        audio.emit("boot:done");
         document.documentElement.classList.remove("boot-pending");
         const gate = document.querySelector("[data-boot-gate]");
         if (gate?.contains(document.activeElement) || document.activeElement === document.body) {
@@ -89,6 +99,14 @@ export function BootGate({ projectCount }: { projectCount: number }) {
     controller.getServerSnapshot,
   );
 
+  // Cada línea `[ OK ]` que se completa dispara una nota ascendente (en orden, una sola vez por línea).
+  const announcedLines = useRef(0);
+  useEffect(() => {
+    if (snapshot.mode !== "full") return;
+    const done = snapshot.lines.filter((line) => line.done).length;
+    while (announcedLines.current < done) audio.emit("boot:line", { index: announcedLines.current++ });
+  }, [snapshot.mode, snapshot.lines]);
+
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
@@ -96,10 +114,10 @@ export function BootGate({ projectCount }: { projectCount: number }) {
 
   // Arranque: decide el modo y registra los recursos reales.
   useEffect(() => {
-    const visited = readBooted();
+    const visited = demo ? false : readBooted();
     const search = window.location.search;
     const hash = window.location.hash;
-    const home = pathname === "/";
+    const home = pathname === "/" || demo;
     if (home && !visited && !/[?&]view=quick(&|$)/.test(search) && (!hash || hash === "#content")) {
       controller.registry.track("skills", Promise.resolve());
       controller.registry.track("projects", preloadCriticalMedia(), projectCount);
@@ -113,7 +131,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
         }),
       );
     }
-    const mode = controller.start({ pathname, search, hash, visitedThisSession: visited });
+    const mode = controller.start({ pathname: demo ? "/" : pathname, search, hash, visitedThisSession: visited });
     if (mode === "off") {
       appStore.getState().setBootDone(true);
       document.documentElement.classList.remove("boot-pending");
@@ -302,7 +320,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
               style={{ "--letters": letters.length } as CSSProperties}
             >
               <span className="sr-only">{t("brand")}</span>
-              <span ref={lettersRef} aria-hidden="true" className="inline-flex">
+              <span ref={lettersRef} data-boot-letters aria-hidden="true" className="inline-flex">
                 {letters.map((letter, index) => (
                   <span key={index} style={{ opacity: 0 }} className="inline-block">
                     {letter}
@@ -321,6 +339,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
             {snapshot.lines.map((line) => (
               <li
                 key={line.id}
+                data-boot-line
                 data-done={line.done}
                 className={line.done ? "text-fg" : "text-fg-muted"}
               >
@@ -351,6 +370,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
               <>
                 <button
                   type="button"
+                  data-boot-choice="sound"
                   onClick={() => {
                     // El gesto del usuario desbloquea el audio en este mismo manejador.
                     void audioUnlock();
@@ -362,6 +382,7 @@ export function BootGate({ projectCount }: { projectCount: number }) {
                 </button>
                 <button
                   type="button"
+                  data-boot-choice="silent"
                   onClick={() => controller.choose("silent")}
                   className="inline-flex h-12 items-center rounded-md border border-accent px-6 font-medium text-accent hover:bg-phase-tint"
                 >

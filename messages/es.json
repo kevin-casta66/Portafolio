@@ -6,7 +6,9 @@
   "Layout": {
     "skipToContent": "Saltar al contenido",
     "mainNavigation": "Accesos principales",
-    "footerNote": "Programa finalizado con código de salida 0"
+    "footerNote": "Programa finalizado con código de salida 0",
+    "footerNav": "Pie de página",
+    "footerMotion": "Movimiento"
   },
   "Header": {
     "home": "Ir al inicio",
@@ -23,7 +25,40 @@
     "debugOff": "Activar el modo Debug (D)",
     "terminal": "Abrir la terminal (~)",
     "shortcuts": "Atajos de teclado (?)",
-    "tools": "Herramientas"
+    "tools": "Herramientas",
+    "soundSettings": "Ajustes de sonido"
+  },
+  "Sound": {
+    "toggleOn": "Sonido activado",
+    "toggleOff": "Sonido desactivado",
+    "title": "Sonido",
+    "volume": "Volumen general",
+    "volumeValue": "{percent} %",
+    "music": "Música",
+    "effects": "Efectos",
+    "off": "El sonido está desactivado. Pulsa M o el botón de sonido para activarlo.",
+    "close": "Cerrar los ajustes de sonido",
+    "hint": "Pulsa M para silenciar",
+    "nowPlaying": "Reproduciendo: capa {layer} · fase {phase}",
+    "nowPlayingOpen": "Abrir los ajustes de sonido",
+    "mixer": {
+      "title": "Mezclador",
+      "intro": "Una sola pieza, seis capas. Silencia una capa o déjala sola para oírla aislada.",
+      "close": "Cerrar el mezclador",
+      "inactive": "La capa no suena en esta fase",
+      "mute": "Silenciar {layer}",
+      "solo": "Solo {layer}",
+      "level": "Nivel de {layer}",
+      "noEngine": "El motor de audio no está activo: activa el sonido para usar el mezclador."
+    },
+    "layers": {
+      "pad": "Pad",
+      "keys": "Teclas",
+      "perc": "Percusión",
+      "arp": "Arpegio",
+      "bass": "Bajo",
+      "shimmer": "Brillo"
+    }
   },
   "Home": {
     "projectsHeading": "Proyectos",
@@ -110,7 +145,8 @@
     "layout": {
       "label": "Disposición",
       "grid": "Cuadrícula",
-      "list": "Lista"
+      "list": "Lista",
+      "heap": "Heap"
     },
     "chip": {
       "label": "Chip de procesos",
@@ -228,7 +264,7 @@
     "region": "Arranque de Portafolio",
     "brand": "Portafolio",
     "skip": "Saltar ⏎",
-    "withSound": "▶ Iniciar con sonido",
+    "withSound": "▶ Iniciar con sonido · recomendado con audífonos",
     "silent": "Iniciar en silencio",
     "summary": "Arranque completado. Elige iniciar con sonido o en silencio.",
     "lines": {
@@ -313,7 +349,12 @@
     },
     "progress": "Progreso del recorrido",
     "openList": "Mostrar las fases",
-    "closeList": "Ocultar las fases"
+    "closeList": "Ocultar las fases",
+    "heap": {
+      "label": "Pila de llamadas: heap",
+      "home": "Inicio",
+      "runtime": "Proyectos"
+    }
   },
   "Achievements": {
     "counter": "{unlocked}/{total} logros desbloqueados",
@@ -392,8 +433,137 @@
     "years": "{count, plural, one {# año} other {# años}}",
     "projectsCount": "{count, plural, one {# proyecto} other {# proyectos}}"
   },
-  "Sound": {
-    "toggleOn": "Sonido activado",
-    "toggleOff": "Sonido desactivado"
+  "Heap": {
+    "meta": {
+      "title": "Memory Heap",
+      "description": "Todos mis proyectos y experimentos como bloques de memoria del proceso Developer: arrastra, reorganiza con Run GC y ábrelos."
+    },
+    "kicker": "Memory Heap",
+    "title": "Heap del proceso Developer",
+    "intro": "Cada proyecto y cada experimento es un bloque de memoria con su propia dirección. Reorganízalos con Run GC o recórrelos con el teclado.",
+    "total": "{count, plural, one {# bloque en el heap} other {# bloques en el heap}}",
+    "back": "← Volver a proyectos",
+    "kind": {
+      "project": "proyecto",
+      "experiment": "experimento"
+    },
+    "fields": {
+      "address": "Dirección",
+      "type": "Tipo",
+      "year": "Año",
+      "stack": "Tecnologías"
+    },
+    "destination": {
+      "case": "Abrir caso de estudio",
+      "demo": "Abrir demo",
+      "code": "Ver código",
+      "card": "Ver en Proyectos",
+      "lab": "Ver en el Laboratorio"
+    },
+    "view": {
+      "label": "Vista",
+      "grid": "Ver como cuadrícula",
+      "list": "Ver como lista"
+    },
+    "gc": {
+      "label": "Agrupar por",
+      "run": "Run GC",
+      "none": "sin agrupar",
+      "tech": "tecnología",
+      "year": "año",
+      "done": "GC completado: {count} bloques agrupados por {criterion}",
+      "reset": "GC completado: {count} bloques sin agrupar",
+      "group": "Grupo"
+    },
+    "grid": {
+      "label": "Cuadrícula de bloques del heap. Usa las flechas para moverte, Inicio y Fin para ir al primer y último bloque, y Enter para abrir.",
+      "position": "Bloque {n} de {total} · {address}",
+      "groupHeading": "{kind, select, tech {Tecnología principal: {label}} other {Año: {label}}}"
+    },
+    "list": {
+      "label": "Lista de bloques del heap"
+    }
+  },
+  "Motion": {
+    "metaTitle": "Movimiento — Portafolio",
+    "metaDescription": "Cómo se mueve este sitio: los tokens de movimiento y las 11 transiciones (T1–T11), reproducibles una a una, con sus internos y una nota técnica.",
+    "kicker": "MOTION",
+    "title": "Movimiento",
+    "intro": "Todo lo que se mueve en este portafolio sale de unos pocos tokens y de 11 transiciones. Aquí las puedes ver por separado: reprodúcelas, ralentízalas y mira por dentro la máscara o el render target que usa cada una. Cada demo ejecuta el mismo código que el sitio.",
+    "tokens": {
+      "heading": "Tokens de movimiento",
+      "intro": "Una sola fuente de valores: lo que ves aquí sale de `motion/tokens.ts`, el mismo archivo que usan las animaciones del sitio.",
+      "easing": {
+        "heading": "Curvas de easing",
+        "inExpo": "Entradas y revelados (expo out).",
+        "scene": "Transiciones de escena (quart in-out).",
+        "spring": "Resorte de UI para la interfaz interactiva.",
+        "curveLabel": "Curva {name}: {values}",
+        "previewHint": "Pasa el cursor o enfoca la curva para ver la previsualización.",
+        "previewReduced": "Con movimiento reducido no hay previsualización animada.",
+        "values": "Valores"
+      },
+      "durations": {
+        "heading": "Duraciones",
+        "token": "Token",
+        "value": "Valor",
+        "use": "Uso",
+        "uses": {
+          "micro": "Hover, foco y feedback.",
+          "ui": "Menús, interruptores y tarjetas.",
+          "reveal": "Revelado de títulos y bloques.",
+          "sceneMin": "Transición de escena por scroll (mínimo).",
+          "sceneMax": "Transición de escena por scroll (máximo).",
+          "glitchMax": "Techo de cualquier glitch.",
+          "hold": "Tiempo que hay que mantener pulsado (T6).",
+          "holdClick": "Una pulsación más corta es un clic normal.",
+          "pageFull": "Transición de página completa (tras un hold).",
+          "pageShort": "Transición de página corta (clic o Enter).",
+          "fadeMax": "Fundido de movimiento reducido al abrir un caso.",
+          "theme": "Cambio de tema con revelado circular (T10)."
+        }
+      },
+      "stagger": {
+        "heading": "Retardos escalonados",
+        "char": "Entre caracteres ({min}–{max} ms)",
+        "item": "Entre elementos de una lista ({min}–{max} ms)"
+      }
+    },
+    "catalog": {
+      "heading": "Catálogo de transiciones",
+      "intro": "Once transiciones, una tarjeta por cada una. Pulsa Replay para verla funcionar en un escenario aislado, cambia la velocidad o activa los internos.",
+      "fields": {
+        "trigger": "Disparador",
+        "duration": "Duración",
+        "easing": "Easing",
+        "technique": "Técnica",
+        "reducedMotion": "Con movimiento reducido",
+        "lowTier": "Calidad baja o WebGL2",
+        "note": "Nota técnica",
+        "internals": "Qué muestran los internos"
+      }
+    },
+    "card": {
+      "replay": "Replay",
+      "loading": "Cargando…",
+      "playing": "Reproduciendo…",
+      "speedLabel": "Velocidad",
+      "internals": "Ver internos",
+      "fallback2d": "Fallback 2D",
+      "posterAlt": "Fotograma final de {id}: {name}",
+      "stageLabel": "Escenario de la demo {id}",
+      "uses3d": "Usa el motor 3D",
+      "usesDom": "DOM / CSS",
+      "error": "No se pudo cargar la demo. Se muestra el fotograma estático.",
+      "announce": {
+        "loading": "{id}: cargando la demo.",
+        "playing": "{id}: la transición se está reproduciendo.",
+        "done": "{id}: la transición ha terminado.",
+        "error": "{id}: no se pudo reproducir la demo.",
+        "internalsOn": "{id}: internos activados.",
+        "internalsOff": "{id}: internos desactivados.",
+        "speed": "{id}: velocidad {speed}."
+      }
+    }
   }
 }

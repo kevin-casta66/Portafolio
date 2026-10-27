@@ -15,7 +15,7 @@ export const STORAGE_KEYS = {
   theme: "portafolio:theme",
   gateChoice: "portafolio:gate",
   achievements: "portafolio:achievements",
-  /** localStorage: preferencias del visitante (`{ sound, cursor }`). */
+  /** localStorage: preferencias del visitante (`{ sound, cursor, volume, music, sfx, hintShown }`). */
   prefs: "portafolio:prefs",
   /** sessionStorage: el modo Debug dura la sesión del navegador. */
   debug: "portafolio:debug",
@@ -78,17 +78,30 @@ function parseAchievements(raw: string | null): string[] {
 interface StoredPrefs {
   sound: boolean;
   cursor: CursorPref;
+  /** Volumen general (0–1), interruptores de música y efectos, y si ya se mostró el aviso «Pulsa M». */
+  volume: number;
+  music: boolean;
+  sfx: boolean;
+  hintShown: boolean;
 }
+
+/** Volumen inicial del master (docs/ADDENDUM-v3.md §7). */
+export const DEFAULT_VOLUME = 0.35;
+const clampVolume = (v: number): number => Math.min(1, Math.max(0, v));
 
 function parsePrefs(raw: string | null): Partial<StoredPrefs> {
   if (raw === null) return {};
   try {
     const value: unknown = JSON.parse(raw);
     if (value === null || typeof value !== "object") return {};
-    const { sound, cursor } = value as Record<string, unknown>;
+    const { sound, cursor, volume, music, sfx, hintShown } = value as Record<string, unknown>;
     return {
       ...(typeof sound === "boolean" ? { sound } : {}),
       ...(cursor === "custom" || cursor === "system" ? { cursor } : {}),
+      ...(typeof volume === "number" && Number.isFinite(volume) ? { volume: clampVolume(volume) } : {}),
+      ...(typeof music === "boolean" ? { music } : {}),
+      ...(typeof sfx === "boolean" ? { sfx } : {}),
+      ...(typeof hintShown === "boolean" ? { hintShown } : {}),
     };
   } catch {
     return {};
@@ -103,7 +116,17 @@ function writePrefs(storages: Storages, patch: Partial<StoredPrefs>): void {
 export interface AppState {
   phase: Phase;
   theme: Theme;
-  sound: { enabled: boolean; gateChoice: GateChoice | null };
+  sound: {
+    enabled: boolean;
+    gateChoice: GateChoice | null;
+    /** Volumen general 0–1 (0,35 por defecto). */
+    volume: number;
+    /** Interruptores independientes del bus de música y del de efectos. */
+    music: boolean;
+    sfx: boolean;
+    /** El aviso «Pulsa M para silenciar» ya se mostró (se persiste: una sola vez). */
+    hintShown: boolean;
+  };
   /** Preferencias del visitante que persisten entre visitas. */
   prefs: { cursor: CursorPref };
   /** Modo Debug (sesión). */
@@ -112,7 +135,7 @@ export interface AppState {
   debugTools: { wireframe: boolean; boxes: boolean };
   quickView: boolean;
   /** Superficies abiertas (terminal, panel de atajos, lista de logros): no se persisten. */
-  ui: { terminalOpen: boolean; shortcutsOpen: boolean; achievementsOpen: boolean };
+  ui: { terminalOpen: boolean; shortcutsOpen: boolean; achievementsOpen: boolean; mixerOpen: boolean };
   /** Logros recién desbloqueados que aún no se han mostrado como aviso (cola FIFO). */
   toastQueue: string[];
   graphics: { tier: QualityTier; backend: GraphicsBackend; ready: boolean };
@@ -126,6 +149,11 @@ export interface AppState {
   setBootDone: (done: boolean) => void;
   setTheme: (theme: Theme) => void;
   setSoundEnabled: (enabled: boolean) => void;
+  setVolume: (volume: number) => void;
+  setMusic: (music: boolean) => void;
+  setSfx: (sfx: boolean) => void;
+  /** Marca como mostrado el aviso «Pulsa M para silenciar». */
+  markHintShown: () => void;
   setGateChoice: (choice: GateChoice) => void;
   setCursorPref: (cursor: CursorPref) => void;
   setDebug: (debug: boolean) => void;
@@ -153,12 +181,12 @@ export interface AppState {
 export const DEFAULT_STATE = {
   phase: "boot",
   theme: "dark",
-  sound: { enabled: false, gateChoice: null },
+  sound: { enabled: false, gateChoice: null, volume: DEFAULT_VOLUME, music: true, sfx: true, hintShown: false },
   prefs: { cursor: "custom" },
   debug: false,
   debugTools: { wireframe: true, boxes: true },
   quickView: false,
-  ui: { terminalOpen: false, shortcutsOpen: false, achievementsOpen: false },
+  ui: { terminalOpen: false, shortcutsOpen: false, achievementsOpen: false, mixerOpen: false },
   graphics: { tier: "auto", backend: "pending", ready: false },
   achievements: [],
   toastQueue: [],
@@ -191,10 +219,27 @@ export function createAppStore(storages: Storages = browserStorages) {
       writePrefs(storages, { sound: enabled });
       set((s) => ({ sound: { ...s.sound, enabled } }));
     },
+    setVolume: (volume) => {
+      const v = clampVolume(volume);
+      writePrefs(storages, { volume: v });
+      set((s) => ({ sound: { ...s.sound, volume: v } }));
+    },
+    setMusic: (music) => {
+      writePrefs(storages, { music });
+      set((s) => ({ sound: { ...s.sound, music } }));
+    },
+    setSfx: (sfx) => {
+      writePrefs(storages, { sfx });
+      set((s) => ({ sound: { ...s.sound, sfx } }));
+    },
+    markHintShown: () => {
+      writePrefs(storages, { hintShown: true });
+      set((s) => (s.sound.hintShown ? s : { sound: { ...s.sound, hintShown: true } }));
+    },
     setGateChoice: (gateChoice) => {
       write(storages.session(), STORAGE_KEYS.gateChoice, gateChoice);
       writePrefs(storages, { sound: gateChoice === "sound" });
-      set({ sound: { enabled: gateChoice === "sound", gateChoice } });
+      set((s) => ({ sound: { ...s.sound, enabled: gateChoice === "sound", gateChoice } }));
     },
     setCursorPref: (cursor) => {
       writePrefs(storages, { cursor });
@@ -239,6 +284,10 @@ export function createAppStore(storages: Storages = browserStorages) {
         sound: {
           enabled: gateChoice !== null ? gateChoice === "sound" : (prefs.sound ?? false),
           gateChoice,
+          volume: prefs.volume ?? s.sound.volume,
+          music: prefs.music ?? s.sound.music,
+          sfx: prefs.sfx ?? s.sound.sfx,
+          hintShown: prefs.hintShown ?? s.sound.hintShown,
         },
         prefs: { cursor: prefs.cursor ?? s.prefs.cursor },
         debug: read(storages.session(), STORAGE_KEYS.debug) === "1",

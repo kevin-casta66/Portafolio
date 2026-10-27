@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { audio } from "@/audio";
 import { rawContent } from "@/content";
 import { Glass } from "@/components/ui/Glass";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -17,7 +18,7 @@ import {
 } from "@/lib/commands";
 import { emit } from "@/lib/events";
 import { jumpToSection } from "@/lib/navigation";
-import { useAppStore } from "@/lib/store";
+import { appStore, useAppStore } from "@/lib/store";
 import { trapTab } from "../focus-trap";
 
 interface LogLine extends OutputLine {
@@ -83,6 +84,21 @@ export default function Terminal() {
         else router.push("/#display");
       }, 0);
     },
+    goToHeap() {
+      closeTerminal();
+      window.setTimeout(() => router.push("/heap"), 0);
+    },
+    goToMotion() {
+      closeTerminal();
+      window.setTimeout(() => router.push("/motion"), 0);
+    },
+    openMixer() {
+      if (!appStore.getState().sound.enabled) return false;
+      closeTerminal();
+      // Tras cerrar la terminal (el diálogo devuelve el foco), se abre el mezclador.
+      window.setTimeout(() => appStore.getState().setUi({ mixerOpen: true }), 0);
+      return true;
+    },
   };
 
   const execute = (raw: string) => {
@@ -90,6 +106,8 @@ export default function Terminal() {
     if (command === "") return;
     history.push(command);
     const result = runCommand(command, { locale, content: rawContent, actions });
+    // Comando desconocido: una nota grave suave (la salida ya lo dice por escrito).
+    if (result.error) audio.emit("terminal:unknown");
     setLines((previous) => {
       if (result.clear) return [{ kind: "info", text: t("cleared") }];
       return [
@@ -105,7 +123,7 @@ export default function Terminal() {
       event.preventDefault();
       execute(value);
       setValue("");
-      emit("ui:sound", { name: "enter" });
+      audio.emit("ui:enter");
       return;
     }
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
@@ -132,8 +150,8 @@ export default function Terminal() {
       setLines([{ kind: "info", text: t("cleared") }]);
       return;
     }
-    // Clic sutil de tecleo (solo suena con el sonido activado; el gestor de sonido escucha este evento).
-    if (event.key.length === 1 || event.key === "Backspace") emit("ui:sound", { name: "key" });
+    // Tecla mecánica suave (solo suena con el sonido activado; el motor limita la frecuencia de disparo).
+    if (event.key.length === 1 || event.key === "Backspace") audio.emit("terminal:key");
   };
 
   return (

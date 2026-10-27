@@ -1,3 +1,4 @@
+import { audio } from "@/audio";
 import { EASE, ScrollTrigger, gsap, seconds } from "../gsap";
 import { duration, stagger } from "../tokens";
 import { qa } from "../transitions/dom";
@@ -64,15 +65,26 @@ export const lexerChoreography: Choreography = (ctx) => {
         });
 
         const state = { value: 0 };
+        let lastShown = 0;
+        let lastTickAt = 0;
         counter.textContent = `0${suffix}`;
         gsap.to(state, {
           value: target,
           duration: seconds(duration.reveal),
           ease: EASE.inExpo,
           onUpdate: () => {
-            counter.textContent = `${Math.round(state.value).toLocaleString(locale)}${suffix}`;
+            const shown = Math.round(state.value);
+            counter.textContent = `${shown.toLocaleString(locale)}${suffix}`;
+            // Ticks suaves mientras sube (como mucho uno cada 60 ms, solo si el número cambió).
+            const now = performance.now();
+            if (shown !== lastShown && now - lastTickAt >= 60) {
+              lastShown = shown;
+              lastTickAt = now;
+              audio.emit("counter:tick");
+            }
           },
           onComplete: () => {
+            audio.emit("counter:done"); // la campanita final
             counter.textContent = finalText;
             counter.removeAttribute("aria-hidden");
             sr.remove();

@@ -86,3 +86,24 @@ mientras se reproduce (máx. 3 simultáneos en pantalla).
 - En navegador: `?motionTest=1` expone `window.__portafolioMotion` (contadores, fase, variantes,
   `scrollTo(id, p)`, `replay`). No cambia el comportamiento.
 - Desactivar una pieza: `motion/config.ts` (flags). Con todo desactivado el sitio es el HTML estático.
+
+## Vitrina `/motion` (change 08)
+
+La página pública `/[locale]/motion` enseña los tokens (`tokens.ts`, curvas dibujadas desde sus valores) y el
+catálogo T1–T11 (`content/motion.ts`). **Cada demo ejecuta el código real de producción** en un escenario
+aislado, no una versión «de demo»:
+
+- `app/stage/[locale]/[transition]` es un layout raíz mínimo (tema, i18n, reloj de movimiento y canvas; sin cabecera,
+  puerta de arranque, terminal ni cursor) que monta SOLO las secciones que conecta la transición
+  (`components/showcase/stage/StageSections.tsx`, compartido con la ruta de prototipos de desarrollo).
+- `components/showcase/stage/players.ts` tiene un reproductor por transición con la misma forma (`Player`: `play`,
+  `showEnd`, `seek`, `setInternals`…). Reutiliza `replay()` del registro de transiciones, `playT6`, el glitch del título,
+  el Flip de `LayoutToggle`, el revelado de tema y la puerta de arranque real (`BootGate demo`).
+- `StageClient` publica `window.__showcaseStage` (`StageApi`, `motion/showcase.ts`); la tarjeta de `/motion` monta el
+  escenario en un iframe del mismo origen al primer Replay (`components/showcase/stage-demo.ts`, `TransitionDemo`) y lo retira
+  al cambiar de demo: así solo hay una demo viva y se liberan de golpe contexto, escenas y render targets.
+- Velocidad (0.25×/0.5×/1×): `gsap.globalTimeline.timeScale()` + `Element.prototype.animate` parcheado en el escenario.
+- «Ver internos»: las demos WebGL leen `state.internals` (`webgl/transitions/state.ts`); las DOM dibujan sus cajas
+  (`styles/showcase.css`). Apagado no cambia ni un píxel del sitio real.
+- Pósters estáticos: `pnpm motion:posters` (necesita `pnpm build && pnpm start` y el Chrome instalado) escribe
+  `public/motion/posters/T1…T11.webp` a partir de `/stage/es/<Tn>?poster=1`.

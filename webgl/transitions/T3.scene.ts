@@ -21,6 +21,8 @@ export const createT3Scene: TransitionSceneFactory = (_ctx, state, tctx) => {
   const camera = createPixelCamera();
   const uP = uniform(0);
   const uScroll = uniform(0);
+  /** «Ver internos» (change 08): 0 = vista normal (idéntica), 1 = curva de cada rama + mapa del pulso. */
+  const uInternals = uniform(0);
 
   const rows = Array.from(tctx.root.querySelectorAll<HTMLElement>("#parser [role='treeitem']"));
   const levels = rows.map((row) => Number(row.getAttribute("aria-level") ?? 1));
@@ -63,9 +65,18 @@ export const createT3Scene: TransitionSceneFactory = (_ctx, state, tctx) => {
   const pulse = smoothstep(0.1, 0, abs(u.sub(fract(uP.mul(3.2).add(delay.mul(2)))))).mul(reached);
   const fade = float(1).sub(smoothstep(0.88, 0.99, uP));
   const light = profile.mul(0.7).add(pulse.mul(0.9)).add(head.mul(0.8));
-  material.colorNode = vec3(mix(uAccent.mul(0.65), vec3(1, 1, 1), clamp(pulse.add(head).mul(0.6), 0, 1))).mul(light.mul(0.8).add(0.35));
-  material.opacityNode = reached.mul(profile.mul(0.8).add(0.2)).mul(fade).mul(step(0.001, uP));
-  material.mrtNode = mrt({ glow: vec4(uAccent.mul(pulse.add(head)), max(pulse, head).mul(fade)) });
+  const normalColor = vec3(mix(uAccent.mul(0.65), vec3(1, 1, 1), clamp(pulse.add(head).mul(0.6), 0, 1))).mul(light.mul(0.8).add(0.35));
+  const normalOpacity = reached.mul(profile.mul(0.8).add(0.2)).mul(fade).mul(step(0.001, uP));
+  // Internos (docs/MOTION-SPEC.md §3, T3): la CURVA de cada rama como línea central blanca (visible
+  // también antes de crecer) y el MAPA DE INTENSIDAD del pulso a lo largo del tubo: del acento tenue
+  // al blanco según lo que ilumina el pulso y la punta.
+  const intensity = clamp(pulse.add(head), 0, 1);
+  const centerline = smoothstep(0.2, 0.08, abs(v));
+  const internalsColor = mix(mix(uAccent.mul(0.3), uAccent, intensity), vec3(1, 1, 1), max(centerline.mul(0.9), intensity.mul(intensity)));
+  const internalsOpacity = reached.mul(0.65).add(0.3).mul(fade);
+  material.colorNode = mix(normalColor, internalsColor, uInternals);
+  material.opacityNode = mix(normalOpacity, internalsOpacity, uInternals);
+  material.mrtNode = mrt({ glow: vec4(uAccent.mul(pulse.add(head)), max(pulse, head).mul(fade)).mul(float(1).sub(uInternals.mul(0.6))) });
 
   const mesh = new Mesh(geometry, material);
   mesh.frustumCulled = false;
@@ -79,6 +90,7 @@ export const createT3Scene: TransitionSceneFactory = (_ctx, state, tctx) => {
       fitPixelCamera(camera, frame.viewW, frame.viewH);
       uP.value = state.p;
       uScroll.value = frame.scrollY;
+      uInternals.value = state.internals ? 1 : 0;
       return false;
     },
     dispose() {

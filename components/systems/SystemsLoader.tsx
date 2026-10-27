@@ -7,8 +7,10 @@ import {
   loadCallStack,
   loadCursor,
   loadDebug,
+  loadMixer,
   loadShortcuts,
   loadSound,
+  loadSoundHint,
   loadTerminal,
   loadToasts,
 } from "./chunks";
@@ -64,6 +66,8 @@ export function SystemsLoader() {
   const shortcutsOpen = useAppStore((s) => s.ui.shortcutsOpen);
   const debug = useAppStore((s) => s.debug);
   const soundEnabled = useAppStore((s) => s.sound.enabled);
+  const hintShown = useAppStore((s) => s.sound.hintShown);
+  const mixerOpen = useAppStore((s) => s.ui.mixerOpen);
   const hasToast = useAppStore((s) => s.toastQueue.length > 0);
   const cursorPref = useAppStore((s) => s.prefs.cursor);
 
@@ -73,6 +77,8 @@ export function SystemsLoader() {
   if (terminalOpen && !terminalSeen) setTerminalSeen(true);
   const [shortcutsSeen, setShortcutsSeen] = useState(false);
   if (shortcutsOpen && !shortcutsSeen) setShortcutsSeen(true);
+  const [mixerSeen, setMixerSeen] = useState(false);
+  if (mixerOpen && !mixerSeen) setMixerSeen(true);
 
   const finePointer = useMediaQuery("(hover: hover) and (pointer: fine)");
 
@@ -85,6 +91,8 @@ export function SystemsLoader() {
       <Lazy load={loadShortcuts} enabled={shortcutsOpen || shortcutsSeen} />
       <Lazy load={loadDebug} enabled={debug} />
       <Lazy load={loadSound} enabled={soundEnabled} />
+      <Lazy load={loadSoundHint} enabled={soundEnabled && !hintShown} />
+      <Lazy load={loadMixer} enabled={mixerOpen || mixerSeen} />
     </>
   );
 }

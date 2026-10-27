@@ -4,6 +4,8 @@
 > [BRIEF.md](./BRIEF.md) §5. **Regla:** si cambias un valor en el código (`motion/tokens.ts`,
 > `motion/transitions/catalog.ts`), actualiza esta tabla en el mismo commit.
 > Léase «`RenderPipeline`» donde el addendum dice «PostProcessing» (ver [STACK-VERSIONS.md](./STACK-VERSIONS.md)).
+> La página pública `/motion` (change 08) genera sus 11 tarjetas desde `content/motion.ts` (textos es/en de las columnas
+> de §2 y de §3); si cambias una fila aquí, actualiza esa entrada (un test comprueba T1–T11 y los tokens que referencia).
 
 ## 1. Tokens de movimiento (base)
 
@@ -71,3 +73,9 @@ Reglas transversales (Brief §5): máx. 3 focos de animación simultáneos · so
 - INP < 200 ms durante la transición; trabajo pesado en GPU (compute) o Web Worker.
 - Con tier alto/medio/bajo el cambio es en caliente y sin saltos (la variante nueva toma el `progress` actual).
 - Cada transición tiene su fila aquí **y** un prototipo aislado (change 04) antes de integrarse.
+
+## 5. Sincronía con el audio (change 08b)
+
+- `audio.timeToNextBar()` devuelve los ms hasta el siguiente compás de la música (84 BPM, 4/4 → compás de 2 857 ms) o `null` si no hay motor.
+- Solo las partes **no-scrub** de las transiciones (p. ej. el glitch de T11 y los avisos) usan `landOnBar` (`motion/audio-sync.ts`): esperan al compás **solo si llega en ≤ 350 ms**; si no, o si no hay sonido, el retraso es 0. Las partes ligadas al scroll nunca se retrasan.
+- `uAudioEnergy` (`webgl/nodes/globals.ts`) lleva la energía suavizada del bus de música; modula bloom y partículas con un factor ≤ 5 %. Con el sonido apagado o con movimiento reducido vale 0 y el render es idéntico al de antes.

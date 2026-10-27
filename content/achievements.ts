@@ -28,6 +28,30 @@ export const achievements = [
     hint: { es: "Los proyectos también se pueden ver como memoria.", en: "Projects can also be seen as memory." },
   }),
   defineAchievement({
+    id: "motion_inspector",
+    title: { es: "Inspector de movimiento", en: "Motion inspector" },
+    description: {
+      es: "Reprodujiste una transición en la vitrina /motion.",
+      en: "You played a transition in the /motion showcase.",
+    },
+    hint: {
+      es: "Hay una página que enseña cómo se mueve todo el sitio.",
+      en: "There is a page that shows how the whole site moves.",
+    },
+  }),
+  defineAchievement({
+    id: "sound_engineer",
+    title: { es: "Ingeniero de sonido", en: "Sound engineer" },
+    description: {
+      es: "Abriste el mezclador de capas de la música.",
+      en: "You opened the music layer mixer.",
+    },
+    hint: {
+      es: "La terminal sabe de música: prueba el comando «mixer».",
+      en: "The terminal knows about music: try the “mixer” command.",
+    },
+  }),
+  defineAchievement({
     id: "kernel_panic",
     title: { es: "Kernel panic", en: "Kernel panic" },
     description: { es: "Llegaste a una dirección que no existe (404).", en: "You reached an address that does not exist (404)." },

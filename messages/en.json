@@ -6,7 +6,9 @@
   "Layout": {
     "skipToContent": "Skip to content",
     "mainNavigation": "Main links",
-    "footerNote": "Program finished with exit code 0"
+    "footerNote": "Program finished with exit code 0",
+    "footerNav": "Footer",
+    "footerMotion": "Motion"
   },
   "Header": {
     "home": "Go to home",
@@ -23,7 +25,40 @@
     "debugOff": "Turn Debug mode on (D)",
     "terminal": "Open the terminal (~)",
     "shortcuts": "Keyboard shortcuts (?)",
-    "tools": "Tools"
+    "tools": "Tools",
+    "soundSettings": "Sound settings"
+  },
+  "Sound": {
+    "toggleOn": "Sound on",
+    "toggleOff": "Sound off",
+    "title": "Sound",
+    "volume": "Master volume",
+    "volumeValue": "{percent}%",
+    "music": "Music",
+    "effects": "Effects",
+    "off": "Sound is off. Press M or the sound button to turn it on.",
+    "close": "Close the sound settings",
+    "hint": "Press M to mute",
+    "nowPlaying": "Now playing: {layer} layer · {phase} phase",
+    "nowPlayingOpen": "Open the sound settings",
+    "mixer": {
+      "title": "Mixer",
+      "intro": "One piece, six layers. Mute a layer or solo it to hear it on its own.",
+      "close": "Close the mixer",
+      "inactive": "This layer is not used in this phase",
+      "mute": "Mute {layer}",
+      "solo": "Solo {layer}",
+      "level": "{layer} level",
+      "noEngine": "The audio engine is not running: turn sound on to use the mixer."
+    },
+    "layers": {
+      "pad": "Pad",
+      "keys": "Keys",
+      "perc": "Percussion",
+      "arp": "Arpeggio",
+      "bass": "Bass",
+      "shimmer": "Shimmer"
+    }
   },
   "Home": {
     "projectsHeading": "Projects",
@@ -110,7 +145,8 @@
     "layout": {
       "label": "Layout",
       "grid": "Grid",
-      "list": "List"
+      "list": "List",
+      "heap": "Heap"
     },
     "chip": {
       "label": "Process chip",
@@ -228,7 +264,7 @@
     "region": "Portfolio boot",
     "brand": "Portfolio",
     "skip": "Skip ⏎",
-    "withSound": "▶ Start with sound",
+    "withSound": "▶ Start with sound · headphones recommended",
     "silent": "Start silently",
     "summary": "Boot complete. Choose to start with sound or silently.",
     "lines": {
@@ -313,7 +349,12 @@
     },
     "progress": "Journey progress",
     "openList": "Show the phases",
-    "closeList": "Hide the phases"
+    "closeList": "Hide the phases",
+    "heap": {
+      "label": "Call stack: heap",
+      "home": "Home",
+      "runtime": "Projects"
+    }
   },
   "Achievements": {
     "counter": "{unlocked}/{total} achievements unlocked",
@@ -392,8 +433,137 @@
     "years": "{count, plural, one {# year} other {# years}}",
     "projectsCount": "{count, plural, one {# project} other {# projects}}"
   },
-  "Sound": {
-    "toggleOn": "Sound on",
-    "toggleOff": "Sound off"
+  "Heap": {
+    "meta": {
+      "title": "Memory Heap",
+      "description": "All my projects and experiments as memory blocks of the Developer process: drag, reorganize with Run GC and open them."
+    },
+    "kicker": "Memory Heap",
+    "title": "Heap of the Developer process",
+    "intro": "Every project and experiment is a memory block with its own address. Reorganize them with Run GC or walk through them with the keyboard.",
+    "total": "{count, plural, one {# block in the heap} other {# blocks in the heap}}",
+    "back": "← Back to projects",
+    "kind": {
+      "project": "project",
+      "experiment": "experiment"
+    },
+    "fields": {
+      "address": "Address",
+      "type": "Type",
+      "year": "Year",
+      "stack": "Technologies"
+    },
+    "destination": {
+      "case": "Open case study",
+      "demo": "Open demo",
+      "code": "View code",
+      "card": "See in Projects",
+      "lab": "See in the Lab"
+    },
+    "view": {
+      "label": "View",
+      "grid": "View as grid",
+      "list": "View as list"
+    },
+    "gc": {
+      "label": "Group by",
+      "run": "Run GC",
+      "none": "ungrouped",
+      "tech": "technology",
+      "year": "year",
+      "done": "GC complete: {count} blocks grouped by {criterion}",
+      "reset": "GC complete: {count} blocks ungrouped",
+      "group": "Group"
+    },
+    "grid": {
+      "label": "Grid of heap blocks. Use the arrow keys to move, Home and End to jump to the first and last block, and Enter to open.",
+      "position": "Block {n} of {total} · {address}",
+      "groupHeading": "{kind, select, tech {Main technology: {label}} other {Year: {label}}}"
+    },
+    "list": {
+      "label": "List of heap blocks"
+    }
+  },
+  "Motion": {
+    "metaTitle": "Motion — Portfolio",
+    "metaDescription": "How this site moves: the motion tokens and the 11 transitions (T1–T11), playable one by one, with their internals and a technical note.",
+    "kicker": "MOTION",
+    "title": "Motion",
+    "intro": "Everything that moves in this portfolio comes from a few tokens and 11 transitions. Here you can see them one by one: play them, slow them down and look inside at the mask or render target each one uses. Every demo runs the same code as the site.",
+    "tokens": {
+      "heading": "Motion tokens",
+      "intro": "A single source of values: what you see here comes from `motion/tokens.ts`, the same file the site's animations use.",
+      "easing": {
+        "heading": "Easing curves",
+        "inExpo": "Entrances and reveals (expo out).",
+        "scene": "Scene transitions (quart in-out).",
+        "spring": "UI spring for interactive interface.",
+        "curveLabel": "Curve {name}: {values}",
+        "previewHint": "Hover or focus the curve to see the preview.",
+        "previewReduced": "With reduced motion there is no animated preview.",
+        "values": "Values"
+      },
+      "durations": {
+        "heading": "Durations",
+        "token": "Token",
+        "value": "Value",
+        "use": "Use",
+        "uses": {
+          "micro": "Hover, focus and feedback.",
+          "ui": "Menus, toggles and cards.",
+          "reveal": "Title and block reveals.",
+          "sceneMin": "Scroll-driven scene transition (minimum).",
+          "sceneMax": "Scroll-driven scene transition (maximum).",
+          "glitchMax": "Ceiling of any glitch.",
+          "hold": "How long you have to press and hold (T6).",
+          "holdClick": "A shorter press is a normal click.",
+          "pageFull": "Full page transition (after a hold).",
+          "pageShort": "Short page transition (click or Enter).",
+          "fadeMax": "Reduced-motion fade when opening a case.",
+          "theme": "Theme change with a circular reveal (T10)."
+        }
+      },
+      "stagger": {
+        "heading": "Staggered delays",
+        "char": "Between characters ({min}–{max} ms)",
+        "item": "Between list items ({min}–{max} ms)"
+      }
+    },
+    "catalog": {
+      "heading": "Transition catalogue",
+      "intro": "Eleven transitions, one card each. Press Replay to watch it run in an isolated stage, change the speed or switch the internals on.",
+      "fields": {
+        "trigger": "Trigger",
+        "duration": "Duration",
+        "easing": "Easing",
+        "technique": "Technique",
+        "reducedMotion": "With reduced motion",
+        "lowTier": "Low quality or WebGL2",
+        "note": "Technical note",
+        "internals": "What the internals show"
+      }
+    },
+    "card": {
+      "replay": "Replay",
+      "loading": "Loading…",
+      "playing": "Playing…",
+      "speedLabel": "Speed",
+      "internals": "Show internals",
+      "fallback2d": "2D fallback",
+      "posterAlt": "Final frame of {id}: {name}",
+      "stageLabel": "Stage of demo {id}",
+      "uses3d": "Uses the 3D engine",
+      "usesDom": "DOM / CSS",
+      "error": "The demo could not be loaded. The static frame is shown.",
+      "announce": {
+        "loading": "{id}: loading the demo.",
+        "playing": "{id}: the transition is playing.",
+        "done": "{id}: the transition has finished.",
+        "error": "{id}: the demo could not be played.",
+        "internalsOn": "{id}: internals on.",
+        "internalsOff": "{id}: internals off.",
+        "speed": "{id}: speed {speed}."
+      }
+    }
   }
 }

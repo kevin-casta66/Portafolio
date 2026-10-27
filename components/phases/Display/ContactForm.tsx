@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { useForm } from "react-hook-form";
+import { audio } from "@/audio";
 import { sendContact } from "@/lib/contact/action";
 import {
   CONTACT_LIMITS,
@@ -98,10 +99,18 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
     };
   }, [state]);
 
+  // El resultado suena cuando se MUESTRA (el paquete ya volvió): firma completa con éxito, dos notas
+  // descendentes con error. El mensaje de error sigue estando también en pantalla.
+  useEffect(() => {
+    if (displayed.status === "idle") return;
+    audio.emit(displayed.status === 200 ? "contact:ok" : "contact:error");
+  }, [displayed]);
+
   const submit = () => {
     if (!formRef.current) return;
     const data = new FormData(formRef.current);
     setDisplayed(IDLE);
+    audio.emit("contact:send"); // pulsos de «paquete» que viajan de izquierda a derecha
     cable.current?.send();
     startTransition(() => formAction(data));
   };
@@ -156,6 +165,11 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
       ref={formRef}
       action={formAction}
       noValidate
+      onFocus={(event) => {
+        // Nota suave al entrar en un campo (no en el botón ni en el campo trampa).
+        const target = event.target as HTMLElement;
+        if (target.matches("input:not([tabindex='-1']), textarea")) audio.emit("contact:focus");
+      }}
       onSubmit={(event) => {
         event.preventDefault();
         void handleSubmit(submit)(event);

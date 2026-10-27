@@ -34,7 +34,7 @@ export async function GpuSection() {
         <PipelineStage />
         <ul className="col-span-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {experiments.map((experiment, index) => (
-            <li key={experiment.id} className="flex">
+            <li key={experiment.id} id={`experiment-${experiment.id}`} className="flex scroll-mt-24">
               <div className="flex w-full">
                 <ExperimentCard
                   id={experiment.id}

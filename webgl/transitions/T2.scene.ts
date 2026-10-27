@@ -1,7 +1,7 @@
-import { Scene } from "three/webgpu";
+import { Mesh, MeshBasicNodeMaterial, PlaneGeometry, Scene } from "three/webgpu";
 import { particlesFor } from "../quality";
 import { createPixelCamera, fitPixelCamera } from "../core/camera";
-import { uScrollVelocity } from "../nodes/globals";
+import { uAccent, uScrollVelocity } from "../nodes/globals";
 import { TSL, type N } from "../nodes/tsl";
 import { createParticles, instanceAttribute, type ParticleSystem } from "../objects/particles";
 import { sampleElementText } from "./glyph-points";
@@ -9,7 +9,7 @@ import { assignParticles, type PointSet } from "./particles";
 import { DISSOLVE_SETTLE, DISSOLVE_SPAN } from "./T2";
 import type { TransitionSceneFactory } from "./state";
 
-const { Fn, vec2, vec3, vec4, float, uniform, mix, smoothstep, clamp, sin, abs, step, instancedArray, instanceIndex, mx_noise_float } = TSL;
+const { Fn, vec2, vec3, vec4, float, uniform, uv, mrt, mix, smoothstep, clamp, sin, abs, step, instancedArray, instanceIndex, mx_noise_float } = TSL;
 
 /** Carril del Lexer al que va cada clase de token de la línea de código (misma tabla que la versión DOM). */
 const LANE_OF: Record<string, string> = {
@@ -29,6 +29,27 @@ export const createT2Scene: TransitionSceneFactory = (ctx, state, tctx) => {
   const uScroll = uniform(0);
   const uX0 = uniform(0);
   const uXSpan = uniform(1);
+  /** «Ver internos» (change 08): 0 = vista normal (idéntica), 1 = mapa de umbral de la disolución. */
+  const uInternals = uniform(0);
+
+  // Mapa de umbral de la disolución (docs/MOTION-SPEC.md §3, T2): escala de grises que crece de izquierda
+  // a derecha (el frente avanza en ese orden) con el grano de ruido de cada partícula, y el borde del
+  // frente —donde actúa el bloom selectivo— en el acento. Solo existe y se dibuja con `internals`.
+  const mapMat = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+  const along = uv().x;
+  const grain = mx_noise_float(vec3(uv().x.mul(70), uv().y.mul(9), 0.5)).mul(0.5).add(0.5).mul(0.05);
+  const threshold = along.mul(DISSOLVE_SPAN).add(grain); // mismo orden que `release` de cada partícula
+  const edge = smoothstep(0.04, 0.01, abs(uP.sub(threshold)));
+  mapMat.colorNode = mix(vec3(clamp(threshold.div(DISSOLVE_SPAN + 0.05), 0, 1)), uAccent, edge);
+  mapMat.opacityNode = float(0.9);
+  mapMat.mrtNode = mrt({ glow: vec4(uAccent.mul(edge), edge) });
+  const mapGeometry = new PlaneGeometry(1, 1);
+  const mapMesh = new Mesh(mapGeometry, mapMat);
+  mapMesh.frustumCulled = false;
+  mapMesh.visible = false;
+  scene.add(mapMesh);
+  /** Rectángulo de la línea de código en coordenadas de documento (x0, x1, y0, y1). */
+  const bounds = { x0: 0, x1: 0, y0: 0, y1: 0, ready: false };
 
   let system: ParticleSystem | null = null;
   let builtCount = -1;
@@ -79,12 +100,19 @@ export const createT2Scene: TransitionSceneFactory = (ctx, state, tctx) => {
     // Extensión horizontal de la línea (para el frente de disolución de izquierda a derecha).
     let minX = Infinity;
     let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
     for (const s of src)
       for (let i = 0; i < s.points.length; i += 2) {
         const x = s.points[i] as number;
+        const y = s.points[i + 1] as number;
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
       }
+    bounds.ready = Number.isFinite(minX) && Number.isFinite(minY);
+    if (bounds.ready) Object.assign(bounds, { x0: minX, x1: maxX, y0: minY, y1: maxY });
     uX0.value = minX;
     uXSpan.value = Math.max(1, maxX - minX);
 
@@ -138,8 +166,9 @@ export const createT2Scene: TransitionSceneFactory = (ctx, state, tctx) => {
       position: vec3(view.x, view.y.negate(), 0),
       size,
       color: aColor,
-      opacity: alive.mul(0.95),
-      glow: vec4(aColor.mul(front), front.mul(alive)),
+      // Con «Ver internos» las partículas se atenúan (factor 1 apagado: sin cambio) para ver el mapa.
+      opacity: alive.mul(0.95).mul(float(1).sub(uInternals.mul(0.6))),
+      glow: vec4(aColor.mul(front), front.mul(alive)).mul(float(1).sub(uInternals.mul(0.7))),
     });
     scene.add(system.sprite);
   };
@@ -154,6 +183,14 @@ export const createT2Scene: TransitionSceneFactory = (ctx, state, tctx) => {
       if (want !== builtCount) build(want);
       uP.value = state.p;
       uScroll.value = frame.scrollY;
+      uInternals.value = state.internals ? 1 : 0;
+      mapMesh.visible = state.internals && bounds.ready;
+      if (mapMesh.visible) {
+        const w = Math.max(1, bounds.x1 - bounds.x0);
+        const h = Math.max(24, (bounds.y1 - bounds.y0) * 2.5);
+        mapMesh.position.set((bounds.x0 + bounds.x1) / 2, -((bounds.y0 + bounds.y1) / 2 - frame.scrollY), 0);
+        mapMesh.scale.set(w, h, 1);
+      }
       return false;
     },
     compute(renderer) {
@@ -168,6 +205,9 @@ export const createT2Scene: TransitionSceneFactory = (ctx, state, tctx) => {
         scene.remove(system.sprite);
         system.dispose();
       }
+      scene.remove(mapMesh);
+      mapGeometry.dispose();
+      mapMat.dispose();
     },
   };
 };

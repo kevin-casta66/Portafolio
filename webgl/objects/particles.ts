@@ -1,4 +1,5 @@
 import { InstancedBufferAttribute, PointsNodeMaterial, Sprite } from "three/webgpu";
+import { uAudioEnergy } from "../nodes/globals";
 import { TSL, type N } from "../nodes/tsl";
 
 const { instancedBufferAttribute, mrt, vec4 } = TSL;
@@ -32,7 +33,8 @@ export interface ParticleNodes {
 export function createParticles(count: number, nodes: ParticleNodes): ParticleSystem {
   const material = new PointsNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
   material.positionNode = nodes.position;
-  material.sizeNode = nodes.size;
+  // Las partículas «respiran» con la música: factor 1 + 0,05·energía (1 con el sonido apagado).
+  material.sizeNode = nodes.size.mul(TSL.float(1).add(uAudioEnergy.mul(0.05)));
   material.colorNode = nodes.color;
   material.opacityNode = nodes.opacity;
   material.mrtNode = mrt({ glow: nodes.glow ?? vec4(0, 0, 0, 0) });
