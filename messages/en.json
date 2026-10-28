@@ -281,6 +281,23 @@
     "ok": "[ OK ]",
     "wait": "[ .. ]"
   },
+  "Welcome": {
+    "eyebrow": "// welcome",
+    "title": "Welcome to my portfolio",
+    "greeting": "Hi, I'm <name>Kevin Castaño</name>, a software developer.",
+    "intro": "This site is built like a compiler: each section is a phase, with animation, 3D scenes and sound. I hope you enjoy the experience while getting to know a bit of my work.",
+    "signature": "— Kevin",
+    "question": "How would you like to explore it?",
+    "quick": {
+      "title": "Quick View",
+      "description": "A one-page résumé with my skills, experience and projects. A couple of minutes' read."
+    },
+    "explore": {
+      "title": "Interactive experience",
+      "description": "The full portfolio: scroll through each phase and discover the details of every project."
+    },
+    "hint": "You can switch modes at any time with the Quick View button in the header or the <key>Q</key> key."
+  },
   "Case": {
     "kicker": "Case study",
     "backHome": "← Back to projects",

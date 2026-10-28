@@ -204,6 +204,23 @@ dialog.terminal::backdrop {
   }
 }
 
+/* ───────────────────────── Bienvenida ───────────────────────── */
+
+dialog.welcome {
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+dialog.welcome::backdrop {
+  background-color: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-experience="reduced"]) dialog.welcome[open] {
+    animation: toast-in var(--dur-ui) var(--ease-in-expo) both;
+  }
+}
+
 /* ───────────────────────── Vista Rápida ───────────────────────── */
 
 /* Sin escenas 3D, sin capas de movimiento y sin barra de progreso en la vista de currículum */

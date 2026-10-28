@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties }
 import { audio } from "@/audio";
 import { usePathname } from "@/i18n/navigation";
 import { armAudioUnlockOnFirstGesture, audioUnlock } from "@/lib/audio";
-import { appStore } from "@/lib/store";
+import { appStore, useAppStore } from "@/lib/store";
 import { BOOT_REDUCED_MS, BOOT_SHORT_MS } from "@/motion/boot";
 import { BOOTED_KEY } from "@/motion/config";
 import { prefersReducedMotion } from "@/motion/reduced";
@@ -13,6 +13,7 @@ import { SPRING_SETTLE_MS, springLinear } from "@/motion/spring";
 import { cssEase, duration, stagger } from "@/motion/tokens";
 import { createBootController, type BootController } from "./boot-controller";
 import { applyGateChoice } from "./gate-choice";
+import { WelcomeDialog } from "./WelcomeDialog";
 
 const SCROLL_KEYS = new Set([" ", "PageDown", "PageUp", "ArrowDown", "ArrowUp", "End", "Home"]);
 /** Grosor del «punto» del CRT. */
@@ -71,6 +72,11 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
   // Las letras salen del nombre traducido: cualquier longitud funciona (Portafolio = 10, Portfolio = 9).
   const letters = Array.from(t("brand").toUpperCase());
   const pathname = usePathname();
+  // Bienvenida: solo si la puerta se cerró con un botón (elegir o «Saltar»); scroll, Escape o la
+  // cabecera indican que el visitante ya sabe adónde va y no se le interrumpe.
+  const [explicitExit, setExplicitExit] = useState(false);
+  const [welcomeClosed, setWelcomeClosed] = useState(false);
+  const quickView = useAppStore((s) => s.quickView);
   const [controller] = useState<BootController>(() =>
     createBootController({
       // Movimiento reducido: la fase de logs dura ≤ 400 ms y las letras entran de golpe (ver el efecto de letras).
@@ -106,7 +112,8 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
   useEffect(() => {
     if (snapshot.mode !== "full") return;
     const done = snapshot.lines.filter((line) => line.done).length;
-    while (announcedLines.current < done) audio.emit("boot:line", { index: announcedLines.current++ });
+    while (announcedLines.current < done)
+      audio.emit("boot:line", { index: announcedLines.current++ });
   }, [snapshot.mode, snapshot.lines]);
 
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -133,7 +140,12 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
         }),
       );
     }
-    const mode = controller.start({ pathname: demo ? "/" : pathname, search, hash, visitedThisSession: visited });
+    const mode = controller.start({
+      pathname: demo ? "/" : pathname,
+      search,
+      hash,
+      visitedThisSession: visited,
+    });
     if (mode === "off") {
       appStore.getState().setBootDone(true);
       document.documentElement.classList.remove("boot-pending");
@@ -289,6 +301,8 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
     };
   }, [snapshot.stage, snapshot.mode, controller]);
 
+  if (snapshot.stage === "done" && explicitExit && !demo && !quickView && !welcomeClosed)
+    return <WelcomeDialog onClose={() => setWelcomeClosed(true)} />;
   if (snapshot.mode === "off" || snapshot.stage === "idle" || snapshot.stage === "done")
     return null;
 
@@ -311,7 +325,10 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
         >
           <button
             type="button"
-            onClick={() => controller.skip()}
+            onClick={() => {
+              setExplicitExit(true);
+              controller.skip();
+            }}
             className="self-end inline-flex h-11 items-center rounded-md border border-border px-4 text-sm text-fg-muted hover:border-accent hover:text-fg"
           >
             {t("skip")}
@@ -339,24 +356,24 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
           </div>
 
           <div role="status" aria-live="off" aria-label={t("region")}>
-          <ul className="flex min-h-24 flex-col gap-1 text-sm">
-            {snapshot.lines.map((line) => (
-              <li
-                key={line.id}
-                data-boot-line
-                data-done={line.done}
-                className={line.done ? "text-fg" : "text-fg-muted"}
-              >
-                <span className={line.done ? "text-syntax-string" : "text-fg-muted"}>
-                  {line.done ? t("ok") : t("wait")}
-                </span>{" "}
-                {t(`lines.${line.id as "skills"}`, {
-                  count: line.value ?? 0,
-                  value: line.value ?? "",
-                })}
-              </li>
-            ))}
-          </ul>
+            <ul className="flex min-h-24 flex-col gap-1 text-sm">
+              {snapshot.lines.map((line) => (
+                <li
+                  key={line.id}
+                  data-boot-line
+                  data-done={line.done}
+                  className={line.done ? "text-fg" : "text-fg-muted"}
+                >
+                  <span className={line.done ? "text-syntax-string" : "text-fg-muted"}>
+                    {line.done ? t("ok") : t("wait")}
+                  </span>{" "}
+                  {t(`lines.${line.id as "skills"}`, {
+                    count: line.value ?? 0,
+                    value: line.value ?? "",
+                  })}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div
@@ -379,6 +396,7 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
                   onClick={() => {
                     // El gesto del usuario desbloquea el audio en este mismo manejador.
                     void audioUnlock();
+                    setExplicitExit(true);
                     controller.choose("sound");
                   }}
                   className="inline-flex h-12 items-center rounded-md bg-accent px-6 font-medium text-bg hover:opacity-90"
@@ -388,7 +406,10 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
                 <button
                   type="button"
                   data-boot-choice="silent"
-                  onClick={() => controller.choose("silent")}
+                  onClick={() => {
+                    setExplicitExit(true);
+                    controller.choose("silent");
+                  }}
                   className="inline-flex h-12 items-center rounded-md border border-accent px-6 font-medium text-accent hover:bg-phase-tint"
                 >
                   {t("silent")}

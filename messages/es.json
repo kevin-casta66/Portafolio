@@ -281,6 +281,23 @@
     "ok": "[ OK ]",
     "wait": "[ .. ]"
   },
+  "Welcome": {
+    "eyebrow": "// bienvenida",
+    "title": "Bienvenido a mi portafolio",
+    "greeting": "Hola, soy <name>Kevin Castaño</name>, desarrollador de software.",
+    "intro": "Este sitio está construido como un compilador: cada sección es una fase, con animaciones, escenas 3D y sonido. Espero que disfrutes la experiencia mientras conoces un poco de mi trabajo.",
+    "signature": "— Kevin",
+    "question": "¿Cómo quieres recorrerlo?",
+    "quick": {
+      "title": "Vista Rápida",
+      "description": "Currículum de una página con mis habilidades, experiencia y proyectos. Se lee en un par de minutos."
+    },
+    "explore": {
+      "title": "Experiencia interactiva",
+      "description": "El portafolio completo: recorre cada fase con scroll y descubre los detalles de cada proyecto."
+    },
+    "hint": "Puedes cambiar de modo cuando quieras con el botón Vista Rápida de la cabecera o la tecla <key>Q</key>."
+  },
   "Case": {
     "kicker": "Caso de estudio",
     "backHome": "← Volver a proyectos",
