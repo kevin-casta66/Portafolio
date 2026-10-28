@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useIsReduced } from "@/lib/experience";
 import { useEffect, useReducer, useRef } from "react";
 import { audio } from "@/audio";
 import { useAppStore } from "@/lib/store";
 import { SOUND_POPOVER_ID } from "../Sound/SoundPopover";
 import { useTick } from "../Sound/useTick";
-import { useMediaQuery } from "../useMediaQuery";
 
 const BARS = 5;
 /** Altura fija (fracción) de las barras con movimiento reducido: un dibujo estático, sin animación. */
@@ -21,7 +21,7 @@ const STATIC_HEIGHTS = [0.45, 0.8, 0.6, 0.95, 0.5] as const;
 export function NowPlaying() {
   const t = useTranslations("Sound");
   const enabled = useAppStore((s) => s.sound.enabled);
-  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const reduced = useIsReduced();
   const [, refresh] = useReducer((n: number) => n + 1, 0);
   const bars = useRef<(HTMLSpanElement | null)[]>([]);
   const buffer = useRef(new Float32Array(BARS));

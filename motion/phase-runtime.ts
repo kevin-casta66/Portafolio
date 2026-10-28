@@ -11,6 +11,9 @@ import { appStore } from "@/lib/store";
  * El color se escribe en `--accent-active` (el tinte de fondo `--accent-tint` deriva de él en CSS al
  * 5 %), mezclando los tokens de fase en OKLCH, así funciona igual en el tema oscuro y en el claro.
  */
+/** Pasos de la mezcla de acento entre dos fases (ver `apply`). */
+export const ACCENT_STEPS = 8;
+
 export function startPhaseTracking(): () => void {
   const root = document.documentElement;
   const sections = PHASES.map((id) => document.getElementById(id)).filter(
@@ -39,7 +42,12 @@ export function startPhaseTracking(): () => void {
     const snapshot = readPhase(boxes, scrollY + window.innerHeight / 2, scrollY, max);
     writePhaseState(snapshot);
 
-    const accent = accentCss(snapshot.from, snapshot.to, snapshot.mix);
+    // Cada cambio de `--accent-active` en la raíz invalida el estilo de TODO el documento (~18 ms por fotograma
+    // medidos en el recorrido de la home: fps 27 → 56 al quitarlo). El mezclado se discretiza en ACCENT_STEPS
+    // pasos por transición: el cambio de color sigue siendo gradual (es un tinte al 5 %) pero solo se recalcula
+    // el estilo unas pocas veces por transición, no en cada fotograma de scroll.
+    const mix = Math.round(snapshot.mix * ACCENT_STEPS) / ACCENT_STEPS;
+    const accent = accentCss(snapshot.from, snapshot.to, mix);
     if (accent !== lastAccent) {
       setAccent(accent);
       lastAccent = accent;

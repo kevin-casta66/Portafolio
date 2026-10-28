@@ -1,6 +1,7 @@
 import { audio } from "@/audio";
 import { audioUnlock } from "@/lib/audio";
 import { emit } from "@/lib/events";
+import { getExperience } from "@/lib/experience";
 import { appStore, type Theme } from "@/lib/store";
 
 /**
@@ -63,6 +64,17 @@ export function toggleQuickView(): boolean {
   appStore.getState().setQuickView(next);
   audio.emit("ui:toggle");
   audio.emit(next ? "quickview:on" : "quickview:off");
+  return next;
+}
+
+/**
+ * Alterna el movimiento reducido manual (change 09). Parte del modo vigente (también el del sistema), así
+ * que un clic siempre cambia lo que se ve; la elección persiste en la sesión (`lib/experience.ts`).
+ */
+export function toggleReducedMotion(): "reduced" | "full" {
+  const next = getExperience() === "reduced" ? "full" : "reduced";
+  appStore.getState().setMotionPref(next);
+  audio.emit("ui:toggle");
   return next;
 }
 

@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import {
   DebugToggle,
   QuickViewToggle,
+  ReducedMotionToggle,
   ShortcutsButton,
   SoundToggle,
   TerminalButton,
@@ -25,7 +26,7 @@ export async function Header() {
   return (
     <header data-debug-name="Header" className="sticky top-0 z-[70] border-b border-border bg-bg/80 backdrop-blur">
       <div className="grid-12 items-center py-3">
-        <div className="col-span-12 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="col-span-12 flex flex-wrap items-center justify-between gap-x-1.5 gap-y-2 sm:gap-x-4">
           <Link
             href="/"
             aria-label={`${name} — ${t("home")}`}
@@ -34,19 +35,25 @@ export async function Header() {
             {name}
           </Link>
 
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("tools")}>
+          {/* En móvil el grupo se «disuelve» (display: contents): nombre y controles se reparten en 2 filas como máximo. */}
+          <div className="contents sm:flex sm:flex-wrap sm:items-center sm:gap-2" role="group" aria-label={t("tools")}>
             <a
               href={cv[locale]}
               download
               data-cv-download
-              className="inline-flex h-10 items-center rounded-md border border-accent px-4 text-sm font-medium text-accent hover:bg-phase-tint"
+              aria-label={t("downloadCv")}
+              className="inline-flex h-10 items-center rounded-md border border-accent px-2.5 text-sm font-medium text-accent hover:bg-phase-tint sm:px-4"
             >
-              {t("downloadCv")}
+              <span aria-hidden="true" className="sm:hidden">
+                CV
+              </span>
+              <span className="hidden sm:inline">{t("downloadCv")}</span>
             </a>
             <QuickViewToggle />
             <SoundToggle />
             <SoundSettings />
             <DebugToggle />
+            <ReducedMotionToggle />
             <TerminalButton />
             {/* Los atajos de teclado no sirven en pantallas táctiles: en móvil se oculta para que la cabecera no pase de 2 filas. */}
             <div className="hidden sm:contents">

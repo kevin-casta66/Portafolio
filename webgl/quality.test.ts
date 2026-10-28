@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  FPS2D_FLOOR,
+  FPS2D_WINDOW_MS,
   MOBILE_PARTICLE_FACTOR,
   PRESETS,
+  belowMinimumGpu,
   createFpsMonitor,
   particlesFor,
   stepTierDown,
@@ -86,5 +89,35 @@ describe("monitor de FPS", () => {
     let drop = false;
     for (let t = 0; t < 20_000; t += 1000) drop ||= monitor.frame(t);
     expect(drop).toBe(false);
+  });
+});
+
+describe("GPU por debajo del mínimo (fallback 2D)", () => {
+  it("tier 0 medido o WebGL sin soporte: 2D; tier 1 o bloqueada/por defecto: no", () => {
+    expect(belowMinimumGpu({ tier: 0, type: "BENCHMARK" })).toBe(true);
+    expect(belowMinimumGpu({ tier: 0, type: "WEBGL_UNSUPPORTED" })).toBe(true);
+    expect(belowMinimumGpu({ tier: 1, type: "BENCHMARK" })).toBe(false);
+    expect(belowMinimumGpu({ tier: 0, type: "BLOCKLISTED" })).toBe(false);
+    expect(belowMinimumGpu({ tier: 0, type: "FALLBACK" })).toBe(false);
+  });
+});
+
+describe("degradación a 2D por fps sostenidos (< 30 durante 3 s)", () => {
+  const make = () => createFpsMonitor(FPS2D_FLOOR, FPS2D_WINDOW_MS);
+
+  it("20 fps sostenidos durante más de 3 s: pide pasar a 2D", () => {
+    const monitor = make();
+    let hit = false;
+    for (let t = 0; t < 6000; t += 1000 / 20) hit ||= monitor.frame(t);
+    expect(hit).toBe(true);
+  });
+
+  it("20 fps durante 2,5 s y recuperación: no cambia", () => {
+    const monitor = make();
+    let hit = false;
+    let t = 0;
+    for (; t < 2500; t += 1000 / 20) hit ||= monitor.frame(t);
+    for (const end = t + 4000; t < end; t += 1000 / 60) hit ||= monitor.frame(t);
+    expect(hit).toBe(false);
   });
 });

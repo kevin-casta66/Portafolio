@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { emit, on } from "@/lib/events";
+import { startExperienceSync } from "@/lib/experience";
 import { appStore, type Theme } from "@/lib/store";
 
 /**
@@ -33,7 +34,10 @@ export function StoreHydrator() {
     const stopTier = appStore.subscribe((state, prev) => {
       if (state.graphics.tier !== prev.graphics.tier) syncTier();
     });
+    // Modo de experiencia (change 09): `prefers-reduced-motion` + atributo `data-experience`.
+    const stopExperience = startExperienceSync();
     return () => {
+      stopExperience();
       stopAchievements();
       stopTier();
       delete (window as unknown as { __portafolioApp?: unknown }).__portafolioApp;

@@ -1,0 +1,17 @@
+import { createRequire } from "node:module";
+const require = createRequire("C:/Users/User/Documents/GitHubPersonal/Portafolio/package.json");
+const { chromium } = require("@playwright/test");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const b = await chromium.launch({ channel: "chrome" });
+const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, hasTouch:true, isMobile:true });
+await ctx.addInitScript(()=>{sessionStorage.setItem("portafolio:gate","silent");window.__l=[];new PerformanceObserver(l=>{for(const e of l.getEntries())window.__l.push({t:Math.round(e.startTime),d:Math.round(e.duration),bd:Math.round(e.blockingDuration),rs:Math.round(e.renderStart-e.startTime),sl:Math.round(e.styleAndLayoutStart-e.startTime),s:e.scripts.map(s=>({f:(s.sourceURL||"").split("/").pop(),fn:s.sourceFunctionName,n:(s.invoker||"").slice(0,40),d:Math.round(s.duration),fl:Math.round(s.forcedStyleAndLayoutDuration)}))})}).observe({type:"long-animation-frame",buffered:true})});
+const p = await ctx.newPage(); const cdp=await ctx.newCDPSession(p);
+await p.goto("http://localhost:3150/es?motionTest=1",{waitUntil:"networkidle"}); await sleep(4500);
+await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
+const card=p.locator("#runtime [data-hold]").first(); await card.scrollIntoViewIfNeeded(); await sleep(1500);
+await p.evaluate(()=>{window.__l.length=0});
+const box=await card.boundingBox(); const x=box.x+box.width/2,y=Math.min(Math.max(box.y+box.height/2,60),780);
+await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x,y}]}); await sleep(450);
+await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]}); await sleep(1200);
+for (const e of await p.evaluate(()=>window.__l)) console.log(JSON.stringify(e));
+await b.close();

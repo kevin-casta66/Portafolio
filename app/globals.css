@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 @import "../styles/systems.css";
+@import "../styles/reduced.css";
 @import "../styles/showcase.css";
 @import "../styles/print.css";
 
@@ -66,10 +67,12 @@
     line-height: 1.6;
   }
 
+  /* Foco tipo caret: borde brillante del acento de fase + halo; nunca se elimina */
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--focus-caret);
     outline-offset: 3px;
     border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 5px var(--focus-caret-glow);
   }
 
   ::selection {

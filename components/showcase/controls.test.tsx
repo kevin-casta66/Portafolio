@@ -53,7 +53,7 @@ describe("TransitionCard (HTML inicial, sin JavaScript)", () => {
     expect(html).toContain("Carga en núcleos");
     expect(html).toContain("Barrido Bayer");
     expect(html).toContain("La matriz Bayer");
-    expect(html).toContain("/motion/posters/T5.webp");
+    expect(decodeURIComponent(html)).toContain("/motion/posters/T5.webp");
     expect(html).toContain("Replay");
     expect((html.match(/<dt/g) ?? []).length).toBe(8);
   });

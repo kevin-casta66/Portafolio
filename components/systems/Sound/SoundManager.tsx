@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { audio } from "@/audio";
-import { armAudioUnlockOnFirstGesture, audioUnlock, getAudioContext } from "@/lib/audio";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { audio, hasEngine } from "@/audio";
+import { audioUnlock, getAudioContext, onUnlockGesture } from "@/lib/audio";
 import { appStore } from "@/lib/store";
 
 /**
@@ -13,11 +14,18 @@ import { appStore } from "@/lib/store";
  *  - Nunca suena nada antes de la elección en la puerta: si la puerta está visible y el visitante aún no
  *    eligió en esta visita, el motor NO se carga aunque exista una preferencia guardada de otra visita;
  *    espera a la elección (`gate:sound|silent`) o al fin del arranque (`boot:done`, p. ej. «Saltar»).
- *  - Sin `AudioContext` en marcha (preferencia guardada, sin gesto todavía) espera al primer gesto.
+ *  - Sin `AudioContext` en marcha (preferencia guardada, sin gesto todavía) espera al primer gesto que el
+ *    navegador acepte como activación (clic, tecla o toque; la rueda y el hover NO cuentan) y, mientras tanto,
+ *    muestra un aviso pequeño «Activar sonido» (región `status`, sin robar el foco) que lo arranca con un clic.
  *  - La fase activa del store se publica como `phase:<id>` (el motor la cuantiza al compás).
  *  - Silencio, volumen, música/efectos, pestaña oculta, scroll y movimiento reducido los gestiona el motor.
  */
 export default function SoundManager() {
+  const t = useTranslations("Sound");
+  /** El audio espera una activación del visitante (visita posterior con el sonido elegido). */
+  const [locked, setLocked] = useState(false);
+  const activateRef = useRef<() => void>(() => {});
+
   useEffect(() => {
     let disposed = false;
     let loading = false;
@@ -30,6 +38,12 @@ export default function SoundManager() {
       appStore.getState().sound.gateChoice === null &&
       document.querySelector("[data-boot-gate]") !== null;
 
+    /** Aviso visible: sonido elegido, puerta resuelta, sin motor y sin contexto en marcha. */
+    const syncLocked = () => {
+      const ctx = getAudioContext();
+      setLocked(!disposed && appStore.getState().sound.enabled && !gatePending() && !hasEngine() && (!ctx || ctx.state !== "running"));
+    };
+
     const load = async () => {
       if (loading || disposed) return;
       loading = true;
@@ -38,23 +52,31 @@ export default function SoundManager() {
         // Sin contexto en marcha: se reintenta en el primer gesto del visitante.
         loading = false;
         waitForGesture();
+        syncLocked();
         return;
       }
       const { startEngine } = await import("@/audio/engine");
       if (!disposed) await startEngine(ctx);
+      syncLocked();
+    };
+
+    /** Botón «Activar sonido»: el clic es la activación que el navegador exige. */
+    activateRef.current = () => {
+      void audioUnlock().then(() => {
+        if (appStore.getState().sound.enabled && !gatePending()) void load();
+        syncLocked();
+      });
     };
 
     const waitForGesture = () => {
       if (cancelGesture) return;
-      cancelGesture = armAudioUnlockOnFirstGesture();
-      const onGesture = () => {
+      cancelGesture = onUnlockGesture(() => {
         cancelGesture = null;
         void audioUnlock().then(() => {
           if (appStore.getState().sound.enabled && !gatePending()) void load();
+          syncLocked();
         });
-      };
-      for (const type of ["pointerdown", "keydown", "touchstart"] as const)
-        window.addEventListener(type, onGesture, { capture: true, once: true, passive: true });
+      });
     };
 
     const tryStart = () => {
@@ -76,18 +98,38 @@ export default function SoundManager() {
     emitPhase(appStore.getState().phase);
 
     tryStart();
+    syncLocked();
     const stopStore = appStore.subscribe((state, prev) => {
       if (state.phase !== prev.phase) emitPhase(state.phase);
       if (state.sound.enabled && !prev.sound.enabled) tryStart();
+      if (state.sound.enabled !== prev.sound.enabled || state.sound.gateChoice !== prev.sound.gateChoice) syncLocked();
     });
+    // El aviso sigue al estado del motor y de la puerta.
+    const stopRegistry = audio.onRegistryChange(syncLocked);
+    const stopGateWatch = audio.onGate(syncLocked);
 
     return () => {
       disposed = true;
+      stopRegistry();
+      stopGateWatch();
       stopStore();
       stopGate?.();
       cancelGesture?.();
     };
   }, []);
 
-  return null;
+  return (
+    <div role="status" aria-live="polite" className="pointer-events-none fixed bottom-4 left-4 z-[60]">
+      {locked ? (
+        <button
+          type="button"
+          data-sound-unlock
+          onClick={() => activateRef.current()}
+          className="pointer-events-auto rounded-md border border-border bg-surface-elevated px-3 py-1.5 font-mono text-xs text-fg shadow-lg hover:border-accent"
+        >
+          {t("unlock")}
+        </button>
+      ) : null}
+    </div>
+  );
 }

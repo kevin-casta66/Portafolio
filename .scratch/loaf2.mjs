@@ -1,0 +1,16 @@
+import { createRequire } from "node:module";
+const require = createRequire("C:/Users/User/Documents/GitHubPersonal/Portafolio/package.json");
+const { chromium } = require("@playwright/test");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const b = await chromium.launch({ channel: "chrome" });
+const ctx = await b.newContext({ viewport:{width:412,height:823}, deviceScaleFactor:1.75, isMobile:true, hasTouch:true });
+await ctx.addInitScript(()=>{window.__l=[];new PerformanceObserver(l=>{for(const e of l.getEntries())window.__l.push({t:Math.round(e.startTime),d:Math.round(e.duration),bd:Math.round(e.blockingDuration),r:Math.round(e.renderStart-e.startTime),s:e.scripts.map(s=>({n:(s.invoker||"").slice(0,50),f:(s.sourceURL||"").split("/").pop(),fn:s.sourceFunctionName,d:Math.round(s.duration),ex:Math.round(s.executionStart-e.startTime), fl:Math.round(s.forcedStyleAndLayoutDuration)}))})}).observe({type:"long-animation-frame",buffered:true})});
+const p = await ctx.newPage();
+const cdp = await ctx.newCDPSession(p);
+await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
+await p.goto(process.argv[2]||"http://localhost:3150/es",{waitUntil:"load"});
+await sleep(9000);
+const l = await p.evaluate(()=>window.__l);
+for (const e of l.filter(e=>e.d>=80)) console.log(`t=${e.t} d=${e.d} bd=${e.bd}`, e.s.map(s=>`${s.f}:${s.fn||s.n}=${s.d}${s.fl?`(fl${s.fl})`:""}`).join(" | "));
+console.log("TBT-ish sum(bd)=",l.reduce((a,e)=>a+e.bd,0));
+await b.close();

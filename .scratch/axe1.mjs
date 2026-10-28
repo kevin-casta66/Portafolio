@@ -1,0 +1,14 @@
+import { createRequire } from "node:module";
+const require = createRequire("C:/Users/User/Documents/GitHubPersonal/Portafolio/package.json");
+const { chromium } = require("@playwright/test");
+const AxeBuilder = require("@axe-core/playwright").default;
+const [,, url, mode="full", theme="dark", ruleArg] = process.argv;
+const b = await chromium.launch({ channel: "chrome" });
+const ctx = await b.newContext({ viewport:{width:1280,height:900}, reducedMotion: mode==="reduced"?"reduce":"no-preference" });
+await ctx.addInitScript(([t,m])=>{try{localStorage.setItem("portafolio:theme",t); if(m==="reduced") sessionStorage.setItem("portafolio:motion","reduced"); sessionStorage.setItem("portafolio:gate","silent"); sessionStorage.setItem("portafolio:booted","1")}catch{}},[theme,mode]);
+const p = await ctx.newPage();
+await p.goto(url,{waitUntil:"networkidle"}); await p.waitForTimeout(1500);
+let ab = new AxeBuilder({page:p}); if(ruleArg) ab = ab.withRules(ruleArg.split(","));
+const r = await ab.analyze();
+for (const v of r.violations) for (const n of v.nodes) console.log(v.id, "\n ", n.target.join(" ").slice(-160), "\n ", n.html.slice(0,200), "\n ", (n.failureSummary||"").replace(/\n/g," ").slice(0,300));
+await b.close();

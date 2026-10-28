@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from "@/motion/reduced";
 /**
  * Controlador de los botones magnéticos (design D7): UN único listener `pointermove` para todos los
  * CTAs. Solo con puntero fino y sin movimiento reducido. Cada elemento registrado tiene dos capas
@@ -21,7 +22,7 @@ const PULL = 0.25;
 const items = new Set<MagneticItem>();
 let attached = false;
 
-const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = () => prefersReducedMotion();
 const finePointer = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /** Desplazamiento del elemento hacia el puntero: acotado, y cero fuera de la zona de influencia. */

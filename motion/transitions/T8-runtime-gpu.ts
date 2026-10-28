@@ -140,7 +140,7 @@ function buildReduced(ctx: TransitionContext): TransitionHandle {
       timeline.fromTo(
         cards,
         { opacity: 0.4 },
-        { opacity: 1, duration: 0.4, ease: "none", stagger: 0.05 },
+        { opacity: 1, duration: 0.3, ease: "none", stagger: 0.05 },
       );
   }, ctx.root);
   return { timeline, destroy: () => scope.revert() };

@@ -10,6 +10,8 @@ import { StepNav, type StepTarget } from "@/components/case-study/StepNav";
 import { routing } from "@/i18n/routing";
 import { content } from "@/lib/content";
 import { loadCase } from "@/lib/cases";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { caseJsonLd, localizedAlternates, socialMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -27,9 +29,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hasLocale(routing.locales, locale)) return {};
   const parsed = loadCase(slug, locale);
   if (!parsed) return {};
+  const title = `${parsed.frontmatter.title} — ${content.profile.name}`;
+  const description = parsed.frontmatter.summary;
+  const path = `/projects/${slug}`;
   return {
-    title: `${parsed.frontmatter.title} — ${content.profile.name}`,
-    description: parsed.frontmatter.summary,
+    title,
+    description,
+    alternates: localizedAlternates(locale, path),
+    ...socialMetadata(locale, path, title, description),
   };
 }
 
@@ -44,6 +51,7 @@ export default async function CaseStudyPage({ params }: Props) {
   if (!nav || !parsed || !project) notFound();
   const { frontmatter } = parsed;
 
+  const jsonLd = caseJsonLd(locale, slug, frontmatter.title, frontmatter.summary);
   const { default: Post } = await import(`@/content/cases/${slug}.${locale}.mdx`);
 
   const t = await getTranslations("Case");
@@ -63,6 +71,7 @@ export default async function CaseStudyPage({ params }: Props) {
       aria-labelledby="case-title"
       className="case-page pb-20 pt-10 sm:pt-14"
     >
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <div className="grid-12 gap-y-8">
         <CaseHeader
           title={frontmatter.title}

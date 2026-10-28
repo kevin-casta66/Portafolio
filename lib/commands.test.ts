@@ -16,6 +16,7 @@ const actions = (): CommandActions => ({
   downloadCv: vi.fn(() => "cv-es.pdf"),
   toggleTheme: vi.fn(() => "light" as const),
   toggleDebug: vi.fn(() => true),
+  toggleReducedMotion: vi.fn(() => "reduced" as const),
   goToContact: vi.fn(),
   goToHeap: vi.fn(),
   goToMotion: vi.fn(),
@@ -43,6 +44,7 @@ describe("registro de comandos", () => {
       "mixer",
       "theme",
       "debug",
+      "reduced",
       "clear",
     ]);
     expect(COMMANDS.map((c) => c.id)).toEqual([...COMMAND_IDS]);

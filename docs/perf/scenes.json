@@ -1,0 +1,134 @@
+[
+  {
+    "backend": "webgpu",
+    "tier": "high",
+    "maxSceneDrawCalls": 6,
+    "maxFrameDrawCalls": 27,
+    "maxParticles": 200000,
+    "perScene": {
+      "source": 1,
+      "text": 3,
+      "T2": 1,
+      "T3": 1,
+      "T4": 4,
+      "T5": 1,
+      "runtime": 3,
+      "T8": 4,
+      "gpu": 1,
+      "lab": 6,
+      "T9": 1,
+      "display": 1
+    },
+    "particles": {
+      "T2": 200000
+    },
+    "ok": true
+  },
+  {
+    "backend": "webgpu",
+    "tier": "medium",
+    "maxSceneDrawCalls": 6,
+    "maxFrameDrawCalls": 15,
+    "maxParticles": 50000,
+    "perScene": {
+      "source": 1,
+      "text": 2,
+      "T2": 1,
+      "T3": 1,
+      "T4": 4,
+      "T5": 1,
+      "runtime": 3,
+      "T8": 4,
+      "gpu": 1,
+      "lab": 6,
+      "T9": 1,
+      "display": 1
+    },
+    "particles": {
+      "T2": 50000
+    },
+    "ok": true
+  },
+  {
+    "backend": "webgpu",
+    "tier": "low",
+    "maxSceneDrawCalls": 2,
+    "maxFrameDrawCalls": 5,
+    "maxParticles": 0,
+    "perScene": {
+      "source": 1,
+      "text": 2,
+      "runtime": 2,
+      "gpu": 1,
+      "display": 1
+    },
+    "particles": {},
+    "ok": true
+  },
+  {
+    "backend": "webgl2 (forzado)",
+    "tier": "high",
+    "maxSceneDrawCalls": 6,
+    "maxFrameDrawCalls": 27,
+    "maxParticles": 200000,
+    "perScene": {
+      "source": 1,
+      "text": 3,
+      "T2": 1,
+      "T3": 1,
+      "T4": 4,
+      "T5": 1,
+      "runtime": 3,
+      "T8": 4,
+      "gpu": 1,
+      "lab": 6,
+      "T9": 1,
+      "display": 1
+    },
+    "particles": {
+      "T2": 200000
+    },
+    "ok": true
+  },
+  {
+    "backend": "webgl2 (forzado)",
+    "tier": "medium",
+    "maxSceneDrawCalls": 6,
+    "maxFrameDrawCalls": 15,
+    "maxParticles": 50000,
+    "perScene": {
+      "source": 1,
+      "text": 2,
+      "T2": 1,
+      "T3": 1,
+      "T4": 4,
+      "T5": 1,
+      "runtime": 3,
+      "T8": 4,
+      "gpu": 1,
+      "lab": 6,
+      "T9": 1,
+      "display": 1
+    },
+    "particles": {
+      "T2": 50000
+    },
+    "ok": true
+  },
+  {
+    "backend": "webgl2 (forzado)",
+    "tier": "low",
+    "maxSceneDrawCalls": 2,
+    "maxFrameDrawCalls": 5,
+    "maxParticles": 0,
+    "perScene": {
+      "source": 1,
+      "text": 2,
+      "runtime": 2,
+      "gpu": 1,
+      "display": 1
+    },
+    "particles": {},
+    "ok": true
+  }
+]

@@ -73,7 +73,7 @@ export function BlockCard({ block, destination, locale, skillNames, labels, link
         {labels.kind} · <span className="sr-only">{labels.year}: </span>
         {block.year}
       </p>
-      <h3 className="mt-2 font-display text-lg font-semibold leading-snug">{block.name[locale]}</h3>
+      <h2 className="mt-2 font-display text-lg font-semibold leading-snug">{block.name[locale]}</h2>
       <p className="mt-2 text-sm text-fg-muted">
         <span className="sr-only">{labels.stack}: </span>
         {stack}

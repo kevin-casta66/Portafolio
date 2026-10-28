@@ -18,6 +18,16 @@ describe("catálogo de sonidos de interacción (ADDENDUM-v3 §5, §8)", () => {
     }
   });
 
+  it("los niveles son relativos a la referencia de cada instrumento: nunca por encima de 0 dB", () => {
+    for (const [event, def] of Object.entries(SFX)) expect(def.db, event).toBeLessThanOrEqual(0);
+  });
+
+  it("las teclas y los ticks muy frecuentes no bajan la música (ducking solo en efectos audibles)", () => {
+    expect(SFX["terminal:key"]?.duck).toBe(false);
+    expect(SFX["counter:tick"]?.duck).toBe(false);
+    expect(SFX["hover:token"]?.duck).toBeUndefined();
+  });
+
   it("las teclas de terminal tienen límite de frecuencia de disparo", () => {
     expect(SFX["terminal:key"]?.gapMs).toBeGreaterThanOrEqual(30);
   });

@@ -42,6 +42,7 @@ import {
 import { SFX, SFX_MAX_S, type SfxDef } from "./sfx";
 import { RateLimiter, VoiceBudget } from "./voices";
 import {
+  HERO_NOTE_EVERY,
   LAYER_IDS,
   type AudioControls,
   type AudioEvent,
@@ -63,6 +64,12 @@ function softClip(ceilingDb: number): (x: number) => number {
   return (x) => c * Math.tanh(x / c);
 }
 const PRE_GAIN_DB = 6;
+/** Ducking de la música mientras suena un efecto (dB). */
+const DUCK_DB = -3;
+/** Nivel del clic mecánico que acompaña a cada letra del nombre del hero (dB sobre la referencia de la tecla). */
+const HERO_CLICK_DB = -8;
+/** Ajuste del nivel de los efectos según lo fuerte que suena la música de cada fase (dB medidos, para que sigan 0…+6 dB sobre ella). */
+const SFX_PHASE_DB: Partial<Record<MixContext, number>> = { bytecode: 1, runtime: 2, gpu: 0.5 };
 /** Compás de entrada del pad (s) y duración de los fundidos de capa. */
 const LAYER_FADE_S = 1.6;
 const FADE_IN_S = 3;
@@ -92,6 +99,21 @@ export interface MixOptions {
   bootDone?: boolean;
   /** Archivos de capas producidos: sustituyen a los patches generativos (misma lógica de capas y mezcla). */
   stems?: LoadedStems;
+  /** Registra cada efecto reproducido o descartado (con motivo) y mantiene un analizador del bus de efectos (solo pruebas). */
+  trace?: boolean;
+}
+
+/** Motivo por el que un efecto no suena (gancho de pruebas, change 08c). */
+export type SfxDropReason = "rate" | "voices" | "silence" | "quickview" | "reduced";
+
+export interface SfxLogEntry {
+  event: string;
+  status: "played" | "dropped";
+  reason?: SfxDropReason;
+  /** Instante del reloj de audio (ms). */
+  at: number;
+  /** Retraso (ms) entre el evento y el instante en que empieza a sonar (cuantización incluida, sin el adelanto de Tone). */
+  delayMs?: number;
 }
 
 export interface MixSnapshot {
@@ -124,6 +146,12 @@ export interface MixSnapshot {
   nextBarMs: number | null;
   /** Ganancia actual del master (0 = silencio). */
   masterGain: number;
+  /** Atenuación actual del ducking de la música por efectos (dB, ≤ 0). */
+  duckDb: number;
+  /** Adelanto del planificador de Tone (ms): los efectos suenan como pronto tras este tiempo. */
+  lookAheadMs: number;
+  /** Recorte actual de los efectos (dB): acompaña al de la música en casos de estudio y en la quietud. */
+  sfxTrimDb: number;
 }
 
 export class Mix {
@@ -156,9 +184,13 @@ export class Mix {
   private readonly musicFilter = new Tone.Filter({ type: "lowpass", frequency: 700, rolloff: -12, Q: 0.4 });
   private readonly musicTrim = new Tone.Gain(1);
   private readonly musicSwitch = new Tone.Gain(1);
+  /** Ducking: el reproductor de efectos baja la música ~3 dB mientras suena (ataque ~20 ms, liberación ~250 ms). */
+  private readonly musicDuck = new Tone.Gain(1);
 
   // Efectos
   private readonly kit = new SfxKit();
+  /** Los efectos acompañan a la música en el recorte de caso de estudio y en la quietud (siempre 0…+6 dB sobre ella). */
+  private readonly sfxTrim = new Tone.Gain(1);
   private readonly sfxRevSend = new Tone.Gain(0.22);
   private readonly sfxConv: Tone.Convolver;
   private readonly sfxRevReturn = new Tone.Gain(1);
@@ -183,6 +215,13 @@ export class Mix {
   private readonly masterMeter = new Tone.Meter({ smoothing: 0.85 });
   private readonly waveform = new Tone.Analyser("waveform", 1024);
   private readonly fft = new Tone.Analyser("fft", 64);
+  /** Solo con `trace`: formas de onda crudas ESTÉREO del bus de efectos y de la salida (para medir picos de ambos canales). */
+  private readonly sfxWave: Tone.Analyser | null;
+  private readonly masterWave: Tone.Analyser | null;
+  /** Solo con `trace`: medidores sin suavizado antes y después del ducking (su diferencia es la atenuación real en dB). */
+  private readonly duckProbe: { pre: Tone.Meter; post: Tone.Meter } | null;
+  private readonly trace: boolean;
+  private sfxLogItems: SfxLogEntry[] = [];
 
   // Estado
   private context: MixContext = "boot";
@@ -225,6 +264,11 @@ export class Mix {
     this.volume = options.volume ?? 0.35;
     this.reduced = options.reducedMotion ?? false;
     this.bootActive = !(options.bootDone ?? false);
+    this.trace = options.trace ?? false;
+    const stereo = () => new Tone.Analyser({ type: "waveform", size: 1024, channels: 2 });
+    this.sfxWave = this.trace ? stereo() : null;
+    this.masterWave = this.trace ? stereo() : null;
+    this.duckProbe = this.trace ? { pre: new Tone.Meter({ smoothing: 0 }), post: new Tone.Meter({ smoothing: 0 }) } : null;
 
     const quality = options.reverb ?? "high";
     const irScale = quality === "low" ? 0.45 : quality === "off" ? 0.05 : 1;
@@ -254,11 +298,12 @@ export class Mix {
     this.musicIn.connect(this.musicFilter);
     this.musicIn.connect(this.musicRevSend);
     this.musicRevSend.chain(this.musicConv, this.musicRevReturn, this.musicFilter);
-    this.musicFilter.chain(this.musicTrim, this.musicSwitch, this.sumBus);
+    this.musicFilter.chain(this.musicTrim, this.musicSwitch, this.musicDuck, this.sumBus);
 
     // Efectos → bus de efectos y envío a su reverb corta.
-    this.kit.output.connect(this.sfxSwitch);
-    this.kit.output.connect(this.sfxRevSend);
+    this.kit.output.connect(this.sfxTrim);
+    this.sfxTrim.connect(this.sfxSwitch);
+    this.sfxTrim.connect(this.sfxRevSend);
     this.sfxRevSend.chain(this.sfxConv, this.sfxRevReturn, this.sfxSwitch);
     this.sfxSwitch.connect(this.sumBus);
 
@@ -269,6 +314,12 @@ export class Mix {
     this.musicSwitch.connect(this.musicMeter);
     this.musicSwitch.connect(this.fft);
     this.sfxSwitch.connect(this.sfxMeter);
+    if (this.sfxWave) this.sfxSwitch.connect(this.sfxWave);
+    if (this.masterWave) this.master.connect(this.masterWave);
+    if (this.duckProbe) {
+      this.musicSwitch.connect(this.duckProbe.pre);
+      this.musicDuck.connect(this.duckProbe.post);
+    }
     this.master.connect(this.masterMeter);
     this.master.connect(this.waveform);
 
@@ -391,7 +442,7 @@ export class Mix {
       this.commitContext(next, time);
     };
     if (immediate || !this.running || this.transport.state !== "started") apply(this.nowT() + 0.01);
-    else this.pendingEvent = this.transport.scheduleOnce(apply, "@1m");
+    else this.pendingEvent = this.transport.scheduleOnce(apply, this.nextBoundary("1m"));
   }
 
   /** Contexto que corresponde ahora: el arranque manda, luego caso/404 y, por último, la fase del scroll. */
@@ -431,10 +482,11 @@ export class Mix {
       this.layerGain[id].gain.rampTo(target, rampS, time);
     }
     this.caseTrimDb = spec.trimDb;
-    this.updateTrim(rampS);
-    this.arp.setCrush(spec.crush, rampS);
-    this.updateFilter(rampS);
-    this.updateReverb(rampS);
+    // `time` SIEMPRE explícito: esto se ejecuta dentro de callbacks del Transport (Tone avisa si no se usa el tiempo recibido).
+    this.updateTrim(rampS, time);
+    this.arp.setCrush(spec.crush, rampS, time);
+    this.updateFilter(rampS, time);
+    this.updateReverb(rampS, time);
   }
 
   /** Ganancia efectiva de una capa ahora (sin esperar al fundido), para decidir si dispara notas. */
@@ -442,20 +494,21 @@ export class Mix {
     return effectiveGain(id, this.spec, { muted: this.muted, solo: this.solo });
   }
 
-  private updateTrim(rampS = 1.2): void {
+  private updateTrim(rampS = 1.2, at?: number): void {
     const gain = this.quick ? 0 : dbToGain(this.caseTrimDb + this.quietDb - this.duck);
-    this.musicTrim.gain.rampTo(gain, rampS);
+    this.musicTrim.gain.rampTo(gain, rampS, at);
+    this.sfxTrim.gain.rampTo(dbToGain(Math.min(0, this.caseTrimDb + this.quietDb) + (SFX_PHASE_DB[this.context] ?? 0)), rampS, at);
   }
 
-  private updateFilter(rampS = 0.15): void {
+  private updateFilter(rampS = 0.15, at?: number): void {
     const base = this.spec.cutoff * (this.quiet ? 0.78 : 1);
     const open = Math.min(9000, base * (1 + 2.4 * this.scroll) + this.labCutoff * 4000);
-    this.musicFilter.frequency.rampTo(open, rampS);
+    this.musicFilter.frequency.rampTo(open, rampS, at);
   }
 
-  private updateReverb(rampS = 0.25): void {
+  private updateReverb(rampS = 0.25, at?: number): void {
     const send = Math.min(0.7, this.spec.reverb + 0.16 * this.scroll + this.labReverb * 0.3 + (this.quiet ? -0.04 : 0));
-    this.musicRevSend.gain.rampTo(send, rampS);
+    this.musicRevSend.gain.rampTo(send, rampS, at);
   }
 
   /** Velocidad de scroll normalizada 0..1: abre el filtro y sube la reverb de la música (scroll rápido = la música se abre). */
@@ -501,12 +554,12 @@ export class Mix {
     this.tape = on;
     if (on) {
       this.transport.bpm.rampTo(BPM * 0.32, 2.4, time);
-      this.pad.detuneTo(-1200, 2.6);
+      this.pad.detuneTo(-1200, 2.6, time);
       this.ensureHum();
       this.hum?.gain.gain.rampTo(0.05, 1.2, time);
     } else {
       this.transport.bpm.rampTo(BPM, 1.2, time);
-      this.pad.detuneTo(0, 1.4);
+      this.pad.detuneTo(0, 1.4, time);
       this.hum?.gain.gain.rampTo(0, 0.6, time);
     }
   }
@@ -664,23 +717,82 @@ export class Mix {
       default:
         break;
     }
-    const def = SFX[event];
-    if (!def || !this.sfxOn) return;
-    if (this.reduced && def.reduced === "skip") return;
-    if (!this.limiter.allow(event, this.nowT() * 1000, def.gapMs)) return;
+    // Letra del nombre del hero SIN altura: solo el clic mecánico suave (la nota del motivo llega cada 3 letras).
+    const unpitchedKey = event === "hero:key" && (payload as AudioEventMap["hero:key"] | undefined)?.pitched === false;
+    const def = unpitchedKey ? ({ ...SFX["terminal:key"], db: HERO_CLICK_DB } as SfxDef) : SFX[event];
+    if (!def) return;
+    const tag = unpitchedKey ? "hero:click" : event;
+    const emitted = this.nowT();
+    if (!this.sfxOn) return this.logSfx(tag, "dropped", "silence");
+    if (this.reduced && (def.reduced === "skip" || unpitchedKey)) return this.logSfx(tag, "dropped", "reduced");
+    if (!this.limiter.allow(tag, this.nowT() * 1000, unpitchedKey ? 28 : def.gapMs)) return this.logSfx(tag, "dropped", "rate");
     if (def.kind === "riser") {
-      this.kit.riserStart(this.nowT() + 0.01, 0.8);
+      this.kit.riserStart(this.nowT() + 0.01, 0.8, Math.min(1, dbToGain(def.db)));
+      this.logSfx(event, "played");
       // Red de seguridad: si por algún motivo nunca llega hold:cancel ni hold:complete, el riser no se queda sonando.
       if (this.running && this.transport.state === "started") this.transport.scheduleOnce((time) => this.kit.riserCancel(time), this.transport.seconds + 1.8);
       return;
     }
-    this.when(def.quant, (time) => this.playSfx(event, def, payload, time));
+    this.when(def.quant, (time) => this.playSfx(event, def, payload, time, tag, emitted));
+  }
+
+  /** Anota un efecto reproducido o descartado (solo con `trace`: gancho de pruebas). */
+  private logSfx(event: string, status: "played" | "dropped", reason?: SfxDropReason, delayMs?: number): void {
+    if (!this.trace) return;
+    this.sfxLogItems.push({ event, status, ...(reason ? { reason } : {}), at: Math.round(this.nowT() * 1000), ...(delayMs !== undefined ? { delayMs: Math.round(delayMs) } : {}) });
+    if (this.sfxLogItems.length > 3000) this.sfxLogItems.splice(0, 500);
+  }
+
+  /** Para el motor: registra un efecto que NO llegó a la mezcla (silencio, Vista Rápida…). */
+  traceDrop(event: AudioEvent, reason: SfxDropReason): void {
+    this.logSfx(event, "dropped", reason);
+  }
+
+  sfxLog(): readonly SfxLogEntry[] {
+    return this.sfxLogItems;
+  }
+
+  clearSfxLog(): void {
+    this.sfxLogItems = [];
+  }
+
+  /** Formas de onda crudas (últimas 1024 muestras, canales L y R) del bus de efectos y de la salida, para medir picos. */
+  waves(): { sfx: Float32Array[]; master: Float32Array[] } {
+    return {
+      sfx: this.sfxWave ? (this.sfxWave.getValue() as Float32Array[]) : [],
+      master: this.masterWave ? (this.masterWave.getValue() as Float32Array[]) : [],
+    };
+  }
+
+  /** Nivel RMS (dB, suavizado) de la música ANTES del ducking: la referencia de los efectos. */
+  musicLevelDb(): number {
+    return this.musicMeter.getValue() as number;
+  }
+
+  /** Ducking de la música: −3 dB con ataque de ~20 ms y liberación de ~250 ms, mientras suena el efecto. */
+  private duckMusic(time: number, holdS: number): void {
+    // AudioParam nativo: el modelo de eventos de Tone no encadena bien varios `setTargetAtTime` seguidos.
+    // `cancelScheduledValues` retira la liberación del efecto anterior y el nuevo ataque parte del valor actual.
+    const p = this.musicDuck.gain.input as AudioParam;
+    p.cancelScheduledValues(time);
+    p.setTargetAtTime(dbToGain(DUCK_DB), time, 0.007);
+    p.setTargetAtTime(1, time + holdS, 0.08);
   }
 
   /** Ejecuta `fn` ahora o en el siguiente límite de la subdivisión (con el Transport en marcha). */
   private when(sub: Subdivision | "now", fn: (time: number) => void): void {
     if (sub === "now" || !this.running || this.transport.state !== "started") fn(this.nowT() + 0.005);
-    else this.transport.scheduleOnce(fn, `@${sub}`);
+    else this.transport.scheduleOnce(fn, this.nextBoundary(sub));
+  }
+
+  /**
+   * Siguiente límite de `sub` como tiempo del Transport (en ticks). NO se usa la forma «@16n» de Tone: devuelve
+   * un instante del contexto de audio que `scheduleOnce` interpreta como tiempo del Transport, con lo que el
+   * efecto llegaba tarde justo el tiempo que tardó el Transport en arrancar (medio segundo o más).
+   */
+  private nextBoundary(sub: Subdivision): string {
+    const at = this.transport.nextSubdivision(sub);
+    return `${Math.round(this.transport.getTicksAtTime(at))}i`;
   }
 
   /** Voces que se piden para un efecto (por diseño: 1–5) y las concedidas. */
@@ -690,89 +802,93 @@ export class Mix {
     return granted;
   }
 
-  private playSfx(event: AudioEvent, def: SfxDef, payload: unknown, time: number): void {
-    const vel = dbToGain(def.db);
+  private playSfx(event: AudioEvent, def: SfxDef, payload: unknown, time: number, tag: string = event, emitted: number = time): void {
+    // `db` es el nivel del efecto respecto a la referencia de su instrumento (≤ 0 dB): la calibración está en `sfx.ts`.
+    const g = Math.min(1, dbToGain(def.db));
     const kit = this.kit;
     // El riser SIEMPRE termina con el impacto, aunque no quede ninguna voz libre para el impacto en sí.
     if (def.kind === "impact") kit.riserFinish(time);
     const short = this.reduced && def.reduced === "short";
     const need = def.kind === "chord" ? 3 : def.kind === "motif" || def.kind === "impact" ? 4 : def.kind === "packet" ? 3 : 1;
-    if (this.take(time, def, short ? 1 : need) === 0) return;
+    if (this.take(time, def, short ? 1 : need) === 0) return this.logSfx(tag, "dropped", "voices");
+    this.logSfx(tag, "played", undefined, (time - emitted) * 1000);
     this.fireFirstSound();
+    if (def.duck !== false) this.duckMusic(time, Math.min(0.35, Math.max(0.06, def.maxS * 0.4)));
 
     if (short) {
-      kit.note("D5", time, 0.12, 0.5 * vel + 0.2);
+      kit.note("D5", time, 0.12, g);
       return;
     }
     switch (def.kind) {
       case "note": {
         const note = this.noteFor(event, payload);
-        if (event === "hero:key") kit.key(time, 0.35);
-        const muted = event === "bytecode:instruction";
-        kit.note(note, time, muted ? 0.06 : 0.2, muted ? 0.5 : Math.min(1, vel + 0.35));
+        // Tecla del nombre: el clic mecánico acompaña a la nota del motivo.
+        if (event === "hero:key") kit.key(time, dbToGain(HERO_CLICK_DB));
+        // «Pluck apagado» de las instrucciones de BYTECODE: nota grave muy corta.
+        kit.note(note, time, event === "bytecode:instruction" ? 0.06 : 0.2, g);
         return;
       }
       case "bell":
-        kit.bellNote(event === "ui:open" ? "A4" : "A5", time, 0.08, Math.min(1, vel + 0.4));
+        kit.bellNote(event === "ui:open" ? "A4" : "A5", time, 0.08, g);
         return;
       case "key":
-        kit.key(time, 0.45);
+        kit.key(time, g);
         return;
       case "tick":
-        kit.tick(time, 0.35);
+        kit.tick(time, g);
         return;
       case "low":
-        kit.lowNote("D3", time, 0.3, 0.7);
+        kit.lowNote("D3", time, 0.3, g);
         return;
       case "chord": {
         const notes =
           event === "select:skill"
             ? skillChord((payload as AudioEventMap["select:skill"]).category)
             : (["D4", "A4", "D5"] as const);
-        kit.chord(notes, time, 0.45, 0.55);
-        if (event === "select:skill") kit.swish(time + 0.02, 0.6);
+        kit.chord(notes, time, 0.45, g);
+        if (event === "select:skill") kit.swish(time + 0.02, g * 0.8);
         return;
       }
       case "motif": {
         const gap = 0.115;
         MOTIF.forEach((m, i) => {
-          kit.note(m.note, time + i * gap, 0.14, 0.6);
-          kit.bellNote(m.note, time + i * gap, 0.1, 0.35);
+          kit.note(m.note, time + i * gap, 0.14, g);
+          kit.bellNote(m.note, time + i * gap, 0.1, g * 0.6);
         });
-        if (event === "contact:ok") kit.chord(["D3", "A3", "D4", "F#4", "A4"], time + 3 * gap, 0.5, 0.65);
+        if (event === "contact:ok") kit.chord(["D3", "A3", "D4", "F#4", "A4"], time + 3 * gap, 0.5, g * 0.8);
         return;
       }
       case "variation": {
         const id = (payload as AudioEventMap["achievement"] | undefined)?.id ?? "achievement";
         const notes = variationFor(id, this.achievementIds);
         notes.forEach((n, i) => {
-          kit.note(n, time + i * 0.11, 0.14, 0.6);
-          kit.bellNote(n, time + i * 0.11, 0.1, 0.32);
+          kit.note(n, time + i * 0.11, 0.14, g);
+          kit.bellNote(n, time + i * 0.11, 0.1, g * 0.6);
         });
         return;
       }
       case "cymbal":
-        kit.cymbalHit(time, 0.8);
+        kit.cymbalHit(time, g);
         return;
       case "packet": {
         const notes = ["D5", "E5", "F#5", "A5", "B5"];
-        notes.forEach((n, i) => kit.packet(n, -0.9 + (1.8 * i) / (notes.length - 1), time + i * 0.1, 0.55));
+        notes.forEach((n, i) => kit.packet(n, -0.9 + (1.8 * i) / (notes.length - 1), time + i * 0.1, g));
         return;
       }
       case "descend":
-        kit.note("A4", time, 0.18, 0.5);
-        kit.note("F#4", time + 0.2, 0.22, 0.45);
+        kit.note("A4", time, 0.18, g);
+        kit.note("F#4", time + 0.2, 0.22, g * 0.9);
         return;
       case "flash": {
         const x = Math.min(1, Math.max(0, (payload as AudioEventMap["runtime:core-hover"]).x));
         const note = PENTATONIC[Math.min(PENTATONIC.length - 1, Math.floor(x * PENTATONIC.length))] as string;
-        kit.flash(note, x * 2 - 1, time, 0.55);
+        kit.flash(note, x * 2 - 1, time, g);
         return;
       }
       case "impact":
         kit.riserFinish(time);
-        kit.impact(time, 0.7);
-        kit.chord(["D3", "A3", "D4", "F#4"], time, 0.55, 0.6);
+        kit.impact(time, g);
+        kit.chord(["D3", "A3", "D4", "F#4"], time, 0.55, g * 0.9);
         return;
       default:
         return;
@@ -784,7 +900,7 @@ export class Mix {
       case "boot:line":
         return pentatonicAt((payload as AudioEventMap["boot:line"]).index);
       case "hero:key":
-        return (MOTIF[(payload as AudioEventMap["hero:key"]).index % MOTIF.length] as (typeof MOTIF)[number]).note;
+        return (MOTIF[Math.floor((payload as AudioEventMap["hero:key"]).index / HERO_NOTE_EVERY) % MOTIF.length] as (typeof MOTIF)[number]).note;
       case "hover:token":
         return TOKEN_NOTE[(payload as AudioEventMap["hover:token"]).kind];
       case "hover:skill":
@@ -885,7 +1001,20 @@ export class Mix {
       riser: this.kit.riserActive,
       nextBarMs: this.timeToNextBar(),
       masterGain: this.master.gain.value as number,
+      duckDb: this.duckDb(),
+      lookAheadMs: Math.round(Tone.getContext().lookAhead * 1000),
+      sfxTrimDb: 20 * Math.log10(Math.max((this.sfxTrim.gain.input as AudioParam).value, 1e-4)),
     };
+  }
+
+  /** Atenuación real del ducking (dB, ≤ 0): con `trace`, la diferencia de dos medidores; si no, la ganancia programada. */
+  private duckDb(): number {
+    if (this.duckProbe) {
+      const pre = this.duckProbe.pre.getValue() as number;
+      const post = this.duckProbe.post.getValue() as number;
+      return pre > -80 ? Math.min(0, post - pre) : 0;
+    }
+    return 20 * Math.log10(Math.max((this.musicDuck.gain.input as AudioParam).value, 1e-4));
   }
 
   private makeControls(): AudioControls {
@@ -949,6 +1078,10 @@ export class Mix {
     }
     this.parts.length = 0;
     this.kit.dispose();
+    this.duckProbe?.pre.dispose();
+    this.duckProbe?.post.dispose();
+    this.sfxWave?.dispose();
+    this.masterWave?.dispose();
     for (const layer of [this.pad, this.keys, this.arp, this.bass, this.perc, this.shimmer]) layer.dispose();
     if (this.stemPlayers) for (const player of Object.values(this.stemPlayers)) player.dispose();
     for (const id of LAYER_IDS) {
@@ -961,7 +1094,7 @@ export class Mix {
     for (const node of [
       this.sumBus, this.highpass, this.presence, this.shelf, this.compressor, this.peakGuard, this.ceiling, this.clipper, this.master,
       this.musicIn, this.musicRevSend, this.musicConv, this.musicRevReturn, this.musicFilter, this.musicTrim,
-      this.musicSwitch, this.sfxRevSend, this.sfxConv, this.sfxRevReturn, this.sfxSwitch, this.musicMeter,
+      this.musicSwitch, this.musicDuck, this.sfxTrim, this.sfxRevSend, this.sfxConv, this.sfxRevReturn, this.sfxSwitch, this.musicMeter,
       this.sfxMeter, this.masterMeter, this.waveform, this.fft,
     ])
       node.dispose();

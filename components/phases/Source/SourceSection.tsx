@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { MagneticLink } from "@/components/ui/Magnetic";
 import { content } from "@/lib/content";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 /**
  * SOURCE — hero. Todo el contenido esencial sale en el HTML del servidor. La línea de código es
@@ -116,6 +117,7 @@ export async function SourceSection() {
             </li>
           </ol>
         </figure>
+        <PhaseIllustration phase="source" className="col-span-12 mx-auto max-w-3xl" />
       </div>
     </section>
   );

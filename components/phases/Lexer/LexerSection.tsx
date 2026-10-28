@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { TokenTooltip } from "@/components/ui/TokenTooltip";
 import { content, type Localized } from "@/lib/content";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 type Lane = "keyword" | "identifier" | "string" | "number";
 const LANES: Lane[] = ["keyword", "identifier", "string", "number"];
@@ -56,6 +57,7 @@ export async function LexerSection() {
     >
       <div className="grid-12">
         <SectionHeader id="lexer" phase="LEXER" title={t("title")} intro={t("intro")} />
+        <PhaseIllustration phase="lexer" className="col-span-12 mx-auto mb-10 max-w-3xl" />
 
         <p className="col-span-12 mb-6 font-mono text-xs text-fg-muted">{t("tooltipHelp")}</p>
 

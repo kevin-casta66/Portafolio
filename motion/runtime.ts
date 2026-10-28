@@ -14,6 +14,7 @@ import { onPhaseChange, phaseState } from "./phase-state";
 import { startPhaseTracking } from "./phase-runtime";
 import { hasFinePointer, isCompact, onReducedMotionChange, prefersReducedMotion } from "./reduced";
 import { canvasState, publishClock, setCanvasVariant } from "./shared";
+import { yieldToMain } from "@/lib/yield";
 import { createSmoothScroll, type SmoothScroll } from "./smooth-scroll";
 import { createTransitionController, type TransitionController } from "./transitions/controller";
 import type { TransitionContext, TransitionDef } from "./transitions/contract";
@@ -96,7 +97,8 @@ export function startMotionRuntime(): MotionRuntime {
 
   // ── Global ────────────────────────────────────────────────────────────────
   const setupGlobal = () => {
-    if (motionConfig.smoothScroll && !reduced) smooth = createSmoothScroll(clock);
+    // Lenis solo con puntero fino (rueda): en táctil el scroll es 100 % nativo y no se carga trabajo extra (design D8).
+    if (motionConfig.smoothScroll && !reduced && hasFinePointer()) smooth = createSmoothScroll(clock);
     const updateVelocity = createVelocityTracker({
       getScroll: () => window.scrollY,
       isReduced: () => reduced,
@@ -124,9 +126,19 @@ export function startMotionRuntime(): MotionRuntime {
         motionConfig.transitions && hasHome && !document.querySelector("[data-transition-prototype]"),
       onCleanup: (fn) => cleanups.push(fn),
     };
-    const scope = gsap.context(() => {
-      if (motionConfig.choreography) CHOREOGRAPHIES.forEach((choreo) => choreo(ctx));
-    });
+    // Las coreografías se montan UNA POR TAREA (cediendo el hilo entre cada una): montarlas de golpe era una
+    // tarea de ~100 ms en un móvil de gama media (TBT, change 09). El controlador de transiciones espera a que
+    // terminen para conservar el orden de creación de los ScrollTrigger.
+    let cancelled = false;
+    const scope = gsap.context(() => {});
+    const choreographiesDone = (async () => {
+      if (!motionConfig.choreography) return;
+      for (const choreo of CHOREOGRAPHIES) {
+        if (cancelled || destroyed) return;
+        scope.add(() => choreo(ctx));
+        await yieldToMain();
+      }
+    })();
 
     // Glitch del título de fase: solo en cambios de fase, una vez por entrada, nunca con movimiento reducido.
     const stopGlitch = onPhaseChange((phase) => {
@@ -142,7 +154,6 @@ export function startMotionRuntime(): MotionRuntime {
     });
 
     // Transiciones scrubbed: se montan con el layout estable (fuentes cargadas).
-    let cancelled = false;
     const tctx: TransitionContext = { root, compact: ctx.compact, clock };
     const defs: TransitionDef[] = [...TRANSITIONS];
     let testCanvasReady = false;
@@ -156,7 +167,7 @@ export function startMotionRuntime(): MotionRuntime {
       if (testMode && t2 && !t2.variants.canvas) setCanvasVariant("T2", (c) => t2.variants.dom!(c));
     };
     if (ctx.transitionsOn) {
-      void document.fonts.ready.then(() => {
+      void Promise.all([document.fonts.ready, choreographiesDone]).then(async () => {
         if (cancelled || destroyed) return;
         controller = createTransitionController(defs, tctx, attachScrollTrigger, {
           reducedMotion: reduced,
@@ -164,12 +175,15 @@ export function startMotionRuntime(): MotionRuntime {
           tier: appStore.getState().graphics.tier,
           backend: appStore.getState().graphics.backend,
         });
-        controller.mount();
+        await controller.mountSliced(yieldToMain, () => cancelled || destroyed);
+        if (cancelled || destroyed) return;
         ScrollTrigger.refresh();
         document.documentElement.dataset.motionReady = "true";
       });
     } else {
-      document.documentElement.dataset.motionReady = "true";
+      void choreographiesDone.then(() => {
+        if (!cancelled && !destroyed) document.documentElement.dataset.motionReady = "true";
+      });
     }
 
     // El motor 3D (change 04) publica backend, tier y «listo» en el store: la variante se reevalúa.

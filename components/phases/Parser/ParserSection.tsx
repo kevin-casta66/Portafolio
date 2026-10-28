@@ -3,6 +3,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { content } from "@/lib/content";
 import { SKILL_CATEGORIES } from "@/lib/content/schema";
 import { SkillTree, type TreeCategory } from "./SkillTree";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 /**
  * PARSER — habilidades. Los datos del árbol salen del contenido: el conteo de proyectos de cada hoja
@@ -37,6 +38,7 @@ export async function ParserSection() {
     >
       <div className="grid-12">
         <SectionHeader id="parser" phase="PARSER (AST)" title={t("title")} intro={t("intro")} />
+        <PhaseIllustration phase="parser" className="col-span-12 mx-auto mb-10 max-w-3xl" />
         <div className="col-span-12">
           <SkillTree categories={categories} />
         </div>

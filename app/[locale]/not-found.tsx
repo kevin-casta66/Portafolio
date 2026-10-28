@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { NotFoundMotion } from "@/components/phases/NotFound/NotFoundMotion";
 import { AchievementTrigger } from "@/components/systems/AchievementTrigger";
 import { Link } from "@/i18n/navigation";
+
+/** La 404 nunca se indexa (Next ya responde 404 y añade noindex; se declara explícito). */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 /** 16 bytes por línea, determinista: misma salida en cada build y en cada petición. */
 function memoryDump(lines = 14): string[] {

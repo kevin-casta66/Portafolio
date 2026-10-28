@@ -1,7 +1,8 @@
 {
   "Metadata": {
-    "title": "Portfolio — Full Stack Developer",
-    "description": "The journey of a line of code: a developer portfolio."
+    "title": "Kevin Castaño — Full Stack Developer · Applied AI & Azure",
+    "description": "Kevin Castaño's portfolio: enterprise software with .NET, Angular and Azure, AI agents with MCP and RAG, and spec-driven development. Case studies with architecture and results.",
+    "ogTagline": "case studies with architecture and results"
   },
   "Layout": {
     "skipToContent": "Skip to content",
@@ -26,7 +27,10 @@
     "terminal": "Open the terminal (~)",
     "shortcuts": "Keyboard shortcuts (?)",
     "tools": "Tools",
-    "soundSettings": "Sound settings"
+    "soundSettings": "Sound settings",
+    "reducedMotion": "Reduced motion",
+    "reducedMotionOn": "Reduced motion on: press to restore full animation",
+    "reducedMotionOff": "Reduce motion (fades instead of animations)"
   },
   "Sound": {
     "toggleOn": "Sound on",
@@ -39,6 +43,7 @@
     "off": "Sound is off. Press M or the sound button to turn it on.",
     "close": "Close the sound settings",
     "hint": "Press M to mute",
+    "unlock": "Enable sound",
     "nowPlaying": "Now playing: {layer} layer · {phase} phase",
     "nowPlayingOpen": "Open the sound settings",
     "mixer": {
@@ -61,8 +66,7 @@
     }
   },
   "Home": {
-    "projectsHeading": "Projects",
-    "placeholderNotice": "Sample content: replace it with your data in /content."
+    "projectsHeading": "Projects"
   },
   "Hero": {
     "eyebrow": "SOURCE",
@@ -280,7 +284,7 @@
   "Case": {
     "kicker": "Case study",
     "backHome": "← Back to projects",
-    "placeholderNotice": "Sample content: replace it with your real case in content/cases.",
+    "placeholderNotice": "This case study is a work in progress: details may change.",
     "indexLabel": "Case index",
     "indexToggle": "Index",
     "indexCurrent": "Current section: {title}",
@@ -485,7 +489,7 @@
     }
   },
   "Motion": {
-    "metaTitle": "Motion — Portfolio",
+    "metaTitle": "Motion — Kevin Castaño",
     "metaDescription": "How this site moves: the motion tokens and the 11 transitions (T1–T11), playable one by one, with their internals and a technical note.",
     "kicker": "MOTION",
     "title": "Motion",
@@ -545,6 +549,8 @@
     },
     "card": {
       "replay": "Replay",
+      "replayFull": "Play full animation",
+      "fullNotice": "Reduced motion is on: Replay shows the fade-only version. The full animation includes movement, glitch and 3D effects.",
       "loading": "Loading…",
       "playing": "Playing…",
       "speedLabel": "Speed",

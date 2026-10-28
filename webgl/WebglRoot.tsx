@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { appStore } from "@/lib/store";
 import { subscribeClock, t6 } from "@/motion/shared";
 import { TEST_PARAM } from "@/motion/config";
@@ -61,8 +61,38 @@ declare global {
 
 /** Máximo de reinicios del contexto tras una pérdida (la 2.ª pérdida deja el sitio en DOM). */
 const MAX_RESTARTS = 1;
+/** Tiempo sano tras el cual se restablece el contador de reinicios. */
+const HEALTHY_MS = 30_000;
 
-function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => void }) {
+/**
+ * Un fallo al crear el renderer (`init()` sin backend utilizable) no debe tumbar la página: R3F lo
+ * relanza desde el `<Canvas>`. Aquí se captura y el sitio pasa a la experiencia 2D (backend `none`).
+ */
+class CanvasBoundary extends Component<
+  { onError: () => void; children: ReactNode },
+  { failed: boolean }
+> {
+  override state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  override componentDidCatch() {
+    this.props.onError();
+  }
+  override render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+function EngineHost({
+  boot,
+  onLost,
+  onDegraded,
+}: {
+  boot: Boot;
+  onLost: (reason: string) => void;
+  onDegraded: () => void;
+}) {
   const gl = useThree((s) => s.gl);
   const advance = useThree((s) => s.advance);
   const engineRef = useRef<Engine | null>(null);
@@ -72,6 +102,7 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
     const renderer = gl as unknown as ConstructorParameters<typeof Engine>[0];
     const engine = new Engine(renderer, boot.tier, boot.mobile, {
       onLost,
+      onDegraded,
       onError: (error) => {
         if (process.env.NODE_ENV !== "production") console.error("[webgl]", error);
       },
@@ -109,6 +140,8 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
     store.setBackend(backendOf(renderer));
     store.setTier(boot.tier);
     store.setCanvasReady(true);
+    // Contexto (re)creado con éxito: las fases vuelven de su fallback 2D a las escenas 3D.
+    store.setContextLost(false);
 
     if (new URLSearchParams(window.location.search).has(TEST_PARAM)) {
       window.__portafolioWebgl = {
@@ -126,27 +159,48 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
         canvasCount: () => document.querySelectorAll("canvas[data-engine]").length,
         liveContexts,
         setTier: (tier) => engineRef.current?.setTier(tier),
-        setInternals: (id, on) => setTransitionInternals(id, on, () => engineRef.current?.markDirty()),
+        setInternals: (id, on) =>
+          setTransitionInternals(id, on, () => engineRef.current?.markDirty()),
         renderRequests: () => requests.current,
         twinDeviation: () => {
           let max = 0;
           for (const twin of twins.all()) {
             const r = twin.el.getBoundingClientRect();
-            max = Math.max(max, Math.abs(r.left - twin.rect.x), Math.abs(r.top - twin.rect.y), Math.abs(r.width - twin.rect.w), Math.abs(r.height - twin.rect.h));
+            max = Math.max(
+              max,
+              Math.abs(r.left - twin.rect.x),
+              Math.abs(r.top - twin.rect.y),
+              Math.abs(r.width - twin.rect.w),
+              Math.abs(r.height - twin.rect.h),
+            );
           }
           return max;
         },
         signals: () => ({ velocity: Number(uScrollVelocity.value), chroma: Number(uChroma.value) }),
         sceneDebug: (id) => engineRef.current?.sceneDebug(id) ?? null,
-        tweakables: () => tweakablesFor([]).map((p) => ({ id: p.id, value: p.get(), defaultValue: p.defaultValue })),
+        tweakables: () =>
+          tweakablesFor([]).map((p) => ({
+            id: p.id,
+            value: p.get(),
+            defaultValue: p.defaultValue,
+          })),
         wireframeCount: () => {
           let on = 0;
           let total = 0;
-          const states = (engineRef.current as unknown as { states?: Map<string, { instance: { scene: { traverse(fn: (o: unknown) => void): void } } | null }> } | null)?.states;
+          const states = (
+            engineRef.current as unknown as {
+              states?: Map<
+                string,
+                { instance: { scene: { traverse(fn: (o: unknown) => void): void } } | null }
+              >;
+            } | null
+          )?.states;
           states?.forEach((st) => {
             st.instance?.scene.traverse((o) => {
               const material = (o as { material?: unknown }).material;
-              for (const m of (Array.isArray(material) ? material : material ? [material] : []) as { wireframe?: boolean }[]) {
+              for (const m of (Array.isArray(material) ? material : material ? [material] : []) as {
+                wireframe?: boolean;
+              }[]) {
                 if (!("wireframe" in m)) continue;
                 total++;
                 if (m.wireframe) on++;
@@ -164,7 +218,11 @@ function EngineHost({ boot, onLost }: { boot: Boot; onLost: (reason: string) => 
           if (backend.isWebGPUBackend) {
             // `device.destroy()` se notifica como «destroyed» (three lo ignora): se invoca el mismo
             // callback que dispara una pérdida real de dispositivo (`device.lost` con otra razón).
-            renderer.onDeviceLost({ api: "WebGPU", message: "pérdida simulada", reason: "unknown" } as never);
+            renderer.onDeviceLost({
+              api: "WebGPU",
+              message: "pérdida simulada",
+              reason: "unknown",
+            } as never);
             return true;
           }
           const ext = backend.gl?.getExtension("WEBGL_lose_context");
@@ -216,6 +274,11 @@ export default function WebglRoot() {
     }
     void detectTier().then((detection) => {
       if (cancelled) return;
+      if (detection.belowMinimum) {
+        // GPU por debajo del mínimo: experiencia 2D sin montar el canvas ni renderizar escenas.
+        appStore.getState().setBackend("none");
+        return;
+      }
       setBoot({ tier: detection.tier, mobile: detection.mobile });
       setStatus("ready");
     });
@@ -224,12 +287,25 @@ export default function WebglRoot() {
     };
   }, []);
 
+  // Un contexto que lleva 30 s sano «perdona» las pérdidas anteriores: una GPU que se duerme de vez en
+  // cuando no deja el sitio en 2D para siempre.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const timer = setTimeout(() => {
+      restarts.current = 0;
+    }, HEALTHY_MS);
+    return () => clearTimeout(timer);
+  }, [status, generation]);
+
   const onLost = () => {
     const store = appStore.getState();
     store.setCanvasReady(false);
+    // Fallback 2D inmediato (< 1 s): las ilustraciones aparecen mientras se intenta restaurar.
+    store.setContextLost(true);
     // Reintenta UNA vez: primero se espera a que el contexto anterior termine de liberarse.
     if (restarts.current >= MAX_RESTARTS) {
       store.setBackend("none");
+      store.setContextLost(false);
       setStatus("none");
       return;
     }
@@ -237,39 +313,54 @@ export default function WebglRoot() {
     void whenDisposed().then(() => setGeneration((g) => g + 1));
   };
 
+  const onDegraded = () => appStore.getState().setFpsDegraded(true);
+  const onFatal = () => {
+    appStore.getState().setBackend("none");
+    appStore.getState().setContextLost(false);
+    setStatus("none");
+  };
+
   if (status !== "ready" || !boot) return null;
 
   return (
     <div className="webgl-layer" aria-hidden="true" data-webgl>
-      <Canvas
-        key={generation}
-        frameloop="never"
-        dpr={[1, 2]}
-        flat
-        gl={async (props) => {
-          // Espera a que cualquier contexto anterior termine de liberarse: nunca conviven dos.
-          await whenDisposed();
-          const { WebGPURenderer } = await import("three/webgpu");
-          const renderer = new WebGPURenderer({
-            canvas: props.canvas as HTMLCanvasElement,
-            antialias: true,
-            alpha: true,
-            powerPreference: "high-performance",
-            forceWebGL: forcedBackend() === "webgl2",
-          });
-          await renderer.init();
-          trackContext();
-          // R3F no espera `dispose()` (asíncrono en r186): el desmontaje pasa por la cola de dispose.ts.
-          const original = renderer.dispose.bind(renderer);
-          let disposing: Promise<void> | null = null;
-          renderer.dispose = () => (disposing ??= disposeRenderer({ dispose: original }));
-          renderer.domElement.dataset.engine = "true";
-          return renderer;
-        }}
-        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
-      >
-        <EngineHost boot={boot} onLost={onLost} />
-      </Canvas>
+      <CanvasBoundary key={generation} onError={onFatal}>
+        <Canvas
+          key={generation}
+          frameloop="never"
+          dpr={[1, 2]}
+          flat
+          gl={async (props) => {
+            // Espera a que cualquier contexto anterior termine de liberarse: nunca conviven dos.
+            await whenDisposed();
+            const { WebGPURenderer } = await import("three/webgpu");
+            const renderer = new WebGPURenderer({
+              canvas: props.canvas as HTMLCanvasElement,
+              antialias: true,
+              alpha: true,
+              powerPreference: "high-performance",
+              forceWebGL: forcedBackend() === "webgl2",
+            });
+            await renderer.init();
+            trackContext();
+            // R3F no espera `dispose()` (asíncrono en r186): el desmontaje pasa por la cola de dispose.ts.
+            const original = renderer.dispose.bind(renderer);
+            let disposing: Promise<void> | null = null;
+            renderer.dispose = () => (disposing ??= disposeRenderer({ dispose: original }));
+            renderer.domElement.dataset.engine = "true";
+            return renderer;
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        >
+          <EngineHost boot={boot} onLost={onLost} onDegraded={onDegraded} />
+        </Canvas>
+      </CanvasBoundary>
     </div>
   );
 }

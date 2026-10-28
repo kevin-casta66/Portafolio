@@ -3,12 +3,14 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { HeapExplorer } from "@/components/heap/HeapExplorer";
-import { HeapScene } from "@/components/heap/HeapScene";
+import { HeapSceneLoader } from "@/components/heap/HeapSceneLoader";
+import "@/styles/heap.css";
 import { AchievementTrigger } from "@/components/systems/AchievementTrigger";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { content } from "@/lib/content";
 import { buildHeapBlocks, resolveDestinations } from "@/lib/heap";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -67,6 +69,7 @@ export default async function HeapPage({ params }: Props) {
             {t("title")}
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-fg-muted">{t("intro")}</p>
+          <PhaseIllustration phase="heap" className="mt-6 max-w-3xl" />
           <p data-heap-total className="mt-5 font-mono text-sm text-fg-muted">
             {t("total", { count: blocks.length })}
           </p>
@@ -82,7 +85,7 @@ export default async function HeapPage({ params }: Props) {
 
         <HeapExplorer blocks={blocks} skillNames={skillNames} destinations={destinations} />
         {/* Escenario 3D (solo con la experiencia completa): el canvas persistente dibuja aquí la cuadrícula infinita. */}
-        <HeapScene blocks={blocks} skillNames={skillNames} destinations={destinations} />
+        <HeapSceneLoader blocks={blocks} skillNames={skillNames} destinations={destinations} />
         {/* Logro heap_explorer (change 06): el store lo deduplica, solo avisa la primera vez. */}
         <AchievementTrigger id="heap_explorer" />
       </div>

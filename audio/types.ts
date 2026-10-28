@@ -21,6 +21,9 @@ export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
  * Catálogo COMPLETO de eventos de sonido (design D1). Los componentes solo conocen esto: nunca el motor.
  * `void` = sin carga. Añadir un evento exige tocar este archivo y el test de contrato.
  */
+/** Tecleo del nombre del hero: una letra de cada N suena como nota del motivo (el resto, solo clic de tecla). */
+export const HERO_NOTE_EVERY = 3;
+
 export interface AudioEventMap {
   // Puerta de arranque
   "gate:sound": void;
@@ -41,7 +44,8 @@ export interface AudioEventMap {
   "case:leave": void;
   "case:breakpoint": void;
   // SOURCE
-  "hero:key": { index: number };
+  /** `pitched` (por defecto sí): con `false` solo suena el clic de tecla; la nota del motivo llega cada 3 letras. */
+  "hero:key": { index: number; pitched?: boolean };
   // LEXER
   "hover:token": { kind: TokenKind };
   "counter:tick": void;

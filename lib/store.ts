@@ -10,6 +10,8 @@ export type QualityTier = "auto" | "high" | "medium" | "low";
 export type GraphicsBackend = "pending" | "webgpu" | "webgl2" | "none";
 
 export type CursorPref = "custom" | "system";
+/** Elección manual de movimiento (change 09, `lib/experience.ts`): `null` = sin elección, manda el sistema. */
+export type MotionPref = "reduced" | "full";
 
 export const STORAGE_KEYS = {
   theme: "portafolio:theme",
@@ -21,6 +23,10 @@ export const STORAGE_KEYS = {
   debug: "portafolio:debug",
   /** sessionStorage: la Vista Rápida se conserva al navegar (la URL es la fuente compartible). */
   quickView: "portafolio:quick",
+  /** sessionStorage: elección manual de movimiento (`reduced` | `full`); gana a `prefers-reduced-motion`. */
+  motion: "portafolio:motion",
+  /** sessionStorage: degradación por fps a `fallback2d` decidida durante la sesión (`1`). */
+  fpsDegraded: "portafolio:fps2d",
 } as const;
 
 /** Subconjunto de la API Storage que usamos (facilita los tests). */
@@ -62,6 +68,10 @@ function write(storage: StorageLike | null, key: string, value: string): void {
   } catch {
     /* almacenamiento lleno o bloqueado: el estado sigue funcionando en memoria */
   }
+}
+
+function parseMotionPref(raw: string | null): MotionPref | null {
+  return raw === "reduced" || raw === "full" ? raw : null;
 }
 
 function parseAchievements(raw: string | null): string[] {
@@ -113,6 +123,14 @@ function writePrefs(storages: Storages, patch: Partial<StoredPrefs>): void {
   write(storages.local(), STORAGE_KEYS.prefs, JSON.stringify({ ...current, ...patch }));
 }
 
+/** Entradas del modo de experiencia. */
+export interface ExperienceInputs {
+  manual: MotionPref | null;
+  system: boolean;
+  contextLost: boolean;
+  fpsDegraded: boolean;
+}
+
 export interface AppState {
   phase: Phase;
   theme: Theme;
@@ -139,6 +157,8 @@ export interface AppState {
   /** Logros recién desbloqueados que aún no se han mostrado como aviso (cola FIFO). */
   toastQueue: string[];
   graphics: { tier: QualityTier; backend: GraphicsBackend; ready: boolean };
+  /** Entradas del modo de experiencia (ver `lib/experience.ts`); el modo resultante se deriva, no se guarda. */
+  experience: ExperienceInputs;
   /** Escenas 3D renderizándose ahora mismo (las publica el motor del change 04). */
   scenes: { active: string[]; drawCalls: Record<string, number> };
   achievements: string[];
@@ -164,6 +184,14 @@ export interface AppState {
   shiftToast: () => void;
   setTier: (tier: QualityTier) => void;
   setBackend: (backend: GraphicsBackend) => void;
+  /** Elección manual de movimiento reducido (`null` la borra). Persiste en sessionStorage. */
+  setMotionPref: (pref: MotionPref | null) => void;
+  /** `prefers-reduced-motion` del sistema (lo mantiene `startExperienceSync`). */
+  setSystemReduced: (reduced: boolean) => void;
+  /** Contexto/dispositivo gráfico perdido (temporal: se limpia al restaurarse). */
+  setContextLost: (lost: boolean) => void;
+  /** Fps < 30 sostenidos en tier bajo: `fallback2d` el resto de la sesión (sessionStorage). */
+  setFpsDegraded: (degraded: boolean) => void;
   /** `true` cuando el canvas 3D terminó de cargar y registró sus escenas. */
   setCanvasReady: (ready: boolean) => void;
   setActiveScenes: (active: string[]) => void;
@@ -188,6 +216,7 @@ export const DEFAULT_STATE = {
   quickView: false,
   ui: { terminalOpen: false, shortcutsOpen: false, achievementsOpen: false, mixerOpen: false },
   graphics: { tier: "auto", backend: "pending", ready: false },
+  experience: { manual: null, system: false, contextLost: false, fpsDegraded: false },
   achievements: [],
   toastQueue: [],
   bootDone: false,
@@ -205,6 +234,7 @@ export function createAppStore(storages: Storages = browserStorages) {
     ui: { ...DEFAULT_STATE.ui },
     toastQueue: [],
     graphics: { ...DEFAULT_STATE.graphics },
+    experience: { ...DEFAULT_STATE.experience },
     scenes: { active: [], drawCalls: {} },
     achievements: [],
     bootDone: DEFAULT_STATE.bootDone,
@@ -258,6 +288,18 @@ export function createAppStore(storages: Storages = browserStorages) {
     shiftToast: () => set((s) => (s.toastQueue.length === 0 ? s : { toastQueue: s.toastQueue.slice(1) })),
     setTier: (tier) => set((s) => ({ graphics: { ...s.graphics, tier } })),
     setBackend: (backend) => set((s) => ({ graphics: { ...s.graphics, backend } })),
+    setMotionPref: (pref) => {
+      write(storages.session(), STORAGE_KEYS.motion, pref ?? "");
+      set((s) => ({ experience: { ...s.experience, manual: pref } }));
+    },
+    setSystemReduced: (system) =>
+      set((s) => (s.experience.system === system ? s : { experience: { ...s.experience, system } })),
+    setContextLost: (contextLost) =>
+      set((s) => (s.experience.contextLost === contextLost ? s : { experience: { ...s.experience, contextLost } })),
+    setFpsDegraded: (fpsDegraded) => {
+      write(storages.session(), STORAGE_KEYS.fpsDegraded, fpsDegraded ? "1" : "0");
+      set((s) => ({ experience: { ...s.experience, fpsDegraded } }));
+    },
     setCanvasReady: (ready) => set((s) => ({ graphics: { ...s.graphics, ready } })),
     setActiveScenes: (active) =>
       set((s) =>
@@ -290,6 +332,11 @@ export function createAppStore(storages: Storages = browserStorages) {
           hintShown: prefs.hintShown ?? s.sound.hintShown,
         },
         prefs: { cursor: prefs.cursor ?? s.prefs.cursor },
+        experience: {
+          ...s.experience,
+          manual: parseMotionPref(read(storages.session(), STORAGE_KEYS.motion)),
+          fpsDegraded: read(storages.session(), STORAGE_KEYS.fpsDegraded) === "1",
+        },
         debug: read(storages.session(), STORAGE_KEYS.debug) === "1",
         quickView: read(storages.session(), STORAGE_KEYS.quickView) === "1" || s.quickView,
         achievements: parseAchievements(read(storages.local(), STORAGE_KEYS.achievements)),

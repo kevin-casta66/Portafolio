@@ -153,7 +153,7 @@ export function LayoutToggle({
   };
 
   return (
-    <div className="flex items-center gap-2 sm:ml-auto">
+    <div className="flex max-w-full flex-wrap items-center gap-2 sm:ml-auto">
       <span id="runtime-layout-label" className="font-mono text-sm text-fg-muted">
         {t("layout.label")}
       </span>
@@ -179,7 +179,7 @@ export function LayoutToggle({
                 ? { onPointerEnter: preloadHeap, onFocus: preloadHeap }
                 : {})}
               className={
-                "h-10 px-4 font-mono text-sm first:rounded-l-md last:rounded-r-md " +
+                "h-10 px-3 font-mono text-sm first:rounded-l-md sm:px-4 last:rounded-r-md " +
                 (checked ? "bg-phase-tint text-accent" : "text-fg-muted hover:text-fg")
               }
             >

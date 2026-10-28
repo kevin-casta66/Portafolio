@@ -15,6 +15,10 @@ const withMDX = createMDX({
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Medios (change 09, 4.7): AVIF primero y WebP de respaldo; con `sizes` + dimensiones reservadas en cada `<Image>`.
+  images: { formats: ["image/avif", "image/webp"] },
+  // Análisis de bundle (change 09, `scripts/perf/`): `SOURCEMAPS=1 pnpm build` emite mapas para atribuir bytes a módulos.
+  productionBrowserSourceMaps: process.env.SOURCEMAPS === "1",
 };
 
 export default withMDX(withNextIntl(nextConfig));

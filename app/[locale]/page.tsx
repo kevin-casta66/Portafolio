@@ -1,5 +1,6 @@
 import { hasLocale } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { BytecodeSection } from "@/components/phases/Bytecode/BytecodeSection";
 import { DisplaySection } from "@/components/phases/Display/DisplaySection";
@@ -10,12 +11,26 @@ import { RuntimeSection } from "@/components/phases/Runtime/RuntimeSection";
 import { SourceSection } from "@/components/phases/Source/SourceSection";
 import { QuickView } from "@/components/quick-view/QuickView";
 import { HashFocus } from "@/components/systems/HashFocus";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { routing } from "@/i18n/routing";
+import { localizedAlternates, personJsonLd, socialMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ grep?: string | string[]; view?: string | string[] }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) return {};
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: localizedAlternates(locale, ""),
+    ...socialMetadata(locale, "", t("title"), t("description")),
+  };
+}
 
 /**
  * Página de inicio: las siete fases del pipeline en orden, como HTML semántico renderizado en el
@@ -36,6 +51,7 @@ export default async function HomePage({ params, searchParams }: Props) {
 
   return (
     <>
+      <JsonLd data={personJsonLd(locale)} />
       <SourceSection />
       <LexerSection />
       <ParserSection />

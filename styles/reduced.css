@@ -1,0 +1,61 @@
+/*
+ * Movimiento reducido (change 09). `lib/experience.ts` fija `data-experience` en <html>: `reduced` cuando
+ * el sistema pide menos movimiento O el visitante lo activó con el control manual. Los bloques de CSS que
+ * solo llevan `@media (prefers-reduced-motion: no-preference)` no conocen la elección manual: este archivo
+ * apaga aquí cada efecto de transformación para que el control manual sea equivalente a la preferencia.
+ * Queda el fundido de opacidad (≤ 300 ms), que es lo que permite el modo reducido.
+ */
+html[data-experience="reduced"] {
+  scroll-behavior: auto;
+}
+
+/* Barra de lectura (transform ligado al scroll) y revelado de encabezados (desplazamiento) */
+html[data-experience="reduced"] .read-progress {
+  display: none;
+}
+
+html[data-experience="reduced"] .reveal-view {
+  animation: none;
+}
+
+/* Avisos y terminal: solo fundido, sin desplazamiento */
+html[data-experience="reduced"] .toast,
+html[data-experience="reduced"] dialog.terminal[open] {
+  animation-name: toast-fade;
+}
+
+/* Cursor, imán y barra de pila: sin transiciones de transformación ni parpadeo */
+html[data-experience="reduced"] .custom-cursor,
+html[data-experience="reduced"] .magnetic-layer,
+html[data-experience="reduced"] .callstack,
+html[data-experience="reduced"] .skip-link {
+  transition: none;
+}
+
+html[data-experience="reduced"] .custom-cursor-caret {
+  animation: none;
+}
+
+/* Laboratorio: sin giro 180°, fundido entre caras (misma regla que `@media (prefers-reduced-motion: reduce)`) */
+html[data-experience="reduced"] .flip-inner {
+  transform: none !important;
+  transition: none;
+}
+
+html[data-experience="reduced"] .flip-face {
+  backface-visibility: visible;
+  transition: opacity var(--dur-ui) var(--ease-in-expo);
+}
+
+html[data-experience="reduced"] .flip-back {
+  transform: none;
+  opacity: 0;
+}
+
+html[data-experience="reduced"] .flip-card[data-flipped="true"] .flip-front {
+  opacity: 0;
+}
+
+html[data-experience="reduced"] .flip-card[data-flipped="true"] .flip-back {
+  opacity: 1;
+}

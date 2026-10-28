@@ -1,20 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useIsReduced } from "@/lib/experience";
 
-const QUERY = "(prefers-reduced-motion: reduce)";
-
-const subscribe = (notify: () => void) => {
-  const list = window.matchMedia(QUERY);
-  list.addEventListener("change", notify);
-  return () => list.removeEventListener("change", notify);
-};
-
-/** `true` con la preferencia de movimiento reducido (en el servidor, `false`: el HTML es estático igualmente). */
-export function useReducedMotion(): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(QUERY).matches,
-    () => false,
-  );
-}
+/**
+ * `true` con el modo de movimiento reducido (preferencia del sistema O elección manual): se apoya en el
+ * modo de experiencia central (lib/experience.ts) en lugar de leer `matchMedia` por su cuenta.
+ */
+export const useReducedMotion = useIsReduced;

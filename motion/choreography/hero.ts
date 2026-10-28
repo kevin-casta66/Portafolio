@@ -1,4 +1,4 @@
-import { audio } from "@/audio";
+import { audio, HERO_NOTE_EVERY } from "@/audio";
 import { appStore } from "@/lib/store";
 import { EASE, SplitText, gsap, seconds } from "../gsap";
 import { duration, stagger } from "../tokens";
@@ -74,8 +74,9 @@ export const heroChoreography: Choreography = (ctx) => {
       const char = chars[i] as HTMLElement;
       tl.set(char, { opacity: 1 }, t);
       tl.call(place, [char, "right"], t);
-      // Tecla del nombre: cada letra dispara una nota del motivo (solo suena con el sonido activado).
-      tl.call(() => audio.emit("hero:key", { index: i }), [], t);
+      // Tecla del nombre: clic mecánico suave por letra y, cada 3 letras, una nota del motivo (arpegio).
+      // Solo suena con el sonido activado.
+      tl.call(() => audio.emit("hero:key", { index: i, pitched: i % HERO_NOTE_EVERY === 0 }), [], t);
       t += step;
     }
   };

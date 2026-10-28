@@ -1,7 +1,6 @@
 "use client";
 
 import { MagneticButton } from "@/components/ui/Magnetic";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
   useActionState,
@@ -13,20 +12,19 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
-import { useForm } from "react-hook-form";
 import { audio } from "@/audio";
 import { sendContact } from "@/lib/contact/action";
 import {
+  CONTACT_FIELDS,
   CONTACT_LIMITS,
-  contactSchema,
+  validateContactField,
   type ContactErrorKey,
   type ContactField,
-  type ContactInput,
+  type ContactFieldErrors,
 } from "@/lib/contact/schema";
 import { IDLE, type ContactState } from "@/lib/contact/state";
 import { NetworkCable, type CableHandle } from "./NetworkCable";
 
-const FIELD_NAMES: ContactField[] = ["name", "email", "message"];
 
 const noopSubscribe = () => () => {};
 /** `false` en el servidor (y sin JavaScript), `true` una vez hidratado en el navegador. */
@@ -40,8 +38,8 @@ const useHydrated = () =>
 /**
  * Formulario de contacto con estética de terminal y usabilidad de formulario moderno: labels
  * visibles, validación en vivo (al salir del campo y luego al escribir), errores asociados a cada
- * campo y un resultado anunciado en una región `aria-live`. Cliente y servidor comparten el mismo
- * esquema. Sin JavaScript el formulario se envía igualmente a la Server Action.
+ * campo y un resultado anunciado en una región `aria-live`. Cliente y servidor comparten las mismas
+ * reglas (`lib/contact/schema`, sin librerías: ni zod ni react-hook-form viajan en el JS inicial). Sin JavaScript el formulario se envía igualmente a la Server Action.
  */
 export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) {
   const t = useTranslations("Display");
@@ -57,29 +55,36 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
 
   const initial =
     state.status === 400 || state.status === 429 || state.status === 500 ? state.values : undefined;
-  const form = useForm<ContactInput>({
-    resolver: zodResolver(contactSchema),
-    mode: "onTouched",
-    defaultValues: {
-      name: initial?.name ?? "",
-      email: initial?.email ?? "",
-      message: initial?.message ?? "",
-      website: "",
-    },
-  });
-  const { register, handleSubmit, setError, reset, formState } = form;
+  // Validación en vivo estilo «onTouched»: al salir de un campo y, desde entonces, al escribir en él.
+  const [clientErrors, setClientErrors] = useState<ContactFieldErrors>({});
+  const [touched, setTouched] = useState<readonly ContactField[]>([]);
+  const markTouched = (...names: ContactField[]) =>
+    setTouched((previous) => [...previous, ...names.filter((n) => !previous.includes(n))]);
+  const setFieldError = (name: ContactField, key: ContactErrorKey | undefined) =>
+    setClientErrors((previous) => {
+      if (previous[name] === key) return previous;
+      const next = { ...previous };
+      if (key) next[name] = key;
+      else delete next[name];
+      return next;
+    });
+  const valueOf = (name: ContactField): string => {
+    const element = formRef.current?.elements.namedItem(name);
+    return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element.value : "";
+  };
 
   // Resultado del servidor: errores por campo (400) o formulario limpio (éxito).
   useEffect(() => {
     if (state.status === 400) {
-      for (const field of FIELD_NAMES) {
-        const key = state.fieldErrors[field];
-        if (key) setError(field, { type: "server", message: key });
-      }
+      // Estado derivado de la respuesta del servidor: se vuelca una vez por resultado.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setClientErrors({ ...state.fieldErrors });
     } else if (state.status === 200) {
-      reset({ name: "", email: "", message: "", website: "" });
+      formRef.current?.reset();
+      setTouched([]);
+      setClientErrors({});
     }
-  }, [state, setError, reset]);
+  }, [state]);
 
   // El paquete refleja el resultado REAL: espera a que acabe su ida, y regresa (éxito) o se apaga (error).
   useEffect(() => {
@@ -115,11 +120,38 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
     startTransition(() => formAction(data));
   };
 
-  // Con JavaScript manda RHF (valida en vivo y recibe los errores del servidor vía `setError`).
+  const onSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const errors: ContactFieldErrors = {};
+    for (const name of CONTACT_FIELDS) {
+      const key = validateContactField(name, valueOf(name));
+      if (key) errors[name] = key;
+    }
+    markTouched(...CONTACT_FIELDS);
+    setClientErrors(errors);
+    const firstInvalid = CONTACT_FIELDS.find((name) => errors[name]);
+    if (firstInvalid) {
+      (formRef.current?.elements.namedItem(firstInvalid) as HTMLElement | null)?.focus();
+      return;
+    }
+    submit();
+  };
+
+  const fieldHandlers = (name: ContactField) => ({
+    onBlur: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      markTouched(name);
+      setFieldError(name, validateContactField(name, event.currentTarget.value));
+    },
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (touched.includes(name)) setFieldError(name, validateContactField(name, event.currentTarget.value));
+    },
+  });
+
+  // Con JavaScript manda la validación en vivo (que también recibe los errores del servidor).
   // Sin JavaScript solo existe la respuesta del servidor, que se pinta directamente.
   const errorKey = (field: ContactField): ContactErrorKey | undefined =>
     hydrated
-      ? (formState.errors[field]?.message as ContactErrorKey | undefined)
+      ? clientErrors[field]
       : state.status === 400
         ? state.fieldErrors[field]
         : undefined;
@@ -170,10 +202,7 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
         const target = event.target as HTMLElement;
         if (target.matches("input:not([tabindex='-1']), textarea")) audio.emit("contact:focus");
       }}
-      onSubmit={(event) => {
-        event.preventDefault();
-        void handleSubmit(submit)(event);
-      }}
+      onSubmit={onSubmit}
       className="rounded-lg border border-border bg-surface p-5 sm:p-8"
     >
       <fieldset disabled={isPending} className="flex flex-col gap-2">
@@ -186,7 +215,9 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
             type="text"
             autoComplete="name"
             maxLength={CONTACT_LIMITS.nameMax + 20}
-            {...register("name")}
+            name="name"
+            defaultValue={initial?.name ?? ""}
+            {...fieldHandlers("name")}
             {...attrs("name")}
           />,
         )}
@@ -197,14 +228,22 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
             type="email"
             autoComplete="email"
             inputMode="email"
-            {...register("email")}
+            name="email"
+            defaultValue={initial?.email ?? ""}
+            {...fieldHandlers("email")}
             {...attrs("email")}
           />,
         )}
         {field(
           "message",
           t("form.message"),
-          <textarea rows={6} {...register("message")} {...attrs("message")} />,
+          <textarea
+            rows={6}
+            name="message"
+            defaultValue={initial?.message ?? ""}
+            {...fieldHandlers("message")}
+            {...attrs("message")}
+          />,
         )}
 
         {/* Campo trampa para bots: fuera de pantalla y fuera del orden de tabulación */}
@@ -215,7 +254,8 @@ export function ContactForm({ alternativeEmail }: { alternativeEmail: string }) 
             type="text"
             tabIndex={-1}
             autoComplete="off"
-            {...register("website")}
+            name="website"
+            defaultValue=""
           />
         </div>
 

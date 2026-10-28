@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { afterLcp } from "@/lib/after-lcp";
 
 /** Id del popover de sonido: lo abren el botón de la cabecera y el «now playing» del Call Stack. */
 export const SOUND_POPOVER_ID = "sound-popover";
@@ -25,6 +26,17 @@ export function SoundSettings() {
       setWarm(true);
     }
   };
+  // INP de la primera apertura (change 09, 4.12): el cuerpo se descarga y se monta (dentro del popover
+  // cerrado) en un momento ocioso tras el LCP, así el clic solo tiene que mostrar un popover ya listo.
+  useEffect(() => {
+    let cancelled = false;
+    void afterLcp().then(() => {
+      if (!cancelled) setWarm(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>

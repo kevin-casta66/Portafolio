@@ -109,8 +109,8 @@ export class Pad implements LayerVoice {
   }
 
   /** Desafina el pad (cinta que se para / arranca). */
-  detuneTo(cents: number, seconds: number): void {
-    this.voices.forEach((v) => v.detune.rampTo(cents, seconds));
+  detuneTo(cents: number, seconds: number, time?: number): void {
+    this.voices.forEach((v) => v.detune.rampTo(cents, seconds, time));
   }
 
   dispose(): void {
@@ -143,7 +143,7 @@ export class Keys implements LayerVoice {
         volume: -2,
       }),
     );
-    this.poly.maxPolyphony = 4;
+    this.poly.maxPolyphony = 6;
     this.tremolo = new Tone.Tremolo({ frequency: 4.4, depth: 0.16, spread: 40 }).start();
     this.filter = new Tone.Filter({ type: "lowpass", frequency: 3400, rolloff: -12 });
     this.poly.chain(this.tremolo, this.filter, this.output);
@@ -181,7 +181,7 @@ export class Arp implements LayerVoice {
         volume: -16,
       }),
     );
-    this.poly.maxPolyphony = 3;
+    this.poly.maxPolyphony = 6;
     this.dry = new Tone.Gain(1);
     this.crushed = new Tone.WaveShaper(crushCurve(10), 2048);
     this.wet = new Tone.Gain(0);
@@ -200,9 +200,9 @@ export class Arp implements LayerVoice {
   }
 
   /** 0 = limpio, 1 = totalmente «crusheado». */
-  setCrush(amount: number, seconds = 0.8): void {
-    this.dry.gain.rampTo(1 - amount * 0.7, seconds);
-    this.wet.gain.rampTo(amount, seconds);
+  setCrush(amount: number, seconds = 0.8, time?: number): void {
+    this.dry.gain.rampTo(1 - amount * 0.7, seconds, time);
+    this.wet.gain.rampTo(amount, seconds, time);
   }
 
   dispose(): void {
@@ -328,7 +328,7 @@ export class Shimmer implements LayerVoice {
         volume: -20,
       }),
     );
-    this.poly.maxPolyphony = 3;
+    this.poly.maxPolyphony = 6;
     this.highpass = new Tone.Filter({ type: "highpass", frequency: 700, rolloff: -12 });
     this.delay = new Tone.FeedbackDelay({ delayTime: BEAT_S * 0.75, feedback: 0.45, wet: 0.5 });
     this.poly.chain(this.highpass, this.delay, this.output);
@@ -348,6 +348,9 @@ export class Shimmer implements LayerVoice {
 
 // ───────────────────────────── Efectos de interacción ─────────────────────────────
 
+/** Voces mínimas de los sintetizadores de efectos (change 08c): el presupuesto global (12) decide antes que Tone. */
+export const SFX_POLY = 8;
+
 /** Instrumentos de los sonidos de interacción; todos salen por `output` (el bus de efectos). */
 export class SfxKit {
   readonly output: Tone.Gain;
@@ -357,6 +360,8 @@ export class SfxKit {
   private readonly keyNoise: Tone.NoiseSynth;
   private readonly keyFilter: Tone.Filter;
   private readonly keyThock: Tone.MembraneSynth;
+  private readonly tickNoise: Tone.NoiseSynth;
+  private readonly tickFilter: Tone.Filter;
   private readonly low: Tone.Synth;
   private readonly chordSynth: Tone.PolySynth;
   private readonly cymbal: Tone.NoiseSynth;
@@ -376,6 +381,7 @@ export class SfxKit {
   private riserRunning = false;
   private riserNoiseStarted = false;
   private readonly keyTime = monotonic();
+  private readonly tickTime = monotonic();
   private readonly cymbalTime = monotonic();
   private readonly swishTime = monotonic();
   private readonly rnd = mulberry32(0xbeef);
@@ -388,11 +394,11 @@ export class SfxKit {
       Tone.Synth,
       opts<Partial<Tone.SynthOptions>>({
         oscillator: { type: "triangle8" },
-        envelope: { attack: 0.003, decay: 0.28, sustain: 0, release: 0.4 },
-        volume: -9,
+        envelope: { attack: 0.003, decay: 0.22, sustain: 0, release: 0.18 },
+        volume: -18,
       }),
     );
-    this.pluck.maxPolyphony = 4;
+    this.pluck.maxPolyphony = SFX_POLY + 2;
     this.pluck.chain(this.pluckFilter, this.output);
 
     this.bell = new Tone.PolySynth(
@@ -402,12 +408,12 @@ export class SfxKit {
         modulationIndex: 5,
         oscillator: { type: "sine" },
         modulation: { type: "sine" },
-        envelope: { attack: 0.002, decay: 0.6, sustain: 0, release: 0.45 },
-        modulationEnvelope: { attack: 0.002, decay: 0.4, sustain: 0, release: 0.3 },
-        volume: -12,
+        envelope: { attack: 0.002, decay: 0.5, sustain: 0, release: 0.25 },
+        modulationEnvelope: { attack: 0.002, decay: 0.3, sustain: 0, release: 0.2 },
+        volume: -8,
       }),
     );
-    this.bell.maxPolyphony = 3;
+    this.bell.maxPolyphony = SFX_POLY;
     this.bell.connect(this.output);
 
     this.keyFilter = new Tone.Filter({ type: "bandpass", frequency: 2300, Q: 0.9 });
@@ -428,11 +434,22 @@ export class SfxKit {
       }),
     ).connect(this.output);
 
+    // Tick (contadores, cambios de breakpoint...): ruido filtrado corto con su propio nivel (la tecla mecánica no cambia).
+    this.tickFilter = new Tone.Filter({ type: "bandpass", frequency: 3600, Q: 0.9 });
+    this.tickNoise = new Tone.NoiseSynth(
+      opts<Partial<Tone.NoiseSynthOptions>>({
+        noise: { type: "brown" },
+        envelope: { attack: 0.0008, decay: 0.022, sustain: 0, release: 0.01 },
+        volume: -1,
+      }),
+    ).connect(this.tickFilter);
+    this.tickFilter.connect(this.output);
+
     this.low = new Tone.Synth(
       opts<Partial<Tone.SynthOptions>>({
         oscillator: { type: "triangle" },
         envelope: { attack: 0.012, decay: 0.55, sustain: 0, release: 0.4 },
-        volume: -10,
+        volume: -17.5,
       }),
     ).connect(this.output);
 
@@ -440,11 +457,11 @@ export class SfxKit {
       Tone.Synth,
       opts<Partial<Tone.SynthOptions>>({
         oscillator: { type: "fattriangle", count: 3, spread: 14 },
-        envelope: { attack: 0.02, decay: 0.5, sustain: 0.15, release: 0.55 },
-        volume: -16,
+        envelope: { attack: 0.02, decay: 0.4, sustain: 0.1, release: 0.3 },
+        volume: -11.7,
       }),
     );
-    this.chordSynth.maxPolyphony = 5;
+    this.chordSynth.maxPolyphony = SFX_POLY + 4;
     this.chordSynth.connect(this.output);
 
     this.cymbalFilter = new Tone.Filter({ type: "highpass", frequency: 5200, rolloff: -12 });
@@ -452,7 +469,7 @@ export class SfxKit {
       opts<Partial<Tone.NoiseSynthOptions>>({
         noise: { type: "white" },
         envelope: { attack: 0.45, decay: 0.55, sustain: 0, release: 0.12 },
-        volume: -28,
+        volume: -23,
       }),
     ).connect(this.cymbalFilter);
     this.cymbalFilter.connect(this.output);
@@ -472,11 +489,11 @@ export class SfxKit {
       Tone.Synth,
       opts<Partial<Tone.SynthOptions>>({
         oscillator: { type: "triangle" },
-        envelope: { attack: 0.003, decay: 0.12, sustain: 0, release: 0.12 },
-        volume: -13,
+        envelope: { attack: 0.003, decay: 0.1, sustain: 0, release: 0.08 },
+        volume: -17.5,
       }),
     );
-    this.packetSynth.maxPolyphony = 3;
+    this.packetSynth.maxPolyphony = SFX_POLY;
     this.packetSynth.chain(this.packetPan, this.output);
 
     this.flashPan = new Tone.Panner(0);
@@ -487,12 +504,12 @@ export class SfxKit {
         modulationIndex: 3,
         oscillator: { type: "sine" },
         modulation: { type: "sine" },
-        envelope: { attack: 0.002, decay: 0.35, sustain: 0, release: 0.35 },
-        modulationEnvelope: { attack: 0.002, decay: 0.2, sustain: 0, release: 0.2 },
-        volume: -14,
+        envelope: { attack: 0.002, decay: 0.3, sustain: 0, release: 0.2 },
+        modulationEnvelope: { attack: 0.002, decay: 0.2, sustain: 0, release: 0.15 },
+        volume: -8,
       }),
     );
-    this.flashSynth.maxPolyphony = 3;
+    this.flashSynth.maxPolyphony = SFX_POLY;
     this.flashSynth.chain(this.flashPan, this.output);
 
     this.impactSynth = new Tone.MembraneSynth(
@@ -535,9 +552,7 @@ export class SfxKit {
     this.keyThock.triggerAttackRelease(190 * v, 0.04, at, vel * 0.7);
   }
   tick(time: number, vel: number): void {
-    const at = this.keyTime(time);
-    this.keyFilter.frequency.setValueAtTime(3600, at);
-    this.keyNoise.triggerAttackRelease(0.012, at, vel);
+    this.tickNoise.triggerAttackRelease(0.012, this.tickTime(time), vel);
   }
   lowNote(note: string, time: number, durS: number, vel: number): void {
     this.low.triggerAttackRelease(note, durS, time, vel);
@@ -568,7 +583,7 @@ export class SfxKit {
   }
 
   /** Arranca el riser: sube durante `seconds` (el umbral del hold) sincronizado con el anillo. */
-  riserStart(time: number, seconds: number): void {
+  riserStart(time: number, seconds: number, gain = 1): void {
     if (this.riserRunning) this.riserCancel(time);
     this.riserRunning = true;
     if (!this.riserNoiseStarted) {
@@ -580,13 +595,13 @@ export class SfxKit {
     this.riserFilter.frequency.exponentialRampTo(6500, seconds, time);
     this.riserGain.gain.cancelScheduledValues(time);
     this.riserGain.gain.setValueAtTime(0.0001, time);
-    this.riserGain.gain.exponentialRampTo(0.55, seconds, time);
+    this.riserGain.gain.exponentialRampTo(0.55 * gain, seconds, time);
     this.riserOsc.triggerAttack("D3", time);
     this.riserOsc.frequency.setValueAtTime(146.83, time);
     this.riserOsc.frequency.exponentialRampTo(587.33, seconds, time);
     this.riserOscGain.gain.cancelScheduledValues(time);
     this.riserOscGain.gain.setValueAtTime(0.0001, time);
-    this.riserOscGain.gain.exponentialRampTo(0.7, seconds, time);
+    this.riserOscGain.gain.exponentialRampTo(0.7 * gain, seconds, time);
   }
 
   /** Suelta antes de completar: el riser cae y se desvanece. */
@@ -619,7 +634,7 @@ export class SfxKit {
 
   dispose(): void {
     for (const n of [
-      this.pluck, this.pluckFilter, this.bell, this.keyNoise, this.keyFilter, this.keyThock, this.low, this.chordSynth,
+      this.pluck, this.pluckFilter, this.bell, this.keyNoise, this.keyFilter, this.keyThock, this.tickNoise, this.tickFilter, this.low, this.chordSynth,
       this.cymbal, this.cymbalFilter, this.swishNoise, this.swishFilter, this.packetPan, this.packetSynth,
       this.flashPan, this.flashSynth, this.impactSynth, this.riserNoise, this.riserFilter, this.riserGain,
       this.riserOsc, this.riserOscGain, this.output,

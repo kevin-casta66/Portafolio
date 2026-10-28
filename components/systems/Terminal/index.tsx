@@ -6,7 +6,13 @@ import { audio } from "@/audio";
 import { rawContent } from "@/content";
 import { Glass } from "@/components/ui/Glass";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { closeTerminal, toggleDebug, toggleTheme, triggerDownload } from "@/lib/actions";
+import {
+  closeTerminal,
+  toggleDebug,
+  toggleReducedMotion,
+  toggleTheme,
+  triggerDownload,
+} from "@/lib/actions";
 import {
   COMMAND_IDS,
   completeCommand,
@@ -76,6 +82,7 @@ export default function Terminal() {
     },
     toggleTheme,
     toggleDebug,
+    toggleReducedMotion,
     goToContact() {
       closeTerminal();
       // Tras cerrar (el diálogo devuelve el foco a quien lo abrió), el salto lleva el foco al encabezado.

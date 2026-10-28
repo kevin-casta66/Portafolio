@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { content } from "@/lib/content";
 import { byRecency } from "@/lib/content/experience-order";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 /** BYTECODE — experiencia. Cada etapa es una función; cada logro, una instrucción + texto humano. */
 export async function BytecodeSection() {
@@ -24,6 +25,7 @@ export async function BytecodeSection() {
     >
       <div className="grid-12">
         <SectionHeader id="bytecode" phase="BYTECODE" title={t("title")} intro={t("intro")} />
+        <PhaseIllustration phase="bytecode" className="col-span-12 mx-auto mb-10 max-w-3xl" />
 
         <ol className="col-span-12 flex flex-col gap-10">
           {stages.map((stage) => (

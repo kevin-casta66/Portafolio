@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { audio } from "@/audio";
+import { ChipIllustration } from "./ChipIllustration";
 import { coreLayout } from "@/webgl/chip-layout";
 
 export interface ChipProject {
@@ -34,8 +35,32 @@ export function ChipStage({ projects }: { projects: ChipProject[] }) {
   /** Núcleo activo por puntero/foco (hover) o por pulsación (toque o Enter). */
   const [hover, setHover] = useState<string | null>(null);
   const [pinned, setPinned] = useState<string | null>(null);
+  /** Tarjeta de proyecto bajo el puntero/foco: enciende su núcleo también en el chip 2D (sin WebGL o reducido). */
+  const [cardHover, setCardHover] = useState<string | null>(null);
   const active = pinned ?? hover;
+  const lit = active ?? cardHover;
   const slots = coreLayout(projects.length, ASPECT);
+
+  useEffect(() => {
+    const slugOf = (target: EventTarget | null): string | null => {
+      const el = target instanceof Element ? target.closest<HTMLElement>('[data-twin^="card:"]') : null;
+      return el?.dataset.twin?.slice("card:".length) ?? null;
+    };
+    const over = (e: Event) => setCardHover(slugOf(e.target));
+    const out = (e: Event) => {
+      if (slugOf((e as PointerEvent | FocusEvent).relatedTarget) === null) setCardHover(null);
+    };
+    document.addEventListener("pointerover", over);
+    document.addEventListener("pointerout", out);
+    document.addEventListener("focusin", over);
+    document.addEventListener("focusout", out);
+    return () => {
+      document.removeEventListener("pointerover", over);
+      document.removeEventListener("pointerout", out);
+      document.removeEventListener("focusin", over);
+      document.removeEventListener("focusout", out);
+    };
+  }, []);
 
   const setActiveAttr = (slug: string | null) => {
     const el = stageRef.current;
@@ -56,6 +81,12 @@ export function ChipStage({ projects }: { projects: ChipProject[] }) {
         className="relative w-full overflow-hidden rounded-lg border border-border bg-surface"
         style={{ aspectRatio: String(ASPECT) }}
       >
+        {/* Chip 2D (reducido / sin WebGL): en `full` queda oculto y lo dibuja el canvas 3D. */}
+        <ChipIllustration
+          cores={projects.map((p) => ({ id: p.slug }))}
+          activeCore={lit}
+          className="absolute inset-0"
+        />
         {projects.map((project, i) => {
           const slot = slots[i];
           if (!slot) return null;

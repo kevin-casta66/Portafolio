@@ -18,6 +18,7 @@ import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/site";
 import { stemsCreditLine } from "@/lib/audio-credits";
 import { content } from "@/lib/content";
+import { experienceScript } from "@/lib/experience-script";
 import { motionScript } from "@/lib/motion-script";
 import { themeScript } from "@/lib/theme-script";
 import "../globals.css";
@@ -49,6 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: motionScript }} />
+        <script dangerouslySetInnerHTML={{ __html: experienceScript }} />
       </head>
       <body>
         <NextIntlClientProvider>

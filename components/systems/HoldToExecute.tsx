@@ -36,6 +36,15 @@ export default function HoldToExecute() {
   const running = useRef<Animation | null>(null);
   /** Temporizador que informa del progreso del anillo al audio (riser); sin estado de React. */
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** Barra de progreso accesible (solo lectores de pantalla): se actualiza por DOM, sin estado de React. */
+  const bar = useRef<HTMLDivElement>(null);
+  const setBar = (fraction: number) => {
+    const el = bar.current;
+    if (!el) return;
+    const pct = Math.round(Math.min(1, Math.max(0, fraction)) * 100);
+    el.setAttribute("aria-valuenow", String(pct));
+    el.setAttribute("aria-valuetext", `${pct} %`);
+  };
   const stopProgressReport = () => {
     if (progressTimer.current) clearInterval(progressTimer.current);
     progressTimer.current = null;
@@ -149,12 +158,15 @@ export default function HoldToExecute() {
       stopProgressReport();
       progressTimer.current = setInterval(() => {
         const current = Number(running.current?.currentTime ?? 0);
-        audio.emit("hold:progress", { progress: Math.min(1, current / duration.hold) });
+        const fraction = Math.min(1, current / duration.hold);
+        setBar(fraction);
+        audio.emit("hold:progress", { progress: fraction });
       }, 100);
     },
 
     onCancel(_card, reason: CancelReason) {
       stopProgressReport();
+      setBar(0);
       audio.emit("hold:cancel"); // el riser cae y se desvanece (también tras un clic corto)
       const anim = running.current;
       if (reason === "click" || !anim || !progress.current) {
@@ -175,6 +187,7 @@ export default function HoldToExecute() {
 
     onComplete(card) {
       stopProgressReport();
+      setBar(1);
       audio.emit("hold:progress", { progress: 1 });
       audio.emit("hold:complete"); // impacto + acorde resuelto, cuantizados al siguiente tiempo
       hide(false);
@@ -242,8 +255,21 @@ export default function HoldToExecute() {
           {t("executing")}
         </span>
       </div>
-      <div role="status" aria-live="polite" data-hold-live className="sr-only">
+      {/* Región con nombre: el progreso accesible (sr-only) queda dentro de un landmark (axe `region`). */}
+      <div role="region" aria-label={t("executing")} className="sr-only">
+      <div
+        ref={bar}
+        role="progressbar"
+        aria-label={t("executing")}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={0}
+        aria-valuetext="0 %"
+        data-hold-progressbar
+      />
+      <div role="status" aria-live="polite" data-hold-live>
         {live}
+      </div>
       </div>
     </>
   );

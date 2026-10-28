@@ -3,6 +3,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { content } from "@/lib/content";
 import { ContactForm } from "./ContactForm";
 import { CopyEmailButton } from "./CopyEmailButton";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 /** DISPLAY — contacto. Formulario, email copiable, redes, CV y el cierre del programa. */
 export async function DisplaySection() {
@@ -21,6 +22,7 @@ export async function DisplaySection() {
     >
       <div className="grid-12">
         <SectionHeader id="display" phase="DISPLAY" title={t("title")} intro={t("intro")} />
+        <PhaseIllustration phase="display" className="col-span-12 mx-auto mb-10 max-w-3xl" />
 
         {/* Gemelo del monitor: el canvas dibuja su marco alrededor del formulario (sin cubrirlo).
             mb-24 reserva el bisel + la peana (88 px, webgl/objects/monitor.ts) para que no tapen

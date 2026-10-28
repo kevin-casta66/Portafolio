@@ -4,7 +4,7 @@
  * Expone el estado de la puerta (disponible aunque el motor aún no haya cargado) y, cuando hay motor,
  * su foto: contexto de mezcla (fase), tempo, capas activas, RMS por bus, pico y voces.
  */
-import { audio, hasEngine, readSoundProbe } from "./index";
+import { audio, hasEngine, readSoundProbe, readSoundProbeApi } from "./index";
 
 export interface SoundTestHook {
   /** Estado de la puerta de arranque (disponible aunque el motor no haya cargado). */
@@ -20,6 +20,11 @@ export interface SoundTestHook {
   rms(): { music: number; sfx: number; master: number } | null;
   peak(): number | null;
   voices(): number | null;
+  /** Registro de efectos reproducidos y descartados (`status`, `reason`: rate, voices, silence, quickview, reduced). */
+  sfxLog(): { event: string; status: "played" | "dropped"; reason?: string; at: number }[];
+  clearSfxLog(): void;
+  /** Picos medidos desde la última lectura: bus de efectos y salida (dBFS) y RMS de la música (dB). */
+  levels(reset?: boolean): { sfxPeakDb: number; masterPeakDb: number; musicDb: number } | null;
   /** Eventos emitidos desde que se instaló el gancho. */
   events(): unknown[];
   /** Emite un evento como lo haría un componente (para que las pruebas dirijan el motor). */
@@ -54,6 +59,9 @@ window.__portafolioSound = {
   rms: () => snap()?.rms ?? null,
   peak: () => snap()?.peak ?? null,
   voices: () => snap()?.voices ?? null,
+  sfxLog: () => (readSoundProbeApi()?.sfxLog?.() ?? []) as ReturnType<SoundTestHook["sfxLog"]>,
+  clearSfxLog: () => readSoundProbeApi()?.clearSfxLog?.(),
+  levels: (reset = true) => readSoundProbeApi()?.levels?.(reset) ?? null,
   events: () => window.__portafolioAudioLog ?? [],
   emit: (event, payload) => (audio.emit as (e: string, p?: unknown) => void)(event, payload),
 };

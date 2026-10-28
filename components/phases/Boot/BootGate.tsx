@@ -6,7 +6,7 @@ import { audio } from "@/audio";
 import { usePathname } from "@/i18n/navigation";
 import { armAudioUnlockOnFirstGesture, audioUnlock } from "@/lib/audio";
 import { appStore } from "@/lib/store";
-import { BOOT_SHORT_MS } from "@/motion/boot";
+import { BOOT_REDUCED_MS, BOOT_SHORT_MS } from "@/motion/boot";
 import { BOOTED_KEY } from "@/motion/config";
 import { prefersReducedMotion } from "@/motion/reduced";
 import { SPRING_SETTLE_MS, springLinear } from "@/motion/spring";
@@ -73,6 +73,8 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
   const pathname = usePathname();
   const [controller] = useState<BootController>(() =>
     createBootController({
+      // Movimiento reducido: la fase de logs dura ≤ 400 ms y las letras entran de golpe (ver el efecto de letras).
+      ...(prefersReducedMotion() ? { maxMs: BOOT_REDUCED_MS } : {}),
       // La elección se registra en la puerta y en las preferencias, y habilita (o no) el motor de audio.
       onChoice: (choice) =>
         applyGateChoice(choice, {
@@ -153,10 +155,16 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
     if (snapshot.mode !== "full" || !lettersRef.current) return;
     const letters = Array.from(lettersRef.current.children) as HTMLElement[];
     const reduced = prefersReducedMotion();
+    if (reduced) {
+      // Sin letras escalonadas: la marca aparece completa y los logs siguen su curso (tope de 400 ms).
+      letters.forEach((letter) => (letter.style.opacity = "1"));
+      controller.lettersFinished();
+      return;
+    }
     const animations = letters.map((letter, index) =>
       letter.animate(
         reduced
-          ? [{ opacity: 0 }, { opacity: 1 }]
+          ? [{ opacity: 0 }, { opacity: 1 }] // (inalcanzable: el modo reducido sale antes)
           : [
               { opacity: 0, transform: "translateY(1.2em) scale(0.7)" },
               { opacity: 1, transform: "none" },
@@ -234,7 +242,7 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
       if (reduced) {
         await overlay.animate(
           [{ opacity: 1 }, { opacity: 0 }],
-          opts(short ? BOOT_SHORT_MS : duration.ui, cssEase.inExpo),
+          opts(short ? BOOT_SHORT_MS : duration.fadeMax, cssEase.inExpo),
         ).finished;
         return;
       }
@@ -330,12 +338,8 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
             </p>
           </div>
 
-          <ul
-            role="status"
-            aria-live="off"
-            aria-label={t("region")}
-            className="flex min-h-24 flex-col gap-1 text-sm"
-          >
+          <div role="status" aria-live="off" aria-label={t("region")}>
+          <ul className="flex min-h-24 flex-col gap-1 text-sm">
             {snapshot.lines.map((line) => (
               <li
                 key={line.id}
@@ -353,6 +357,7 @@ export function BootGate({ projectCount, demo = false }: { projectCount: number;
               </li>
             ))}
           </ul>
+          </div>
 
           <div
             aria-hidden="true"

@@ -5,7 +5,13 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { emit } from "@/lib/events";
 import { showcaseStore, useShowcase } from "@/lib/showcase-store";
-import { DEFAULT_SPEED, type DemoId, type DemoSpeed, type StageInfo, type TransitionDemo } from "@/motion/showcase";
+import {
+  DEFAULT_SPEED,
+  type DemoId,
+  type DemoSpeed,
+  type StageInfo,
+  type TransitionDemo,
+} from "@/motion/showcase";
 import { InternalsToggle } from "./InternalsToggle";
 import { SpeedControl } from "./SpeedControl";
 import { STAGE_WIDTH, createStageDemo } from "./stage-demo";
@@ -31,9 +37,11 @@ export interface TransitionCardData {
 const nextFrames = (n = 2) => new Promise<void>((resolve) => setTimeout(resolve, n * 20));
 
 /** Parámetros de la URL que se reenvían al escenario (forzar backend, pruebas). */
-function stageQuery(): string {
+function stageQuery(full = false): string {
   const source = new URLSearchParams(window.location.search);
   const out = new URLSearchParams();
+  // Replay completo pedido explícitamente con movimiento reducido: el escenario ignora la preferencia.
+  if (full) out.set("motion", "full");
   for (const key of ["webgl", "motionTest"]) {
     const value = source.get(key);
     if (value !== null) out.set(key, value);
@@ -65,10 +73,14 @@ export function TransitionCard({ card, locale }: { card: TransitionCardData; loc
   const internalsRef = useRef(internals);
   const visibleRef = useRef(true);
   const busy = useRef(false);
+  /** El escenario montado se creó con el movimiento completo pedido explícitamente (reducido). */
+  const mountedFull = useRef(false);
 
   const say = useCallback(
-    (key: "loading" | "playing" | "done" | "error" | "internalsOn" | "internalsOff" | "speed", extra?: string) =>
-      setAnnouncement(t(`card.announce.${key}`, { id: card.id, speed: extra ?? "" })),
+    (
+      key: "loading" | "playing" | "done" | "error" | "internalsOn" | "internalsOff" | "speed",
+      extra?: string,
+    ) => setAnnouncement(t(`card.announce.${key}`, { id: card.id, speed: extra ?? "" })),
     [t, card.id],
   );
 
@@ -124,58 +136,71 @@ export function TransitionCard({ card, locale }: { card: TransitionCardData; loc
     return () => observer.disconnect();
   }, []);
 
-  const mount = useCallback(async (): Promise<boolean> => {
-    const host_ = host.current;
-    if (!host_) return false;
-    const created = createStageDemo(card.id, locale, stageQuery());
-    demo.current = created;
-    showcaseStore.getState().setStatus(card.id, "loading");
-    say("loading");
-    try {
-      const result = await created.mount(host_);
-      if (demo.current !== created) return false; // otra demo se activó mientras cargaba
-      created.setSpeed(speedRef.current);
-      if (internalsRef.current) created.setInternals(true);
-      created.setVisible(visibleRef.current);
-      setInfo(result);
-      setLive(true);
-      return true;
-    } catch {
-      if (demo.current === created) teardown();
-      showcaseStore.getState().setStatus(card.id, "error");
-      say("error");
-      return false;
-    }
-  }, [card.id, locale, say, teardown]);
-
-  const onReplay = useCallback(async () => {
-    if (busy.current) return;
-    busy.current = true;
-    try {
-      const previous = showcaseStore.getState().activate(card.id);
-      // La demo anterior se retira (en el siguiente commit de React) ANTES de que empiece esta.
-      if (previous) await nextFrames(3);
-      if (!demo.current && !(await mount())) return;
-      showcaseStore.getState().setStatus(card.id, "playing");
-      say("playing");
-      await demo.current?.replay();
-      if (!demo.current) return;
-      showcaseStore.getState().setStatus(card.id, "done");
-      say("done");
-      emit("achievement:unlock", { id: "motion_inspector" });
-      // Con movimiento reducido la demo se reproduce una vez y vuelve al fotograma estático.
-      if (reduced) {
-        teardown();
-        showcaseStore.getState().release(card.id);
+  const mount = useCallback(
+    async (full = false): Promise<boolean> => {
+      const host_ = host.current;
+      if (!host_) return false;
+      mountedFull.current = full;
+      const created = createStageDemo(card.id, locale, stageQuery(full));
+      demo.current = created;
+      showcaseStore.getState().setStatus(card.id, "loading");
+      say("loading");
+      try {
+        const result = await created.mount(host_);
+        if (demo.current !== created) return false; // otra demo se activó mientras cargaba
+        created.setSpeed(speedRef.current);
+        if (internalsRef.current) created.setInternals(true);
+        created.setVisible(visibleRef.current);
+        setInfo(result);
+        setLive(true);
+        return true;
+      } catch {
+        if (demo.current === created) teardown();
+        showcaseStore.getState().setStatus(card.id, "error");
+        say("error");
+        return false;
       }
-    } catch {
-      teardown();
-      showcaseStore.getState().setStatus(card.id, "error");
-      say("error");
-    } finally {
-      busy.current = false;
-    }
-  }, [card.id, mount, reduced, say, teardown]);
+    },
+    [card.id, locale, say, teardown],
+  );
+
+  /**
+   * `full`: solo con movimiento reducido y por petición explícita (botón «Reproducir animación completa»,
+   * con su aviso): el escenario se monta ignorando la preferencia. El Replay normal reproduce la versión reducida.
+   */
+  const onReplay = useCallback(
+    async (full = false) => {
+      if (busy.current) return;
+      busy.current = true;
+      try {
+        const previous = showcaseStore.getState().activate(card.id);
+        // La demo anterior se retira (en el siguiente commit de React) ANTES de que empiece esta.
+        if (previous) await nextFrames(3);
+        // Un escenario montado con otro modo no sirve: se retira y se vuelve a montar.
+        if (demo.current && mountedFull.current !== full) teardown();
+        if (!demo.current && !(await mount(full))) return;
+        showcaseStore.getState().setStatus(card.id, "playing");
+        say("playing");
+        await demo.current?.replay();
+        if (!demo.current) return;
+        showcaseStore.getState().setStatus(card.id, "done");
+        say("done");
+        emit("achievement:unlock", { id: "motion_inspector" });
+        // Con movimiento reducido la demo se reproduce una vez y vuelve al fotograma estático.
+        if (reduced || full) {
+          teardown();
+          showcaseStore.getState().release(card.id);
+        }
+      } catch {
+        teardown();
+        showcaseStore.getState().setStatus(card.id, "error");
+        say("error");
+      } finally {
+        busy.current = false;
+      }
+    },
+    [card.id, mount, reduced, say, teardown],
+  );
 
   const onSpeed = (value: DemoSpeed) => {
     speedRef.current = value;
@@ -227,13 +252,15 @@ export function TransitionCard({ card, locale }: { card: TransitionCardData; loc
           width={1280}
           height={720}
           sizes="(min-width: 1024px) 50vw, 100vw"
-          unoptimized
           className="absolute inset-0 size-full object-cover"
         />
         <div
           ref={host}
           data-stage-host
-          className={"absolute inset-0 transition-opacity duration-300 " + (live ? "opacity-100" : "opacity-0")}
+          className={
+            "absolute inset-0 transition-opacity duration-300 " +
+            (live ? "opacity-100" : "opacity-0")
+          }
         />
         {loading ? (
           <p
@@ -261,15 +288,36 @@ export function TransitionCard({ card, locale }: { card: TransitionCardData; loc
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => void onReplay()}
+          onClick={() => void onReplay(false)}
           aria-disabled={loading || playing}
           className="inline-flex h-10 items-center rounded-md bg-accent px-5 font-mono text-sm font-medium text-bg hover:opacity-90 aria-disabled:opacity-60"
         >
           {loading ? t("card.loading") : playing ? t("card.playing") : t("card.replay")}
         </button>
+        {reduced ? (
+          <button
+            type="button"
+            data-replay-full
+            onClick={() => void onReplay(true)}
+            aria-describedby={`demo-${card.id}-full-notice`}
+            aria-disabled={loading || playing}
+            className="inline-flex h-10 items-center rounded-md border border-border px-4 font-mono text-sm text-fg-muted hover:border-accent hover:text-accent aria-disabled:opacity-60"
+          >
+            {t("card.replayFull")}
+          </button>
+        ) : null}
         <SpeedControl label={t("card.speedLabel")} value={speed} onChange={onSpeed} />
         <InternalsToggle label={t("card.internals")} pressed={internals} onToggle={onInternals} />
       </div>
+      {reduced ? (
+        <p
+          id={`demo-${card.id}-full-notice`}
+          data-full-notice
+          className="font-mono text-xs text-fg-muted"
+        >
+          {t("card.fullNotice")}
+        </p>
+      ) : null}
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
@@ -296,7 +344,15 @@ export function TransitionCard({ card, locale }: { card: TransitionCardData; loc
   );
 }
 
-function Field({ label, children, wide = false }: { label: string; children: React.ReactNode; wide?: boolean }) {
+function Field({
+  label,
+  children,
+  wide = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
       <dt className="font-mono text-xs text-fg-muted">{label}</dt>

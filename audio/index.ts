@@ -139,6 +139,11 @@ export type Audio = typeof audio;
 /** Lo que el motor aporta al gancho de pruebas (foto del estado de la mezcla). */
 export interface SoundProbe {
   snapshot(): unknown;
+  /** Efectos reproducidos y descartados (con motivo) desde el último `clearSfxLog`. */
+  sfxLog?(): unknown[];
+  clearSfxLog?(): void;
+  /** Picos desde la última lectura (dBFS del bus de efectos y de la salida) y nivel de la música (dB RMS). */
+  levels?(reset?: boolean): { sfxPeakDb: number; masterPeakDb: number; musicDb: number };
 }
 
 let probe: SoundProbe | null = null;
@@ -147,6 +152,9 @@ let probe: SoundProbe | null = null;
 export function setSoundProbe(next: SoundProbe | null): void {
   probe = next;
 }
+
+/** Sonda completa del motor (registro de efectos, picos) para el gancho de pruebas. */
+export const readSoundProbeApi = (): SoundProbe | null => probe;
 
 /** Lectura de la foto del motor para el gancho de pruebas. */
 export const readSoundProbe = (): unknown => (probe ? probe.snapshot() : null);

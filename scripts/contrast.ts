@@ -158,6 +158,14 @@ export function runChecks(css: string): Check[] {
       }
     }
 
+    // Indicador de foco (WCAG 2.4.11 / 1.4.11): ≥ 3:1 frente al fondo adyacente, con el acento de cada fase.
+    if (v["focus-caret"] === undefined) throw new Error("Falta --focus-caret");
+    for (const phase of ["source", "lexer", "parser", "bytecode", "runtime", "gpu"]) {
+      for (const bgName of ["bg", "surface", "surface-elevated"]) {
+        push(`--focus-caret (acento ${phase}) sobre ${bgName}`, ["focus-caret", bgName], color(`accent-${phase}`, v), color(bgName, v), 3);
+      }
+    }
+
     // Texto sobre vidrio: peor caso = fondo extremo detrás de la superficie translúcida. Se comprueban
     // los dos materiales (normal y fuerte) con TODOS los colores de texto que pueden ir sobre vidrio.
     for (const [alphaName, label] of [

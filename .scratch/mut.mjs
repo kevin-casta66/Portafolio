@@ -1,0 +1,13 @@
+import { createRequire } from "node:module";
+const require = createRequire("C:/Users/User/Documents/GitHubPersonal/Portafolio/package.json");
+const { chromium } = require("@playwright/test");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const b = await chromium.launch({ channel: "chrome" });
+const ctx = await b.newContext({ viewport:{width:1280,height:720} });
+await ctx.addInitScript(()=>{sessionStorage.setItem("portafolio:gate","silent")});
+const p = await ctx.newPage();
+await p.goto("http://localhost:3150/es?motionTest=1",{waitUntil:"networkidle"}); await sleep(6000);
+const res=await p.evaluate(()=>new Promise(res=>{const cnt={};const mo=new MutationObserver(ms=>{for(const m of ms){const t=m.target;const k=(t.tagName||"")+"."+String(t.className?.baseVal??t.className).slice(0,40)+"#"+(t.id||"")+"["+m.attributeName+"]";cnt[k]=(cnt[k]||0)+1}});mo.observe(document,{attributes:true,subtree:true});
+ let y=0;const start=document.getElementById("lexer").getBoundingClientRect().top+scrollY;y=start;let n=0;const step=()=>{y+=12;scrollTo(0,y);n++;if(n<200)requestAnimationFrame(step);else{mo.disconnect();res(Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,15))}};requestAnimationFrame(step)}));
+console.log(res.map(x=>x[1]+" "+x[0]).join("\n"));
+await b.close();

@@ -58,6 +58,7 @@
     "@types/three": "0.186.0",
     "eslint": "10.13.0",
     "eslint-config-next": "16.4.3",
+    "lighthouse": "13.6.0",
     "meshoptimizer": "1.3.0",
     "msdf-bmfont-xml": "2.8.0",
     "prettier": "3.9.10",
@@ -89,6 +90,18 @@
     "check:no-glsl": "tsx scripts/check-no-glsl.ts",
     "webgl:budget": "tsx scripts/check-3d-budget.ts",
     "motion:posters": "tsx scripts/build-motion-posters.ts",
-    "webgl:assets": "tsx scripts/optimize-assets.ts"
+    "webgl:assets": "tsx scripts/optimize-assets.ts",
+    "webgl:msdf-opt": "node scripts/optimize-msdf.mjs",
+    "perf:bundle": "tsx scripts/check-bundle.ts",
+    "perf:lighthouse": "node scripts/perf/lighthouse.mjs",
+    "perf:inp": "node scripts/perf/inp.mjs",
+    "perf:fps": "node scripts/perf/fps.mjs",
+    "perf:scenes": "node scripts/perf/scenes-budget.mjs",
+    "perf:overflow": "node scripts/perf/overflow-375.mjs",
+    "perf:experience": "node scripts/perf/verify-experience.mjs",
+    "perf:media": "node scripts/perf/verify-media.mjs",
+    "a11y:axe": "node scripts/a11y/axe.mjs",
+    "a11y:keyboard": "node scripts/a11y/keyboard.mjs",
+    "seo:verify": "node scripts/seo/verify.mjs"
   }
 }

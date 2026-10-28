@@ -8,6 +8,21 @@
  * - Referencia de movimiento: docs/MOTION-SPEC.md.
  */
 
+/*
+ * Fallback de métricas para JetBrains Mono (change 09, CLS de fuentes): `next/font` solo ajusta fallbacks
+ * proporcionales (Arial), no monoespaciados. Courier New tiene el mismo avance (0,6 em) y se le igualan
+ * ascenso/descenso, así el intercambio al cargar la fuente real no desplaza el texto. Si el sistema no tiene
+ * Courier New se usa `ui-monospace` como siempre.
+ */
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("Courier New"), local("Courier");
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
 /* ───────────────────────── Primitivas ───────────────────────── */
 :root {
   /* Silicio (tema oscuro) */
@@ -63,7 +78,7 @@
   /* ─── Tipografía: roles (las familias las inyecta next/font) ─── */
   --ff-display: var(--font-unbounded), var(--font-unbounded-ext), system-ui, sans-serif;
   --ff-text: var(--font-geist), var(--font-geist-ext), system-ui, sans-serif;
-  --ff-code: var(--font-jetbrains), var(--font-jetbrains-ext), ui-monospace, monospace;
+  --ff-code: var(--font-jetbrains), var(--font-jetbrains-ext), "JetBrains Mono Fallback", ui-monospace, monospace;
 
   /* Escala fluida: de 360 px a 1440 px de viewport */
   --fs-xs: clamp(0.75rem, calc(0.75rem + 0.0625 * (100vw - 22.5rem) / 67.5), 0.8125rem);
@@ -107,6 +122,10 @@
    * y de él deriva el tinte de fondo. Sin JavaScript se queda en el acento de SOURCE.
    */
   --accent-active: var(--accent-source);
+
+  /* Indicador de foco tipo caret (change 09): sigue al acento de fase; contraste ≥ 3:1 verificado por scripts/check-contrast.ts */
+  --focus-caret: var(--accent);
+  --focus-caret-glow: color-mix(in srgb, var(--focus-caret) 28%, transparent);
   --accent-tint: color-mix(in srgb, var(--accent-active) var(--tint-alpha), transparent);
   --accent-spectrum: linear-gradient(
     90deg,

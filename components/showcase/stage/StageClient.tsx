@@ -54,7 +54,10 @@ export function StageClient({ id }: { id: DemoId }) {
 
     // WAAPI (puerta de arranque, revelado de tema, fundidos): toda animación nueva nace a la velocidad vigente.
     const originalAnimate = Element.prototype.animate;
-    Element.prototype.animate = function patched(this: Element, ...args: Parameters<Element["animate"]>) {
+    Element.prototype.animate = function patched(
+      this: Element,
+      ...args: Parameters<Element["animate"]>
+    ) {
       const animation = originalAnimate.apply(this, args);
       animation.playbackRate = speed;
       return animation;
@@ -68,20 +71,34 @@ export function StageClient({ id }: { id: DemoId }) {
     };
 
     const ready: Promise<StageInfo> = (async () => {
+      // `?motion=full`: Replay completo pedido explícitamente con movimiento reducido (aviso previo en la tarjeta).
+      // Solo afecta a este escenario aislado: no se persiste ni toca la elección del visitante.
+      if (
+        new URLSearchParams(window.location.search).get("motion") === "full" &&
+        prefersReducedMotion()
+      ) {
+        appStore.setState((s) => ({ experience: { ...s.experience, manual: "full" } }));
+      }
       const reduced = prefersReducedMotion();
       const { playerFor, waitForClock } = await import("./players");
       const clock = await waitForClock(READY_MS + 4000);
       if (!reduced && DEMO_USES_3D[id]) await waitForCanvas(READY_MS);
       const { graphics } = appStore.getState();
       const canvasUsable =
-        graphics.ready && (graphics.backend === "webgpu" || graphics.backend === "webgl2") && graphics.tier !== "low";
+        graphics.ready &&
+        (graphics.backend === "webgpu" || graphics.backend === "webgl2") &&
+        graphics.tier !== "low";
       const wanted = selectVariant({
         reducedMotion: reduced,
         canvasReady: graphics.ready,
         tier: graphics.tier,
         backend: graphics.backend,
       });
-      const variant: Variant = DEMO_USES_3D[id] ? resolveVariant(wanted, ["canvas", "dom", "reduced"]) ?? "dom" : reduced ? "reduced" : "dom";
+      const variant: Variant = DEMO_USES_3D[id]
+        ? (resolveVariant(wanted, ["canvas", "dom", "reduced"]) ?? "dom")
+        : reduced
+          ? "reduced"
+          : "dom";
       const env: StageEnv = { variant, clock, reduced };
       const factory = playerFor(id);
       const created = await factory(env);

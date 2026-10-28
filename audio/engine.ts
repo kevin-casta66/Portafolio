@@ -11,6 +11,7 @@
 import * as Tone from "tone";
 import { achievements } from "@/content/achievements";
 import { appStore } from "@/lib/store";
+import { onReducedMotionChange, prefersReducedMotion } from "@/motion/reduced";
 import { subscribeVelocity } from "@/motion/velocity";
 import { audio, setSoundProbe, type AudioEvent, type AudioEventMap, type AudioSink } from "./index";
 import { createMix, type Mix } from "./mix";
@@ -40,8 +41,11 @@ export function currentEngine(): EngineHandle | null {
   return live;
 }
 
-const reducedMotion = (): boolean =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/** Modo de movimiento reducido (sistema o control manual, change 09): una sola fuente, `lib/experience.ts`. */
+const reducedMotion = (): boolean => prefersReducedMotion();
+
+/** Solo con `?motionTest`: el motor registra los efectos reproducidos/descartados y mide picos. */
+const testMode = (): boolean => typeof window !== "undefined" && window.location.search.includes("motionTest");
 
 const currentTheme = (): "light" | "dark" =>
   document.documentElement.dataset.theme === "light" ? "light" : "dark";
@@ -78,6 +82,7 @@ function createEngine(ctx: AudioContext, stems: LoadedStems | null): EngineHandl
     achievementIds: achievements.map((a) => a.id),
     reverb: state.graphics.tier === "low" ? "low" : "high",
     bootDone: audio.gate.bootDone,
+    trace: testMode(),
     ...(stems ? { stems } : {}),
   });
 
@@ -110,7 +115,10 @@ function createEngine(ctx: AudioContext, stems: LoadedStems | null): EngineHandl
       if (muted || hidden) {
         // Los eventos de contexto sí actualizan la mezcla (al volver a sonar está en la fase correcta);
         // los efectos no suenan en silencio.
-        if (!event.startsWith("phase:") && event !== "case:enter" && event !== "case:leave" && event !== "notfound:enter" && event !== "notfound:restart" && event !== "boot:done") return;
+        if (!event.startsWith("phase:") && event !== "case:enter" && event !== "case:leave" && event !== "notfound:enter" && event !== "notfound:restart" && event !== "boot:done") {
+          if (SFX[event]) mix.traceDrop(event, "silence");
+          return;
+        }
       }
       switch (event) {
         case "theme":
@@ -139,13 +147,40 @@ function createEngine(ctx: AudioContext, stems: LoadedStems | null): EngineHandl
         default:
           break;
       }
-      if (quickView && SFX[event] && !QUICK_VIEW_SFX.has(event)) return;
+      if (quickView && SFX[event] && !QUICK_VIEW_SFX.has(event)) {
+        mix.traceDrop(event, "quickview");
+        return;
+      }
       mix.handle(event, payload);
     },
   };
 
   const unregister = audio.registerEngine(sink, mix.controls);
-  setSoundProbe({ snapshot: () => ({ ...mix.snapshot(), enabled: !muted, hidden, media: mediaPlaying, quickView }) });
+  // Gancho de pruebas: foto del motor, registro de efectos y picos medidos (pico del bus de efectos y de la salida).
+  let stopPeaks = () => {};
+  const peaks = { sfx: 0, master: 0 };
+  if (testMode()) {
+    const timer = window.setInterval(() => {
+      const w = mix.waves();
+      for (const ch of w.sfx) for (let i = 0; i < ch.length; i++) peaks.sfx = Math.max(peaks.sfx, Math.abs(ch[i] as number));
+      for (const ch of w.master) for (let i = 0; i < ch.length; i++) peaks.master = Math.max(peaks.master, Math.abs(ch[i] as number));
+    }, 12);
+    stopPeaks = () => window.clearInterval(timer);
+  }
+  const toDb = (v: number) => 20 * Math.log10(Math.max(v, 1e-6));
+  setSoundProbe({
+    snapshot: () => ({ ...mix.snapshot(), enabled: !muted, hidden, media: mediaPlaying, quickView }),
+    sfxLog: () => [...mix.sfxLog()],
+    clearSfxLog: () => mix.clearSfxLog(),
+    levels: (reset = true) => {
+      const out = { sfxPeakDb: toDb(peaks.sfx), masterPeakDb: toDb(peaks.master), musicDb: mix.musicLevelDb() };
+      if (reset) {
+        peaks.sfx = 0;
+        peaks.master = 0;
+      }
+      return out;
+    },
+  });
 
   // La puerta ya mostró líneas [ OK ] antes de que hubiese motor: suenan como una escalera rápida.
   if (!audio.gate.bootDone) {
@@ -202,9 +237,7 @@ function createEngine(ctx: AudioContext, stems: LoadedStems | null): EngineHandl
   document.addEventListener("visibilitychange", onVisibility);
 
   // ── Movimiento reducido ──
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const onMotion = () => mix.setReduced(motionQuery.matches);
-  motionQuery.addEventListener("change", onMotion);
+  const stopMotion = onReducedMotionChange((reduced) => mix.setReduced(reduced));
 
   const handle: EngineHandle = {
     mix,
@@ -228,7 +261,8 @@ function createEngine(ctx: AudioContext, stems: LoadedStems | null): EngineHandl
       stopStore();
       stopVelocity();
       document.removeEventListener("visibilitychange", onVisibility);
-      motionQuery.removeEventListener("change", onMotion);
+      stopMotion();
+      stopPeaks();
       setSoundProbe(null);
       unregister();
       mix.mute();

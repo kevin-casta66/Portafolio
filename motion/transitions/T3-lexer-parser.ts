@@ -51,7 +51,7 @@ function buildReduced(ctx: TransitionContext): TransitionHandle {
     const tree = qa(ctx.root, "#parser [role='tree']");
     // Ramas estáticas con fundido: sin vuelos, sin trazo, sin desplazamientos.
     if (tree.length > 0)
-      timeline.fromTo(tree, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "none" });
+      timeline.fromTo(tree, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" });
   }, ctx.root);
   return { timeline, destroy: () => scope.revert() };
 }

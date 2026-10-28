@@ -1,0 +1,1130 @@
+[
+  {
+    "label": "home · dark · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · es · full",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · dark · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · en · full",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · dark · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          "#experiment-generative-shader > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-physics-playground > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-data-sculpture > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#_R_ennauqivb_-metric",
+          "#_R_ennauqivb_-order",
+          "#experiment-magnetic-grid > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · es · reduced",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · dark · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          "#experiment-generative-shader > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-physics-playground > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-data-sculpture > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#_R_ennauqivb_-metric",
+          "#_R_ennauqivb_-order",
+          "#experiment-magnetic-grid > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · en · reduced",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · dark · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · es · fallback2d",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · dark · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · dark · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · dark · en · fallback2d",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · dark · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · dark · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · es · full",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · es · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · en · full",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · en · full",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          "#experiment-generative-shader > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-physics-playground > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-data-sculpture > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#_R_ennauqivb_-metric",
+          "#_R_ennauqivb_-order",
+          "#experiment-magnetic-grid > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · es · reduced",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · es · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          "#experiment-generative-shader > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-physics-playground > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#experiment-data-sculpture > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent",
+          "#_R_ennauqivb_-metric",
+          "#_R_ennauqivb_-order",
+          "#experiment-magnetic-grid > .w-full.flex > .h-full[data-anim=\"experiment-card\"] > .flip-card[data-flipped=\"false\"] > .flip-inner.aspect-\\[8\\/5\\] > .flip-front.flip-face[aria-hidden=\"false\"] > .left-3.hover\\:bg-phase-tint.border-accent"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · en · reduced",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · en · reduced",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · es · fallback2d",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · es · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "home · light · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "nodes": [
+          "ul[aria-live=\"off\"]"
+        ]
+      },
+      {
+        "id": "listitem",
+        "impact": "serious",
+        "nodes": [
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(1)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(2)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(3)",
+          ".text-fg[data-boot-line=\"true\"][data-done=\"true\"]:nth-child(4)"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          ".tracking-\\[0\\.2em\\] > .sr-only",
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "caso · light · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "404 · light · en · fallback2d",
+    "status": 404,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "heap · light · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "nodes": [
+          "#heap-cell-project-arquelume-ai-agent > h3"
+        ]
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "motion · light · en · fallback2d",
+    "status": 200,
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": [
+          "div[role=\"progressbar\"]"
+        ]
+      }
+    ]
+  }
+]

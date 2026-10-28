@@ -151,7 +151,7 @@ function buildReduced(ctx: TransitionContext): TransitionHandle {
     const { svg } = buildFrame(m.x, m.y, m.w, m.h);
     layer.appendChild(svg);
     // Monitor con gradiente que aparece con fundido; sin píxeles migrando.
-    timeline.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "none" });
+    timeline.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" });
   }, ctx.root);
   return {
     timeline,

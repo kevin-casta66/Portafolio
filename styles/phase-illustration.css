@@ -1,0 +1,155 @@
+/*
+ * Ilustraciones 2D por fase (components/phases/PhaseIllustration.tsx). Solo tokens: el acento viene de
+ * `[data-phase]` (ambos temas) y el resto de las variables de superficie, borde y texto.
+ *
+ *  · `full`        → ocultas (el canvas 3D dibuja la escena).
+ *  · `reduced`     → visibles y estáticas.
+ *  · `fallback2d`  → visibles con animación CSS ligera (flujo de trazo, aparición ligada al scroll).
+ */
+.phase-illustration {
+  display: none;
+  width: 100%;
+  color: var(--accent);
+}
+
+html[data-experience="reduced"] .phase-illustration,
+html[data-experience="fallback2d"] .phase-illustration {
+  display: block;
+}
+
+.pi-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.pi-line {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pi-panel {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.pi-block {
+  fill: var(--surface-elevated);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.pi-core {
+  fill: var(--surface-elevated);
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.pi-fill {
+  fill: var(--text-muted);
+  stroke: none;
+}
+
+.pi-bezel {
+  fill: var(--surface-elevated);
+  stroke: url("#pi-spectrum");
+  stroke-width: 3;
+}
+
+.pi-stop-a {
+  stop-color: var(--accent-source);
+}
+
+.pi-stop-b {
+  stop-color: var(--accent-parser);
+}
+
+.pi-stop-c {
+  stop-color: var(--accent-runtime);
+}
+
+.pi-stop-d {
+  stop-color: var(--accent-gpu);
+}
+
+.pi-text {
+  fill: var(--text-muted);
+  font-family: var(--ff-code);
+  font-size: 11px;
+}
+
+/* Énfasis: color de la fase */
+.pi-hot {
+  stroke: var(--accent);
+}
+
+.pi-fill.pi-hot,
+.pi-fill.pi-caret {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.pi-core.pi-on {
+  fill: var(--phase-tint);
+  stroke-width: 2.5;
+}
+
+.pi-dim {
+  opacity: 0.55;
+}
+
+/* Fallback 2D: animaciones ligeras (solo opacity y trazo) */
+@keyframes pi-flow {
+  to {
+    stroke-dashoffset: -2;
+  }
+}
+
+@keyframes pi-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes pi-reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pi-undraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+html[data-experience="fallback2d"] .phase-illustration .pi-draw {
+  stroke-dasharray: 0.12 0.06;
+  animation: pi-flow 6s linear infinite;
+  animation-delay: var(--pi-delay, 0ms);
+}
+
+html[data-experience="fallback2d"] .phase-illustration .pi-caret {
+  animation: pi-pulse 1.2s steps(2, jump-none) infinite;
+}
+
+@supports (animation-timeline: view()) {
+  html[data-experience="fallback2d"] .phase-illustration .pi-fade {
+    animation: pi-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+}

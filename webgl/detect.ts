@@ -1,5 +1,11 @@
 import { getGPUTier } from "detect-gpu";
-import { DEFAULT_TIER, DETECT_TIMEOUT_MS, tierFromDetect, type Tier } from "./quality";
+import {
+  DEFAULT_TIER,
+  DETECT_TIMEOUT_MS,
+  belowMinimumGpu,
+  tierFromDetect,
+  type Tier,
+} from "./quality";
 
 /**
  * Detección inicial del tier a partir de la GPU (detect-gpu con benchmarks AUTOALOJADOS en
@@ -12,6 +18,8 @@ export interface Detection {
   /** `gpu`: respondió a tiempo · `timeout`: tier por defecto · `error`: falló la detección. */
   source: "gpu" | "timeout" | "error";
   gpu?: string | undefined;
+  /** La GPU está por debajo del nivel mínimo: experiencia 2D sin renderizar escenas 3D. */
+  belowMinimum?: boolean | undefined;
 }
 
 /** Valor mostrado por la secuencia de arranque: 3 = alto, 2 = medio, 1 = bajo. */
@@ -38,6 +46,7 @@ export function detectTier(timeoutMs = DETECT_TIMEOUT_MS): Promise<Detection> {
           mobile: result.isMobile ?? coarse,
           source: "gpu",
           gpu: result.gpu,
+          belowMinimum: belowMinimumGpu(result),
         });
       })
       .catch(() => {

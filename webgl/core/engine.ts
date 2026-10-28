@@ -5,7 +5,15 @@ import { phaseState } from "@/motion/phase-state";
 import { prefersReducedMotion } from "@/motion/reduced";
 import { velocity } from "@/motion/velocity";
 import { effectiveDpr } from "../rt-size";
-import { PRESETS, createFpsMonitor, stepTierDown, type QualityPreset, type Tier } from "../quality";
+import {
+  FPS2D_FLOOR,
+  FPS2D_WINDOW_MS,
+  PRESETS,
+  createFpsMonitor,
+  stepTierDown,
+  type QualityPreset,
+  type Tier,
+} from "../quality";
 import { buildOutput, type LayerTextures } from "../postfx";
 import { audio } from "@/audio";
 import { TSL, type N } from "../nodes/tsl";
@@ -75,6 +83,8 @@ export interface EngineOptions {
   onLost?: (reason: string) => void;
   /** Mensaje de error de render no recuperable. */
   onError?: (error: unknown) => void;
+  /** Con el tier ya en `low`, los fps siguen < 30 durante 3 s: pasar a la experiencia 2D (design D6). */
+  onDegraded?: () => void;
 }
 
 const lin = (rgb: [number, number, number]) => new Color().setRGB(rgb[0], rgb[1], rgb[2], "srgb");
@@ -102,10 +112,15 @@ export class Engine {
   private passes: { dispose?: () => void }[] = [];
   private colors: TokenColors;
   private dirty = true;
+  /** Hay una interacción discreta (pulsado, tecla) pendiente de pintar: ver `render`. */
+  private yieldFrame = false;
+  private lastYield = 0;
   private lastScroll = Number.NaN;
   private lastNow = 0;
   private readonly t0 = performance.now();
   private readonly fps = createFpsMonitor();
+  /** Segundo monitor, más exigente en el tiempo: solo cuenta con el tier ya en `low`. */
+  private readonly fps2d = createFpsMonitor(FPS2D_FLOOR, FPS2D_WINDOW_MS);
   private sweepTimer: ReturnType<typeof setTimeout> | undefined;
   private chromaUntil = 0;
   private disposed = false;
@@ -227,6 +242,16 @@ export class Engine {
 
   render(nowMs: number): void {
     if (this.disposed || this.lost) return;
+    // INP primero (change 09): el fotograma que sigue a un pulsado/tecla se salta el render 3D, así el
+    // feedback del DOM se pinta sin esperar a una tarea de decenas de ms; el siguiente fotograma dibuja la
+    // escena (queda `dirty`). A lo sumo un salto cada 150 ms: mantener una tecla no congela el canvas.
+    if (this.yieldFrame && nowMs - this.lastYield > 150) {
+      this.yieldFrame = false;
+      this.lastYield = nowMs;
+      this.dirty = true;
+      return;
+    }
+    this.yieldFrame = false;
     const dtMs = this.lastNow === 0 ? 16 : nowMs - this.lastNow;
     this.lastNow = nowMs;
 
@@ -267,7 +292,11 @@ export class Engine {
     this.pointer.moved = false;
     this.lastScroll = frame.scrollY;
     this.publishStats(nowMs, active);
-    if (this.fps.frame(nowMs) && this.tierLocked !== "low") this.setTier(stepTierDown(this.tierLocked));
+    if (this.fps.frame(nowMs) && this.tierLocked !== "low")
+      this.setTier(stepTierDown(this.tierLocked));
+    if (this.tierLocked === "low") {
+      if (this.fps2d.frame(nowMs)) this.options.onDegraded?.();
+    } else this.fps2d.reset();
   }
 
   // ── Interno ───────────────────────────────────────────────────────────────
@@ -299,7 +328,9 @@ export class Engine {
     uAudioEnergy.value = frame.reduced ? 0 : audio.controls.energy();
     const pulse = Math.max(0, (this.chromaUntil - nowMs) / CHROMA_PULSE_MS);
     // Velocidad ACOTADA (≤ 0,35): el texto nunca pierde legibilidad por la aberración del scroll.
-    uChroma.value = frame.reduced ? 0 : Math.min(1, pulse + Math.min(0.35, Math.abs(frame.velocity) * 0.35));
+    uChroma.value = frame.reduced
+      ? 0
+      : Math.min(1, pulse + Math.min(0.35, Math.abs(frame.velocity) * 0.35));
     uPointer.value.set(frame.pointer.x, frame.pointer.y);
     uView.value.set(frame.viewW, frame.viewH);
     uAccent.value.copy(lin(accentRgb(this.colors, frame.phase, frame.phaseTo, frame.phaseMix)));
@@ -312,7 +343,9 @@ export class Engine {
     uKeyword.value.copy(lin(this.colors.keyword));
     uType.value.copy(lin(this.colors.type));
     uString.value.copy(lin(this.colors.string));
-    PHASES.forEach((phase, i) => (uAccents.array[i] as Color).copy(lin(this.colors.accents[phase])));
+    PHASES.forEach((phase, i) =>
+      (uAccents.array[i] as Color).copy(lin(this.colors.accents[phase])),
+    );
   }
 
   private lastStatsPush = 0;
@@ -511,7 +544,12 @@ export class Engine {
     for (const st of active) {
       let calls = 0;
       st.instance?.scene.traverseVisible((o) => {
-        const any = o as { isMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
+        const any = o as {
+          isMesh?: boolean;
+          isPoints?: boolean;
+          isLine?: boolean;
+          isSprite?: boolean;
+        };
         if (any.isMesh || any.isPoints || any.isLine || any.isSprite) calls++;
       });
       this.stats.perScene[st.def.id] = calls;
@@ -520,7 +558,9 @@ export class Engine {
     if (nowMs - this.lastStatsPush > 500) {
       this.lastStatsPush = nowMs;
       const prev = appStore.getState().scenes.drawCalls;
-      const same = Object.keys(prev).length === Object.keys(this.stats.perScene).length && Object.entries(this.stats.perScene).every(([k, v]) => prev[k] === v);
+      const same =
+        Object.keys(prev).length === Object.keys(this.stats.perScene).length &&
+        Object.entries(this.stats.perScene).every(([k, v]) => prev[k] === v);
       if (!same) appStore.getState().setDrawCalls({ ...this.stats.perScene });
     }
   }
@@ -536,6 +576,11 @@ export class Engine {
       this.pointer.active = false;
       this.pointer.moved = true;
     };
+    const onInteract = () => {
+      this.yieldFrame = true;
+    };
+    window.addEventListener("pointerdown", onInteract, { passive: true, capture: true });
+    window.addEventListener("keydown", onInteract, { passive: true, capture: true });
     window.addEventListener("pointermove", onMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
     const onVisibility = () => {
@@ -544,6 +589,8 @@ export class Engine {
     document.addEventListener("visibilitychange", onVisibility);
     this.cleanups.push(() => {
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onInteract, { capture: true });
+      window.removeEventListener("keydown", onInteract, { capture: true });
       document.documentElement.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);
     });

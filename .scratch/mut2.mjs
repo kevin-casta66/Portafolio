@@ -1,0 +1,11 @@
+import { createRequire } from "node:module";
+const require = createRequire("C:/Users/User/Documents/GitHubPersonal/Portafolio/package.json");
+const { chromium } = require("@playwright/test");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const b = await chromium.launch({ channel: "chrome" });
+const ctx = await b.newContext({ viewport:{width:1280,height:720} });
+await ctx.addInitScript(()=>{sessionStorage.setItem("portafolio:gate","silent")});
+const p = await ctx.newPage();
+await p.goto("http://localhost:3150/es?motionTest=1",{waitUntil:"networkidle"}); await sleep(6000);
+console.log(await p.evaluate(()=>new Promise(res=>{const out=[];const mo=new MutationObserver(ms=>{for(const m of ms)if(m.target===document.documentElement&&out.length<4)out.push(document.documentElement.getAttribute("style").slice(0,300))});mo.observe(document.documentElement,{attributes:true,attributeFilter:["style"]});let y=document.getElementById("lexer").getBoundingClientRect().top+scrollY,n=0;const step=()=>{y+=12;scrollTo(0,y);n++;if(n<60)requestAnimationFrame(step);else res(out)};requestAnimationFrame(step)})));
+await b.close();

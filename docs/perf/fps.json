@@ -1,0 +1,82 @@
+[
+  {
+    "pass": "en frío",
+    "idleFps": 59.5,
+    "backend": "webgpu",
+    "tier": "medium",
+    "gpu": "ANGLE (Intel, Intel(R) Graphics (0x00007D41) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": "1920×1080",
+    "medianFps": 56.5,
+    "worst1sWindowFps": 7,
+    "stallsOver120ms": [
+      229,
+      570,
+      725,
+      836,
+      482
+    ],
+    "frames": 844,
+    "seconds": 18.9,
+    "machine": "Intel(R) Core(TM) Ultra 7 255U · 47 GB"
+  },
+  {
+    "pass": "en caliente",
+    "idleFps": 59.5,
+    "backend": "webgpu",
+    "tier": "medium",
+    "gpu": "ANGLE (Intel, Intel(R) Graphics (0x00007D41) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": "1920×1080",
+    "medianFps": 57.1,
+    "worst1sWindowFps": 32,
+    "stallsOver120ms": [
+      357,
+      461,
+      301,
+      250,
+      464,
+      281,
+      133
+    ],
+    "frames": 718,
+    "seconds": 15.5,
+    "machine": "Intel(R) Core(TM) Ultra 7 255U · 47 GB"
+  },
+  {
+    "pass": "en frío",
+    "idleFps": 58.5,
+    "backend": "webgl2 (forzado)",
+    "tier": "medium",
+    "gpu": "ANGLE (Intel, Intel(R) Graphics (0x00007D41) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": "1920×1080",
+    "medianFps": 59.9,
+    "worst1sWindowFps": 13,
+    "stallsOver120ms": [
+      167,
+      133,
+      200,
+      150,
+      150,
+      167,
+      150,
+      733,
+      700
+    ],
+    "frames": 852,
+    "seconds": 19.3,
+    "machine": "Intel(R) Core(TM) Ultra 7 255U · 47 GB"
+  },
+  {
+    "pass": "en caliente",
+    "idleFps": 58.5,
+    "backend": "webgl2 (forzado)",
+    "tier": "medium",
+    "gpu": "ANGLE (Intel, Intel(R) Graphics (0x00007D41) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": "1920×1080",
+    "medianFps": 59.9,
+    "worst1sWindowFps": 60,
+    "stallsOver120ms": [],
+    "frames": 669,
+    "seconds": 11.8,
+    "machine": "Intel(R) Core(TM) Ultra 7 255U · 47 GB"
+  }
+]

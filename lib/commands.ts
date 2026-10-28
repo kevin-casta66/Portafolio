@@ -20,6 +20,7 @@ export const COMMAND_IDS = [
   "mixer",
   "theme",
   "debug",
+  "reduced",
   "clear",
 ] as const;
 export type CommandId = (typeof COMMAND_IDS)[number];
@@ -47,6 +48,8 @@ export interface CommandActions {
   toggleTheme(): "dark" | "light";
   /** Alterna el modo Debug y devuelve su estado resultante. */
   toggleDebug(): boolean;
+  /** Alterna el movimiento reducido manual y devuelve el modo resultante. */
+  toggleReducedMotion(): "reduced" | "full";
   /** Cierra la terminal y se desplaza a DISPLAY. */
   goToContact(): void;
   /** Cierra la terminal y navega a la vista Memory Heap (`/heap`). */
@@ -96,6 +99,9 @@ const TEXT = {
     en: "Sound is off. Turn it on with the M key or the sound button and type “mixer” again.",
   },
   themeNow: { es: "tema activo", en: "active theme" },
+  reducedNow: { es: "movimiento", en: "motion" },
+  reducedOn: { es: "reducido", en: "reduced" },
+  reducedOff: { es: "completo", en: "full" },
   debugNow: { es: "modo debug", en: "debug mode" },
   dark: { es: "oscuro", en: "dark" },
   light: { es: "claro", en: "light" },
@@ -233,6 +239,20 @@ export const COMMANDS: readonly Command[] = [
     run: ({ locale, actions }) => ({
       lines: [
         { text: `${text("debugNow", locale)}: ${text(actions.toggleDebug() ? "on" : "off", locale)}` },
+      ],
+    }),
+  },
+  {
+    id: "reduced",
+    description: {
+      es: "Alterna el movimiento reducido",
+      en: "Toggle reduced motion",
+    },
+    run: ({ locale, actions }) => ({
+      lines: [
+        {
+          text: `${text("reducedNow", locale)}: ${text(actions.toggleReducedMotion() === "reduced" ? "reducedOn" : "reducedOff", locale)}`,
+        },
       ],
     }),
   },

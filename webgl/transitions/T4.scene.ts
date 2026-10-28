@@ -53,7 +53,7 @@ export const createT4Scene: TransitionSceneFactory = (_ctx, state, tctx) => {
     const ticks = step(0.55, fract(angle.mul(48)));
     const tint = mix(uAccents.element(BYTECODE_ACCENT), uAccents.element(RUNTIME_ACCENT), ring.tint);
     // Brillo: el anillo es más intenso cuanto más cerca de la cámara (se calcula en el vertex stage por z).
-    const near = clamp(float(1).sub(abs(positionWorld.z.sub(uniformZ.value)).mul(0.05)), 0.15, 1);
+    const near = clamp(float(1).sub(abs(positionWorld.z.sub(uniformZ)).mul(0.05)), 0.15, 1);
     // Internos (docs/MOTION-SPEC.md §3, T4): cada empleo con su color (acentos de fase, en el orden del
     // DOM) y la profundidad visible como atenuación; apagado, la fórmula normal sale intacta.
     const code = uAccents.element(ring.index % 7);
@@ -83,7 +83,7 @@ export const createT4Scene: TransitionSceneFactory = (_ctx, state, tctx) => {
   streakGeo.setAttribute("position", new BufferAttribute(verts, 3));
   const streakMat = new LineBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
   streakMat.colorNode = vec3(uAccents.element(BYTECODE_ACCENT));
-  streakMat.opacityNode = smoothstep(float(total), float(0), abs(positionWorld.z.sub(uniformZ.value))).mul(0.18).mul(uEnv);
+  streakMat.opacityNode = smoothstep(float(total), float(0), abs(positionWorld.z.sub(uniformZ))).mul(0.18).mul(uEnv);
   const streaks = new LineSegments(streakGeo, streakMat);
   streaks.frustumCulled = false;
   scene.add(streaks);

@@ -1,7 +1,8 @@
 {
   "Metadata": {
-    "title": "Portafolio — Desarrollador Full Stack",
-    "description": "El viaje de una línea de código: portafolio de un desarrollador."
+    "title": "Kevin Castaño — Full Stack Developer · IA aplicada y Azure",
+    "description": "Portafolio de Kevin Castaño: software empresarial con .NET, Angular y Azure, agentes de IA con MCP y RAG, y desarrollo guiado por specs. Casos de estudio con arquitectura y resultados.",
+    "ogTagline": "casos de estudio con arquitectura y resultados"
   },
   "Layout": {
     "skipToContent": "Saltar al contenido",
@@ -26,7 +27,10 @@
     "terminal": "Abrir la terminal (~)",
     "shortcuts": "Atajos de teclado (?)",
     "tools": "Herramientas",
-    "soundSettings": "Ajustes de sonido"
+    "soundSettings": "Ajustes de sonido",
+    "reducedMotion": "Movimiento reducido",
+    "reducedMotionOn": "Movimiento reducido activado: pulsa para restaurar la animación completa",
+    "reducedMotionOff": "Reducir el movimiento (fundidos en lugar de animaciones)"
   },
   "Sound": {
     "toggleOn": "Sonido activado",
@@ -39,6 +43,7 @@
     "off": "El sonido está desactivado. Pulsa M o el botón de sonido para activarlo.",
     "close": "Cerrar los ajustes de sonido",
     "hint": "Pulsa M para silenciar",
+    "unlock": "Activar sonido",
     "nowPlaying": "Reproduciendo: capa {layer} · fase {phase}",
     "nowPlayingOpen": "Abrir los ajustes de sonido",
     "mixer": {
@@ -61,8 +66,7 @@
     }
   },
   "Home": {
-    "projectsHeading": "Proyectos",
-    "placeholderNotice": "Contenido de ejemplo: sustitúyelo por tus datos en /content."
+    "projectsHeading": "Proyectos"
   },
   "Hero": {
     "eyebrow": "SOURCE",
@@ -280,7 +284,7 @@
   "Case": {
     "kicker": "Caso de estudio",
     "backHome": "← Volver a proyectos",
-    "placeholderNotice": "Contenido de ejemplo: sustitúyelo por tu caso real en content/cases.",
+    "placeholderNotice": "Este caso de estudio está en elaboración: los datos pueden cambiar.",
     "indexLabel": "Índice del caso",
     "indexToggle": "Índice",
     "indexCurrent": "Sección actual: {title}",
@@ -485,7 +489,7 @@
     }
   },
   "Motion": {
-    "metaTitle": "Movimiento — Portafolio",
+    "metaTitle": "Movimiento — Kevin Castaño",
     "metaDescription": "Cómo se mueve este sitio: los tokens de movimiento y las 11 transiciones (T1–T11), reproducibles una a una, con sus internos y una nota técnica.",
     "kicker": "MOTION",
     "title": "Movimiento",
@@ -545,6 +549,8 @@
     },
     "card": {
       "replay": "Replay",
+      "replayFull": "Reproducir animación completa",
+      "fullNotice": "Movimiento reducido activo: el Replay muestra la versión con fundidos. La animación completa incluye desplazamientos, glitch y efectos 3D.",
       "loading": "Cargando…",
       "playing": "Reproduciendo…",
       "speedLabel": "Velocidad",

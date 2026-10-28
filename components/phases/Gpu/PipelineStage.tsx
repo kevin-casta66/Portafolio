@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { PhaseIllustration } from "@/components/phases/PhaseIllustration";
 
 const STAGES = ["vertices", "triangles", "raster", "pixels"] as const;
 
@@ -20,7 +21,9 @@ export async function PipelineStage() {
         aria-label={t("label")}
         className="relative w-full overflow-hidden rounded-lg border border-border bg-surface"
       >
-        <div aria-hidden="true" data-twin="pipeline" className="aspect-[3/1] min-h-48" />
+        <div aria-hidden="true" data-twin="pipeline" className="aspect-[3/1] min-h-48">
+          <PhaseIllustration phase="gpu" className="h-full p-3" />
+        </div>
         <ol className="relative grid grid-cols-2 border-t border-border sm:grid-cols-4">
           {STAGES.map((stage, index) => (
             <li

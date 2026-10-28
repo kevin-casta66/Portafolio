@@ -6,6 +6,8 @@
  * carga continúa en segundo plano.
  */
 export const BOOT_MAX_MS = 2500;
+/** Boot en movimiento reducido (change 09): los logs duran como mucho 400 ms, sin letras escalonadas ni CRT. */
+export const BOOT_REDUCED_MS = 400;
 /** Versión corta de visitas posteriores de la sesión. */
 export const BOOT_SHORT_MS = 400;
 

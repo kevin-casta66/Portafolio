@@ -100,9 +100,12 @@ describe("validateContent", () => {
 
 describe("placeholders", () => {
   it("detecta los campos marcados con ph() y no los identificadores", () => {
-    const found = findPlaceholders(rawContent.experiments, "experiments");
+    const sample = [{ id: "demo", name: { es: ph("Texto pendiente"), en: ph("Pending text") } }];
+    const found = findPlaceholders(sample, "experiments");
     expect(found).toContain("experiments[0].name.es");
     expect(found).not.toContain("experiments[0].id");
+    // El contenido publicado ya no contiene marcadores (change 09, 6.5).
+    expect(findPlaceholders(rawContent.experiments, "experiments")).toEqual([]);
   });
 
   it("un valor real (sin ph) deja de listarse", () => {

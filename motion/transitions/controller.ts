@@ -29,6 +29,11 @@ interface Active {
 export interface TransitionController {
   /** Crea y engancha todas las transiciones con las entradas actuales. */
   mount(): void;
+  /**
+   * Igual que `mount` pero cediendo el hilo tras cada transición (`yieldToMain`), para que el montaje no sea
+   * una única tarea larga (change 09, TBT). Salta las que ya existan y se detiene si `isCancelled()`.
+   */
+  mountSliced(yieldToMain: () => Promise<void>, isCancelled: () => boolean): Promise<void>;
   /** Reevalúa la variante de cada transición (llamar cuando cambie una de las entradas). */
   refresh(): void;
   /** Recrea todas las transiciones activas conservando su progreso (tras un redimensionado, p. ej.). */
@@ -74,6 +79,13 @@ export function createTransitionController(
   return {
     mount() {
       defs.forEach((def) => build(def));
+    },
+    async mountSliced(yieldToMain, isCancelled) {
+      for (const def of defs) {
+        if (isCancelled()) return;
+        if (!active.has(def.id)) build(def);
+        await yieldToMain();
+      }
     },
     refresh() {
       for (const def of defs) {

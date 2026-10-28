@@ -34,19 +34,29 @@ export async function audioUnlock(): Promise<boolean> {
   }
 }
 
+/** Eventos que los navegadores aceptan como activación del usuario (la rueda y el hover NO cuentan). */
+const GESTURES = ["pointerdown", "pointerup", "keydown", "touchend"] as const;
+
+/**
+ * Llama a `callback` UNA vez con el primer gesto de activación (clic, tecla o toque) y deja de escuchar.
+ * Ignora los gestos sobre el aviso «Activar sonido» (`[data-sound-unlock]`): ese botón arranca el audio con
+ * su propio clic, así no se oculta a mitad del clic. Devuelve la función que cancela la espera.
+ */
+export function onUnlockGesture(callback: () => void): () => void {
+  const handler = (event: Event) => {
+    if (event.target instanceof Element && event.target.closest("[data-sound-unlock]")) return;
+    cleanup();
+    callback();
+  };
+  const cleanup = () => GESTURES.forEach((e) => window.removeEventListener(e, handler, true));
+  GESTURES.forEach((e) => window.addEventListener(e, handler, { capture: true, passive: true }));
+  return cleanup;
+}
+
 /**
  * Visitas posteriores de la sesión con «sonido» ya elegido: el navegador exige un gesto, así que se
  * reanuda en el primero que ocurra (clic, toque o tecla).
  */
 export function armAudioUnlockOnFirstGesture(): () => void {
-  const events = ["pointerdown", "keydown", "touchstart"] as const;
-  const handler = () => {
-    cleanup();
-    void audioUnlock();
-  };
-  const cleanup = () => events.forEach((e) => window.removeEventListener(e, handler, true));
-  events.forEach((e) =>
-    window.addEventListener(e, handler, { capture: true, once: true, passive: true }),
-  );
-  return cleanup;
+  return onUnlockGesture(() => void audioUnlock());
 }

@@ -51,6 +51,27 @@ describe("controlador de transiciones", () => {
     expect(c.variantOf("T2")).toBe("dom");
   });
 
+  it("mountSliced cede el hilo entre transiciones, no duplica las ya montadas y respeta la cancelación", async () => {
+    const log: string[] = [];
+    const attach: Attach = () => ({ progress: () => 0, destroy: () => {} });
+    const defs: TransitionDef[] = [
+      { ...makeDef(log, false), id: "T2" },
+      { ...makeDef(log, false), id: "T3" },
+      { ...makeDef(log, false), id: "T4" },
+    ];
+    const c = createTransitionController(defs, ctx, attach, inputs);
+    let yields = 0;
+    await c.mountSliced(async () => void yields++, () => false);
+    expect(yields).toBe(3);
+    expect(["T2", "T3", "T4"].map((id) => c.variantOf(id))).toEqual(["dom", "dom", "dom"]);
+
+    const c2 = createTransitionController(defs, ctx, attach, inputs);
+    let stop = false;
+    await c2.mountSliced(async () => void (stop = true), () => stop);
+    expect(c2.variantOf("T2")).toBe("dom");
+    expect(c2.variantOf("T3")).toBeUndefined();
+  });
+
   it("5.9 el canvas queda listo a mitad de recorrido: la nueva variante arranca en el mismo progreso, sin saltos", () => {
     const log: string[] = [];
     let scrollProgress = 0.43;

@@ -86,7 +86,7 @@ Cada escena 3D activa SHALL usar menos de 100 llamadas de dibujo por fotograma, 
 - **THEN** ninguna escena genera partículas y las transiciones usan planos con texturas
 
 ### Requirement: Medios optimizados
-Las imágenes SHALL servirse en AVIF o WebP con tamaños responsivos y dimensiones reservadas; los vídeos SHALL servirse en WebM o MP4 con póster, silenciados y reproduciéndose solo en viewport; los modelos y texturas 3D, incluidos los atlas de texto, SHALL usar formatos comprimidos para GPU.
+Las imágenes SHALL servirse en AVIF o WebP con tamaños responsivos y dimensiones reservadas; los vídeos SHALL servirse en WebM o MP4 con póster, silenciados y reproduciéndose solo en viewport; los modelos 3D SHALL usar compresión de geometría y las texturas raster SHALL usar un formato comprimido; los atlas de texto MSDF SHALL servirse sin pérdida y optimizados.
 
 #### Scenario: Imagen de proyecto
 - **WHEN** el navegador soporta AVIF y solicita la captura de un proyecto en un viewport de 390 px
@@ -94,7 +94,7 @@ Las imágenes SHALL servirse en AVIF o WebP con tamaños responsivos y dimension
 
 #### Scenario: Texturas de escena
 - **WHEN** se inspeccionan las texturas descargadas por las escenas 3D
-- **THEN** todas usan un formato comprimido para GPU y ninguna es un PNG o JPEG sin comprimir de más de 256 px
+- **THEN** ninguna es un PNG o JPEG sin optimizar de más de 256 px, salvo los atlas MSDF, que se sirven sin pérdida y optimizados porque la compresión GPU degrada el campo de distancia
 
 #### Scenario: Vídeo fuera del viewport
 - **WHEN** la tarjeta de un proyecto con vídeo no está en el viewport

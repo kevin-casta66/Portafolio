@@ -1,2 +1,4 @@
+minimumReleaseAgeExclude:
+  - lighthouse@13.6.0
 overrides:
   "@react-three/drei>stats-gl": 4.2.3

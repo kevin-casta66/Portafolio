@@ -4,8 +4,11 @@
  * interpola la rueda), así que `scrollTo` con `behavior: "smooth"` funciona y respeta el movimiento
  * reducido.
  */
+import { getExperience } from "./experience";
+
+/** Modo de movimiento reducido (sistema o control manual): `lib/experience.ts`. */
 const prefersReducedMotion = (): boolean =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  getExperience() === "reduced" || document.documentElement.dataset.experience === "reduced";
 
 /** Se desplaza al inicio de la sección `id` y mueve el foco a su encabezado. Devuelve si existía. */
 export function jumpToSection(id: string, { updateHash = true } = {}): boolean {

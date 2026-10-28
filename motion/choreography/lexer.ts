@@ -24,9 +24,10 @@ export const lexerChoreography: Choreography = (ctx) => {
         start: "top 85%",
         once: true,
         onEnter: () => {
+          // Reducido: solo fundido (sin `y`, ni siquiera a 0: no se toca `transform`).
           gsap.fromTo(tokens, ctx.reduced ? { opacity: 0 } : { opacity: 0, y: 20 }, {
             opacity: 1,
-            y: 0,
+            ...(ctx.reduced ? {} : { y: 0 }),
             duration: seconds(ctx.reduced ? duration.ui : duration.reveal),
             ease: EASE.inExpo,
             stagger: seconds(stagger.item),

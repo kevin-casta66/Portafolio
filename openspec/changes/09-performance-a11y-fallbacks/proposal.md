@@ -2,7 +2,7 @@
 
 Tras los changes 00–08 el sitio tiene todo el contenido, la coreografía, las escenas 3D con backend de nueva generación y fallback WebGL2, los casos de estudio con Hold-to-Execute, los sistemas globales (logros, sonido, liquid glass), el Memory Heap (`/heap`) y la vitrina `/motion`. Nada garantiza aún que todo eso cumpla los presupuestos de rendimiento, que funcione sin animaciones o sin WebGL, ni que sea accesible y encontrable. Este change convierte las secciones §9 (Rendimiento), §10 (Accesibilidad y fallbacks) y §11 (SEO) de `docs/BRIEF.md`, más los guardarraíles §7 y los criterios §9 de `docs/ADDENDUM-v2.md`, en contratos verificables, porque el propio sitio es la pieza principal del portafolio y debe demostrar rigor de ingeniería.
 
-Depende de: `00-technique-teardown`, `01-foundation-design-system`, `02-static-semantic-sections`, `03-scroll-choreography`, `04-webgl-scenes`, `05-case-studies-view-transitions`, `06-global-systems`, `07-memory-heap` y `08-motion-showcase` (orden de docs/ROADMAP.md).
+Depende de: `00-technique-teardown`, `01-foundation-design-system`, `02-static-semantic-sections`, `03-scroll-choreography`, `04-webgl-scenes`, `05-case-studies-view-transitions`, `06-global-systems`, `07-memory-heap`, `08-motion-showcase`, `08b-adaptive-sound` y `08c-sound-audibility` (orden de docs/ROADMAP.md). También absorbe los pendientes que dejaron abiertos 04–08c: INP de 216–224 ms (primera apertura de los ajustes de sonido y pasada táctil 3D), JS propio de `/heap` (~494 KB), desbordamiento horizontal y cabecera de 3 filas a 375 px, el bug de atenuación `near` del túnel T4 y los textos de marcador que quedan en metadatos, laboratorio y `public/cv`.
 
 ## What Changes
 
@@ -29,5 +29,6 @@ Depende de: `00-technique-teardown`, `01-foundation-design-system`, `02-static-s
 
 - Código afectado: layout raíz, metadatos de `app/[locale]/` (home, casos, `/heap`, `/motion`), componentes de cada fase (estados reducido y fallback), runtime gráfico (detección de backend, pérdida de contexto, presupuestos por tier), `motion/` (rama reducida), store global (preferencia de movimiento y modo de experiencia), `components/systems/` (terminal, Vista Rápida, logros, liquid glass para `aria-live`, foco y contraste).
 - Nuevas rutas generadas: sitemap, robots, imágenes Open Graph por página/fase.
-- Assets: ilustraciones estáticas SVG por fase, pósters de vídeo, variantes AVIF/WebP, texturas comprimidas.
+- Assets: ilustraciones estáticas SVG por fase, pósters de vídeo, variantes AVIF/WebP. La conversión de texturas a KTX2 queda diferida (no hay texturas raster salvo los atlas MSDF, que deben ser sin pérdida).
+- Dependencias: `lighthouse` como devDependency con versión exacta (lo reutiliza el change 10 en CI).
 - Herramientas: análisis de bundle, contador de draw calls/partículas en modo debug y auditorías de accesibilidad/Lighthouse locales (la integración en CI llega en `10-testing-deployment`).

@@ -87,6 +87,18 @@ export function tierFromDetect(result: { tier: number; type?: string }): Tier {
   return "low";
 }
 
+/**
+ * GPU por debajo del mínimo (detect-gpu: benchmark con tier 0, p. ej. < 15 fps en su prueba, o WebGL sin
+ * soporte): el sitio usa la experiencia 2D sin intentar renderizar las escenas 3D (design D4).
+ */
+export function belowMinimumGpu(result: { tier: number; type?: string }): boolean {
+  return result.tier === 0 && (result.type === "BENCHMARK" || result.type === "WEBGL_UNSUPPORTED");
+}
+
+/** Degradación a `fallback2d`: fps < 30 sostenidos durante 3 s con el tier ya en `low` (design D6). */
+export const FPS2D_FLOOR = 30;
+export const FPS2D_WINDOW_MS = 3000;
+
 export const FPS_FLOOR = 50;
 export const FPS_WINDOW_MS = 2000;
 /** Un hueco mayor entre frames consecutivos es inactividad (render selectivo), no lentitud. */
