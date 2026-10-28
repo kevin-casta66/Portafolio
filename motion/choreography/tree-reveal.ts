@@ -1,39 +1,82 @@
-import { EASE, gsap } from "../gsap";
+import { EASE, ScrollTrigger, gsap } from "../gsap";
 import { qa } from "../transitions/dom";
 
 /**
- * Revelado del árbol de habilidades (PARSER): las ramas SVG se dibujan animando su trazo y los
- * nodos aparecen con el resorte de UI, por profundidad desde la raíz (cada nodo al completarse su
- * rama). Devuelve una timeline pausada: T3 la integra en su recorrido scrubbed; si las transiciones
- * están desactivadas, `parser.ts` la reproduce al entrar en viewport.
+ * Crecimiento del árbol de habilidades (PARSER) atado al scroll. El árbol mide varias pantallas, así
+ * que no se revela de una vez: cada nodo aparece cuando su fila llega a `APPEAR` de la altura de la
+ * ventana, y las líneas verticales de cada grupo crecen desde su padre al mismo ritmo. Es UNA
+ * timeline scrubbed sobre todo el árbol en la que cada tween se coloca en la fracción de scroll
+ * que corresponde a la posición de su fila, así que subir lo rebobina en orden inverso.
+ *
+ * Las filas no se animan con `opacity` (la usa el atenuado de la selección) sino con la propiedad
+ * registrada `--reveal` (`styles/systems.css`); las líneas, con `--line`.
  * Debe crearse dentro de un `gsap.context` para que se revierta al limpiar.
  */
-export function buildTreeReveal(root: HTMLElement): gsap.core.Timeline {
-  // Sin `paused`: al anidarse en la timeline de T3 debe avanzar con su padre (ScrollTrigger pausa la
-  // standalone por su cuenta).
-  const tl = gsap.timeline();
-  let cursor = 0;
-  for (const level of [1, 2, 3]) {
-    const rows = qa(root, `#parser [role='treeitem'][aria-level='${level}']`);
-    if (rows.length === 0) continue;
-    const paths = rows.flatMap((row) => qa<SVGPathElement>(row, "svg[data-anim='branch'] path"));
-    // El CSS anima `opacity` en las filas (atenuado de la selección): se anula mientras dura el revelado.
-    gsap.set(rows, { transition: "none" });
-    if (paths.length > 0) {
-      tl.fromTo(
-        paths,
-        { drawSVG: "0%" },
-        { drawSVG: "100%", duration: 0.18, ease: EASE.inExpo, stagger: 0.015 },
-        cursor,
-      );
-    }
+export const APPEAR = 0.85;
+/** Borde del árbol (fracción de la ventana) en el que termina T3: hasta ahí llegan vuelos y tubos. */
+export const T3_END_EDGE = 0.4;
+/** Recorrido de scroll (px) que tarda en completarse la aparición de una fila. */
+const ROW_PX = 90;
+
+export function buildTreeGrowth(root: HTMLElement): ScrollTrigger | null {
+  const tree = qa(root, "#parser [role='tree']")[0];
+  if (!tree) return null;
+  const rows = qa(tree, "[role='treeitem']");
+  const groups = qa(tree, "[role='group']");
+  if (rows.length === 0) return null;
+
+  const height = Math.max(1, tree.offsetHeight);
+  const top = tree.getBoundingClientRect().top;
+  const at = (el: Element) =>
+    Math.min(1, Math.max(0, (el.getBoundingClientRect().top - top) / height));
+  const span = Math.min(0.2, ROW_PX / height);
+
+  const tl = gsap.timeline({ defaults: { ease: "none" } });
+  for (const group of groups) {
+    const start = at(group);
+    const end = Math.min(1, start + group.offsetHeight / height);
     tl.fromTo(
-      rows,
-      { opacity: 0, scale: 0.85, transformOrigin: "0% 50%" },
-      { opacity: 1, scale: 1, duration: 0.3, ease: EASE.spring, stagger: 0.03 },
-      cursor + (paths.length > 0 ? 0.1 : 0),
+      group,
+      { "--line": 0 },
+      { "--line": 1, duration: Math.max(0.001, end - start) },
+      start,
     );
-    cursor += 0.25;
   }
-  return tl;
+  for (const row of rows) {
+    const t = at(row);
+    const stub = qa<SVGPathElement>(row, "svg[data-anim='branch'] path");
+    if (stub.length > 0)
+      tl.fromTo(stub, { drawSVG: "0%" }, { drawSVG: "100%", duration: span * 0.5 }, t);
+    tl.fromTo(
+      row,
+      { "--reveal": 0, scale: 0.85, transformOrigin: "0% 50%" },
+      { "--reveal": 1, scale: 1, duration: span, ease: EASE.spring },
+      t + span * 0.3,
+    );
+  }
+  // Cola vacía hasta 1 para que la fracción de cada tween coincida con la de su fila.
+  if (tl.duration() < 1) tl.set({}, {}, 1);
+
+  return ScrollTrigger.create({
+    trigger: tree,
+    start: `top ${APPEAR * 100}%`,
+    end: `bottom ${APPEAR * 100}%`,
+    scrub: 0.3,
+    animation: tl,
+    invalidateOnRefresh: true,
+  });
+}
+
+/**
+ * Filas que ya son visibles cuando el borde superior del árbol llega a `edge` (fracción de la
+ * ventana): los destinos del vuelo de T3, que aterriza justo donde el árbol empieza a crecer.
+ */
+export function headRows(root: HTMLElement, edge: number): HTMLElement[] {
+  const tree = qa(root, "#parser [role='tree']")[0];
+  if (!tree) return [];
+  const top = tree.getBoundingClientRect().top;
+  const limit = (APPEAR - edge) * window.innerHeight;
+  return qa(tree, "[role='treeitem']").filter(
+    (row) => row.getBoundingClientRect().top - top <= limit,
+  );
 }

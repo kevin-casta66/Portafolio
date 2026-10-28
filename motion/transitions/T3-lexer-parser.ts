@@ -1,4 +1,4 @@
-import { buildTreeReveal } from "../choreography/tree-reveal";
+import { T3_END_EDGE, headRows } from "../choreography/tree-reveal";
 import { EASE, gsap } from "../gsap";
 import type { TransitionContext, TransitionDef, TransitionHandle } from "./contract";
 import { createLayer, qa } from "./dom";
@@ -6,10 +6,11 @@ import { addFlight, type FlyPair } from "./fly";
 
 /**
  * T3 · LEXER → PARSER (versión DOM/SVG). Los tokens de la biografía vuelan desde sus carriles (de
- * primera a última posición) y se acoplan como los primeros nodos del árbol, que crece desde arriba:
- * las ramas se dibujan como trazos SVG desde la raíz y los nodos aparecen con resorte. Al terminar,
- * los clones desaparecen sobre las posiciones EXACTAS de los nodos reales, que son el árbol
- * interactivo. Fila T3 de docs/MOTION-SPEC.md.
+ * primera a última posición) y se acoplan como los primeros nodos del árbol, que crece desde arriba.
+ * El tramo va anclado al ÁRBOL (no al título de la sección) para que todo ocurra en pantalla, y cada
+ * clon aterriza cuando su nodo aparece: el crecimiento del árbol (ramas y nodos con resorte, fila a
+ * fila con el scroll) lo hace `buildTreeGrowth` desde la coreografía de PARSER. Al terminar, los
+ * clones desaparecen sobre las posiciones EXACTAS de los nodos reales. Fila T3 de docs/MOTION-SPEC.md.
  */
 function buildDom(ctx: TransitionContext): TransitionHandle {
   const layer = createLayer("absolute", "T3");
@@ -18,12 +19,15 @@ function buildDom(ctx: TransitionContext): TransitionHandle {
     timeline = gsap.timeline({ paused: true, defaults: { ease: "none" } });
     if (!ctx.compact) {
       const tokens = qa(ctx.root, "#lexer [data-anim='token']");
-      const rows = qa(ctx.root, "#parser [role='treeitem']");
+      // Solo los nodos que ya han aparecido al final del tramo (borde del árbol al 40 %): el primero
+      // aterriza a mitad del tramo, cuando aparece la raíz, y el último al terminar.
+      const rows = headRows(ctx.root, T3_END_EDGE);
       const pairs: FlyPair[] = tokens
         .slice(0, rows.length)
         .map((from, i) => ({ from, to: rows[i] as HTMLElement }));
-      addFlight(timeline, pairs, { layer, depth: 1.4, spread: 0.2, at: 0, length: 0.5 });
-      timeline.add(buildTreeReveal(ctx.root), 0.45);
+      addFlight(timeline, pairs, { layer, depth: 1.4, spread: 0.5, at: 0.1, length: 0.4 });
+      // Duración fija: la posición de cada aterrizaje es una fracción del tramo aunque falten clones.
+      timeline.set({}, {}, 1);
     } else {
       // Móvil: el árbol aparece con fundido + desplazamiento, sin vuelos.
       const tree = qa(ctx.root, "#parser [role='tree']");
@@ -61,8 +65,8 @@ export const T3: TransitionDef = {
   from: "lexer",
   to: "parser",
   range: ({ root }) => {
-    const trigger = root.querySelector("#parser");
-    return trigger ? { trigger, start: "top bottom", end: "top 40%" } : null;
+    const trigger = root.querySelector("#parser [role='tree']");
+    return trigger ? { trigger, start: "top bottom", end: `top ${T3_END_EDGE * 100}%` } : null;
   },
   variants: { dom: buildDom, reduced: buildReduced },
 };

@@ -36,9 +36,13 @@ export function createLayer(kind: "absolute" | "fixed", name: string, zIndex = 3
     style.height = "100%";
     style.overflow = "hidden";
   } else {
-    style.width = "0";
+    // Ancho del viewport y recorte SOLO horizontal: un clon que vuela (o que queda invisible y
+    // estirado tras aterrizar) nunca puede ensanchar la página y crear scroll horizontal; en
+    // vertical sigue desbordando la capa, que vive en coordenadas de documento.
+    style.width = "100%";
     style.height = "0";
-    style.overflow = "visible";
+    style.overflowX = "clip";
+    style.overflowY = "visible";
   }
   document.body.appendChild(layer);
   return layer;

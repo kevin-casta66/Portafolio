@@ -204,6 +204,57 @@ dialog.terminal::backdrop {
   }
 }
 
+/* ───────────────────────── Árbol de habilidades (PARSER) ───────────────────────── */
+
+/*
+ * Dos propiedades independientes sobre la opacidad de cada fila: `--reveal` la anima el crecimiento
+ * del árbol con el scroll (`motion/choreography/tree-reveal.ts`) y `--dim` el atenuado de la
+ * selección, que es lo único con transición. Así el revelado no pisa el atenuado ni al revés.
+ */
+@property --reveal {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --dim {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+/* Heredable: la usa el `::before` del grupo, que solo ve el valor si lo hereda de su elemento. */
+@property --line {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.ast-row {
+  opacity: calc(var(--reveal) * var(--dim));
+  transition: --dim var(--dur-ui) var(--ease-in-expo);
+}
+
+.ast-row[data-dimmed="true"] {
+  --dim: 0.4;
+}
+
+/* Línea vertical de cada grupo de hijos: crece desde el padre (`--line` de 0 a 1). */
+.ast-group {
+  position: relative;
+}
+
+.ast-group::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  background-color: var(--border);
+  content: "";
+  transform: scaleY(var(--line));
+  transform-origin: top;
+}
+
 /* ───────────────────────── Bienvenida ───────────────────────── */
 
 dialog.welcome {

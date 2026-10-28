@@ -107,6 +107,8 @@ export default defineConfig([
     "next-env.d.ts",
     "openspec/**",
     ".claude/**",
+    // Archivos temporales de los agentes (ignorados también por git).
+    ".scratch/**",
     // Scripts de verificación en navegador (Playwright): esperas y tiempos de prueba, no animaciones de la app.
     "scripts/audio/**",
     "scripts/perf/**",

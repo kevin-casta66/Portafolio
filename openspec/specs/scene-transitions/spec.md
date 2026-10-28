@@ -38,11 +38,19 @@ La línea de código del hero SHALL disolverse de izquierda a derecha siguiendo 
 - **THEN** los tokens del Lexer aparecen con fundido escalonado (fallback del change 03)
 
 ### Requirement: T3 Ensamblaje del árbol con tubos iluminados (LEXER → PARSER)
-Las ramas del árbol de habilidades SHALL dibujarse como tubos iluminados que crecen a lo largo de curvas, recorridos por un pulso de luz, mientras los tokens viajan a sus nodos.
+Las ramas del árbol de habilidades SHALL dibujarse como tubos iluminados que crecen a lo largo de curvas, recorridos por un pulso de luz, mientras los tokens viajan a sus nodos. En escritorio los tubos MUST cubrir TODO el árbol: cada tubo va del borde derecho del nodo padre al izquierdo del hijo sin cruzar sus rótulos, crece con el scroll hasta llegar a su nodo cuando este aparece y MUST permanecer visible mientras el visitante está en PARSER. Plegar o desplegar una rama MUST recalcular los tubos, que nunca apuntan a nodos plegados u ocultos. En los escenarios de demostración (`/motion`, `/prototypes`) la transición se recorre con el tiempo y los tubos se desvanecen al final.
 
 #### Scenario: Llegada a PARSER
 - **WHEN** el usuario avanza de LEXER a PARSER
 - **THEN** los tubos crecen hacia cada nodo y un pulso de luz los recorre
+
+#### Scenario: Tubos persistentes
+- **WHEN** el usuario sigue desplazándose por PARSER
+- **THEN** cada categoría y tecnología que aparece recibe su tubo y los anteriores siguen visibles
+
+#### Scenario: Rama plegada
+- **WHEN** el usuario pliega una rama del árbol
+- **THEN** desaparecen los tubos hacia sus hijos y los del resto del árbol se recolocan sobre sus nodos
 
 #### Scenario: Fallback
 - **WHEN** el tier es bajo o reduced motion está activo

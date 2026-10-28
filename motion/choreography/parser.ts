@@ -1,31 +1,55 @@
 import { ScrollTrigger, gsap } from "../gsap";
 import { qa } from "../transitions/dom";
-import type { Choreography } from "./context";
-import { buildTreeReveal } from "./tree-reveal";
+import type { ChoreoContext, Choreography } from "./context";
+import { buildTreeGrowth } from "./tree-reveal";
 
 /**
- * PARSER · (1) si las transiciones están desactivadas, el árbol se revela al entrar en viewport
- * (ramas con DrawSVG, nodos con resorte); con transiciones lo hace T3. (2) En escritorio el árbol
+ * PARSER · (1) el árbol crece fila a fila con el scroll (ramas con DrawSVG, líneas que bajan desde
+ * cada padre, nodos con resorte), con o sin transiciones: T3 solo añade el vuelo de los tokens. En
+ * móvil el árbol vertical y colapsable aparece con el fundido de T3. (2) En escritorio el árbol
  * horizontal se explora arrastrando con el puntero, con inercia. El teclado no necesita arrastre: al
  * enfocar un nodo el navegador lo mantiene visible (scroll nativo del contenedor).
  */
 const FRICTION_MS = 240; // constante de decaimiento de la inercia
 const DRAG_THRESHOLD = 5; // px antes de considerar que es un arrastre y no un clic
 
+/**
+ * El crecimiento coloca cada fila en una fracción del árbol medida al crearlo: al plegar o desplegar
+ * una rama esas medidas cambian (y todo lo que hay debajo se desplaza), así que se reconstruye y se
+ * recalculan TODOS los ScrollTrigger de la página. `revert()` devuelve las filas a su estado SSR
+ * antes de rehacerlo y al limpiar (sin restos de `--reveal: 0` si se pasa a móvil).
+ */
+function growWithLayout(ctx: ChoreoContext): void {
+  const tree = ctx.root.querySelector<HTMLElement>("#parser [role='tree']");
+  let growth = buildTreeGrowth(ctx.root);
+  if (!tree) return;
+  let height = tree.offsetHeight;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const observer = new ResizeObserver(() => {
+    if (tree.offsetHeight === height) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      height = tree.offsetHeight;
+      growth?.animation?.revert();
+      growth?.kill();
+      growth = buildTreeGrowth(ctx.root);
+      ScrollTrigger.refresh();
+    }, 80);
+  });
+  observer.observe(tree);
+  ctx.onCleanup(() => {
+    observer.disconnect();
+    clearTimeout(timer);
+    growth?.animation?.revert();
+    growth?.kill();
+  });
+}
+
 export const parserChoreography: Choreography = (ctx) => {
   const section = ctx.root.querySelector<HTMLElement>("#parser");
   if (!section) return;
 
-  if (!ctx.transitionsOn && !ctx.reduced) {
-    const reveal = buildTreeReveal(ctx.root);
-    ScrollTrigger.create({
-      trigger: section,
-      start: "top 75%",
-      once: true,
-      animation: reveal,
-      toggleActions: "play none none none",
-    });
-  }
+  if (!ctx.reduced && !ctx.compact) growWithLayout(ctx);
 
   // Arrastre con inercia (solo ratón/lápiz con puntero fino y árbol horizontal desbordado).
   const tree = qa(section, "[role='tree']")[0];

@@ -48,11 +48,19 @@ En escritorio el árbol SHALL disponerse horizontalmente y en viewports estrecho
 - **THEN** el árbol es vertical, las ramas inician colapsadas salvo la primera y no aparece scroll horizontal en la página
 
 ### Requirement: Ramas dibujadas y nodos con resorte
-Al revelarse el árbol, las ramas SHALL dibujarse progresivamente animando su trazo y los nodos MUST aparecer con una animación de resorte usando el spring de UI, en orden de profundidad desde la raíz.
+En escritorio el árbol SHALL crecer atado al scroll: cada nodo MUST aparecer con una animación de resorte usando el spring de UI cuando su fila llega aproximadamente al 85 % de la altura de la ventana, su conector MUST dibujarse animando el trazo y la línea vertical de cada grupo de hijos MUST crecer desde su padre al mismo ritmo. Desplazarse hacia arriba MUST rebobinar el crecimiento en orden inverso. El revelado MUST NOT alterar la opacidad de atenuado de la selección. En viewports estrechos y con movimiento reducido el árbol aparece con un fundido.
 
-#### Scenario: Revelado del árbol
-- **WHEN** la sección PARSER entra en viewport
-- **THEN** las ramas se dibujan desde la raíz hacia las hojas y cada nodo aparece al completarse su rama
+#### Scenario: Crecimiento con el scroll
+- **WHEN** el visitante desplaza la página por la sección PARSER en escritorio
+- **THEN** los nodos que ya pasaron el 85 % de la ventana están visibles, los que están por debajo aún no, y las líneas verticales llegan hasta el último nodo visible
+
+#### Scenario: Rebobinado
+- **WHEN** el visitante vuelve a desplazarse hacia arriba
+- **THEN** los nodos que quedan por debajo del 85 % de la ventana desaparecen en orden inverso
+
+#### Scenario: Atenuado tras el revelado
+- **WHEN** el árbol ya creció y el visitante selecciona una tecnología
+- **THEN** los nodos no relacionados se atenúan aunque el revelado haya fijado su estado final
 
 ### Requirement: Exploración por arrastre en escritorio
 En escritorio el árbol horizontal SHALL poder desplazarse arrastrando con el puntero, con inercia, y MUST seguir siendo navegable por teclado sin necesidad de arrastre. En móvil el árbol vertical colapsable expande/colapsa ramas con animación de altura basada en transform.

@@ -285,14 +285,14 @@ export function SkillTree({ categories }: { categories: TreeCategory[] }) {
             setActiveId(id);
             activate(node);
           }}
+          data-dimmed={dimmed || dimmedLeaf ? "true" : undefined}
           className={
-            "row flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 transition-opacity " +
+            "row ast-row flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 " +
             (isSelected
               ? "border-accent bg-phase-tint "
               : node.kind === "root"
                 ? "border-accent "
-                : "border-border bg-surface hover:border-accent ") +
-            (dimmed || dimmedLeaf ? "opacity-40" : "")
+                : "border-border bg-surface hover:border-accent ")
           }
         >
           {node.kind !== "root" ? (
@@ -339,7 +339,7 @@ export function SkillTree({ categories }: { categories: TreeCategory[] }) {
                 { duration: duration.ui, easing: cssEase.inExpo },
               );
             }}
-            className="ml-3 mt-2 flex flex-col gap-2 border-l border-border pl-3 md:ml-4 md:mt-0 md:pl-4"
+            className="ast-group ml-3 mt-2 flex flex-col gap-2 pl-3 md:ml-4 md:mt-0 md:pl-4"
           >
             {node.childIds.map(renderNode)}
           </ul>

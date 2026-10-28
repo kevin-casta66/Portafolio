@@ -17,6 +17,15 @@ export const SCENE_DEFS: readonly SceneDef[] = [
     load: () => import("./source").then((m) => m.createSourceScene),
   },
   {
+    // Tubos iluminados del árbol de habilidades: crecen con el scroll y permanecen en PARSER. Solo en
+    // escritorio (en móvil el árbol es vertical y colapsable, sin tubos).
+    id: "parser",
+    order: 15,
+    range: () => sectionRange("parser"),
+    enabled: (preset, frame) => preset.scenes3d && !frame.reduced && frame.viewW >= 768,
+    load: () => import("./parser").then((m) => m.createParserScene),
+  },
+  {
     id: "runtime",
     order: 20,
     range: () => sectionRange("runtime"),

@@ -49,7 +49,7 @@ Al hacer scroll desde el Hero, la línea `const dev = new Developer("…")` SHAL
 - **THEN** los tokens están separados, coloreados por tipo y a mitad de su trayectoria
 
 ### Requirement: T3 LEXER → PARSER (versión DOM/SVG)
-Los tokens de la biografía SHALL volar desde sus carriles y acoplarse como nodos del árbol de habilidades mediante animación de posición basada en primera/última posición, de modo que el árbol crezca desde arriba; en esta versión las ramas MUST dibujarse como trazos SVG que crecen desde la raíz.
+Los tokens de la biografía SHALL volar desde sus carriles y acoplarse como nodos del árbol de habilidades mediante animación de posición basada en primera/última posición, de modo que el árbol crezca desde arriba; en esta versión las ramas MUST dibujarse como trazos SVG que crecen desde la raíz. El tramo de scroll MUST anclarse al propio árbol (no al título de la sección), de modo que el vuelo y la aparición de los primeros nodos ocurran dentro de la ventana; los tokens vuelan solo hacia los nodos que ya han aparecido al final del tramo, y el resto del árbol crece con el scroll según la capability `skills-section`.
 
 #### Scenario: Tokens se vuelven nodos
 - **WHEN** termina la transición LEXER → PARSER
