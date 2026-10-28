@@ -2,3 +2,10 @@ minimumReleaseAgeExclude:
   - lighthouse@13.6.0
 overrides:
   "@react-three/drei>stats-gl": 4.2.3
+# Scripts de instalación denegados de forma explícita: pnpm 12 en CI (Vercel) falla con ERR_PNPM_IGNORED_BUILDS
+# si quedan sin decidir. Ninguno hace falta para `next build`: usan binarios precompilados de sus dependencias opcionales.
+allowBuilds:
+  "@parcel/watcher": false
+  "@swc/core": false
+  esbuild: false
+  unrs-resolver: false
