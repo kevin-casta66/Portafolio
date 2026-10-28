@@ -109,5 +109,7 @@ export default defineConfig([
     ".claude/**",
     // Scripts de verificación en navegador (Playwright): esperas y tiempos de prueba, no animaciones de la app.
     "scripts/audio/**",
+    "scripts/perf/**",
+    "scripts/a11y/keyboard.mjs",
   ]),
 ]);

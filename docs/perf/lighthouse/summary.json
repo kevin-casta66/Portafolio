@@ -1,20 +1,76 @@
 {
   "base": "http://localhost:3150",
-  "date": "2026-10-28T18:00:20.812Z",
+  "date": "2026-10-28T19:19:03.345Z",
   "rows": [
     {
-      "route": "/es/projects/arquelume-ai-agent",
+      "route": "/en",
+      "performance": 84,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 1205,
+      "cls": 0.0173,
+      "tbtMs": 600,
+      "fcpMs": 1205,
+      "speedIndexMs": 2450,
+      "lighthouse": "13.6.0",
+      "ok": false
+    },
+    {
+      "route": "/es",
       "performance": 79,
       "accessibility": 100,
       "bestPractices": 100,
       "seo": 100,
-      "lcpMs": 1011,
-      "cls": 0,
-      "tbtMs": 909,
-      "fcpMs": 1011,
-      "speedIndexMs": 2031,
+      "lcpMs": 1206,
+      "cls": 0.0171,
+      "tbtMs": 939,
+      "fcpMs": 1206,
+      "speedIndexMs": 2425,
       "lighthouse": "13.6.0",
       "ok": false
+    },
+    {
+      "route": "/es/heap",
+      "performance": 91,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 1058,
+      "cls": 0,
+      "tbtMs": 377,
+      "fcpMs": 1058,
+      "speedIndexMs": 1947,
+      "lighthouse": "13.6.0",
+      "ok": true
+    },
+    {
+      "route": "/es/motion",
+      "performance": 100,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 905,
+      "cls": 0,
+      "tbtMs": 26,
+      "fcpMs": 905,
+      "speedIndexMs": 1076,
+      "lighthouse": "13.6.0",
+      "ok": true
+    },
+    {
+      "route": "/es/projects/arquelume-ai-agent",
+      "performance": 96,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 100,
+      "lcpMs": 907,
+      "cls": 0,
+      "tbtMs": 210,
+      "fcpMs": 907,
+      "speedIndexMs": 1420,
+      "lighthouse": "13.6.0",
+      "ok": true
     }
   ]
 }

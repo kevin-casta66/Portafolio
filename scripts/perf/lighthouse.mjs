@@ -8,7 +8,7 @@
  * Sin rutas: /es, /en, un caso, /heap y /motion. Variables: CHROME_PATH (opcional), RUNS (por defecto 1).
  */
 import { createRequire } from "node:module";
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -73,5 +73,11 @@ try {
 } finally {
   await chrome.kill();
 }
-writeFileSync(join(outDir, "summary.json"), JSON.stringify({ base: BASE, date: new Date().toISOString(), rows }, null, 2));
+// El resumen acumula: auditar una sola ruta no borra las demás.
+let previous = [];
+try {
+  previous = JSON.parse(readFileSync(join(outDir, "summary.json"), "utf8")).rows ?? [];
+} catch {}
+const merged = [...previous.filter((r) => !rows.some((n) => n.route === r.route)), ...rows];
+writeFileSync(join(outDir, "summary.json"), JSON.stringify({ base: BASE, date: new Date().toISOString(), rows: merged }, null, 2));
 process.exit(fails ? 1 : 0);

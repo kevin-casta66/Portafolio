@@ -1,0 +1,76 @@
+{
+  "cpu": 4,
+  "limit": 200,
+  "results": {
+    "sonido: primera apertura": {
+      "max": 152,
+      "n": 5,
+      "worst": {
+        "name": "pointerdown",
+        "input": 44,
+        "processing": 2,
+        "presentation": 106
+      }
+    },
+    "terminal": {
+      "max": 104,
+      "n": 19,
+      "worst": {
+        "name": "keydown",
+        "input": 1,
+        "processing": 77,
+        "presentation": 26
+      }
+    },
+    "AST": {
+      "max": 72,
+      "n": 3,
+      "worst": {
+        "name": "pointerdown",
+        "input": 16,
+        "processing": 1,
+        "presentation": 55
+      }
+    },
+    "Hold-to-Execute": {
+      "max": 80,
+      "n": 3,
+      "worst": {
+        "name": "pointerup",
+        "input": 37,
+        "processing": 3,
+        "presentation": 40
+      }
+    },
+    "formulario": {
+      "max": 176,
+      "n": 199,
+      "worst": {
+        "name": "click",
+        "input": 124,
+        "processing": 32,
+        "presentation": 20
+      }
+    },
+    "/heap: Run GC": {
+      "max": 40,
+      "n": 3,
+      "worst": {
+        "name": "pointerdown",
+        "input": 7,
+        "processing": 1,
+        "presentation": 33
+      }
+    },
+    "/heap: celda con teclado": {
+      "max": 32,
+      "n": 6,
+      "worst": {
+        "name": "keyup",
+        "input": 2,
+        "processing": 0,
+        "presentation": 30
+      }
+    }
+  }
+}

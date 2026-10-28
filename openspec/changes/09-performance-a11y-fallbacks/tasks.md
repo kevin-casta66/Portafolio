@@ -1,8 +1,8 @@
 ## 1. Modo de experiencia y backend
 
 - [x] 1.1 Crear `lib/experience.ts` que derive `full | reduced | fallback2d` (manual > sistema > capacidad > fps) y registre el backend activo (`webgpu | webgl2 | none`); verificar con tests unitarios que cubren las 4 prioridades y los 3 backends
-- [ ] 1.2 Añadir script inline en `<head>` que fije `data-experience` en `<html>` antes del primer pintado; verificar en DevTools que no hay flash de animación con `prefers-reduced-motion` emulado
-- [ ] 1.3 Añadir el control manual de movimiento reducido (header y comando de terminal) con persistencia en sessionStorage; verificar que el modo se mantiene al navegar a un caso, a `/heap` y a `/motion`
+- [x] 1.2 Añadir script inline en `<head>` que fije `data-experience` en `<html>` antes del primer pintado; verificar en DevTools que no hay flash de animación con `prefers-reduced-motion` emulado
+- [x] 1.3 Añadir el control manual de movimiento reducido (header y comando de terminal) con persistencia en sessionStorage; verificar que el modo se mantiene al navegar a un caso, a `/heap` y a `/motion`
 
 ## 2. Movimiento reducido
 
@@ -26,19 +26,19 @@
 
 ## 4. Presupuestos de rendimiento
 
-- [ ] 4.1 Crear `scripts/check-bundle.ts` que sume el gzip del JS de primer render por ruta (home, caso, `/heap`, `/motion`) y falle si ≥ 180 KB o incluye librerías 3D/animación diferibles; verificar ejecutándolo sobre `next build`; usar el mismo criterio de medición que el change 04 (gzip nivel 9 de los scripts `/_next/static` del HTML) y anotar la línea base actual de 256,99 KB (histórico en design.md D9)
-- [ ] 4.2 Diferir la carga de GSAP, Lenis, el motor 3D y las escenas a después del LCP; verificar en la línea de tiempo de red que esas peticiones empiezan tras el evento LCP
+- [x] 4.1 Crear `scripts/check-bundle.ts` que sume el gzip del JS de primer render por ruta (home, caso, `/heap`, `/motion`) y falle si ≥ 180 KB o incluye librerías 3D/animación diferibles; verificar ejecutándolo sobre `next build`; usar el mismo criterio de medición que el change 04 (gzip nivel 9 de los scripts `/_next/static` del HTML) y anotar la línea base actual de 256,99 KB (histórico en design.md D9)
+- [x] 4.2 Diferir la carga de GSAP, Lenis, el motor 3D y las escenas a después del LCP; verificar en la línea de tiempo de red que esas peticiones empiezan tras el evento LCP
 - [ ] 4.3 Auditar handlers de interacción (filtros, AST, Hold-to-Execute, Run GC, drag del Heap, terminal, formulario) y mover a GPU o worker todo trabajo > 50 ms; verificar en el panel Performance que no quedan long tasks en esas interacciones
-- [ ] 4.4 Medir INP en filtros, AST, Hold-to-Execute, `/heap`, terminal y formulario con Web Vitals en consola; verificar < 200 ms en móvil emulado
-- [ ] 4.5 Revisar Lenis y pins: sin bloqueo de wheel/touch, retroceso libre, teclado (PageDown, Inicio/Fin) y Call Stack funcionando durante pins; verificar manualmente en escritorio y móvil
-- [ ] 4.6 Crear script local que recorra las fases en cada tier y lea draw calls y partículas del Modo Debug; verificar < 100 draw calls por escena activa y partículas ≤ 200k/50k/0
-- [ ] 4.7 Migrar imágenes a AVIF/WebP con `sizes` y dimensiones reservadas, vídeos a WebM/MP4 con póster y reproducción solo en viewport, y optimizar sin pérdida los atlas MSDF; verificar en Network con viewport de 390 px; la conversión KTX2 (pendiente 5.6 del change 04) queda diferida por decisión del usuario
-- [ ] 4.8 Configurar fuentes locales con subset, precarga y fallback ajustado; verificar cero peticiones a terceros y CLS de fuentes ≈ 0
-- [ ] 4.9 Comprobar que se mantiene el límite de DPR a 2 implementado en el change 04 (`dpr={[1, 2]}` en `webgl/WebglRoot.tsx`); verificar con emulación de DPR 3 en Modo Debug que `renderer.getPixelRatio()` devuelve 2
+- [x] 4.4 Medir INP en filtros, AST, Hold-to-Execute, `/heap`, terminal y formulario con Web Vitals en consola; verificar < 200 ms en móvil emulado
+- [x] 4.5 Revisar Lenis y pins: sin bloqueo de wheel/touch, retroceso libre, teclado (PageDown, Inicio/Fin) y Call Stack funcionando durante pins; verificar manualmente en escritorio y móvil
+- [x] 4.6 Crear script local que recorra las fases en cada tier y lea draw calls y partículas del Modo Debug; verificar < 100 draw calls por escena activa y partículas ≤ 200k/50k/0
+- [x] 4.7 Migrar imágenes a AVIF/WebP con `sizes` y dimensiones reservadas, vídeos a WebM/MP4 con póster y reproducción solo en viewport, y optimizar sin pérdida los atlas MSDF; verificar en Network con viewport de 390 px; la conversión KTX2 (pendiente 5.6 del change 04) queda diferida por decisión del usuario
+- [x] 4.8 Configurar fuentes locales con subset, precarga y fallback ajustado; verificar cero peticiones a terceros y CLS de fuentes ≈ 0
+- [x] 4.9 Comprobar que se mantiene el límite de DPR a 2 implementado en el change 04 (`dpr={[1, 2]}` en `webgl/WebglRoot.tsx`); verificar con emulación de DPR 3 en Modo Debug que `renderer.getPixelRatio()` devuelve 2
 - [ ] 4.10 Instalar `lighthouse` como devDependency con versión exacta (solo el agente principal), crear `scripts/perf/lighthouse.mjs` y ejecutar Lighthouse móvil local en `/es`, `/en`, un caso, `/heap` y `/motion` con todas las capas activas; verificar Perf ≥ 90, A11y/BP/SEO = 100, LCP < 2,5 s, CLS < 0,05 y guardar los informes en `docs/perf/`
 - [ ] 4.11 Medir fps en recorrido completo en escritorio de referencia con cada backend; verificar mediana ≥ 58 y documentar en `docs/perf/`
-- [ ] 4.12 Resolver los INP heredados (primera apertura de los ajustes de sonido, 216 ms; pasada táctil 3D del 07, 224 ms) difiriendo el trabajo tras el feedback inmediato; verificar < 200 ms con `scripts/audio/measure-inp.mjs` y en perfil móvil
-- [ ] 4.13 Reducir el JS propio de `/heap` (~494 KB) para que la lista y la cuadrícula DOM lleguen antes que la escena; verificar con `scripts/check-bundle.ts` y en Network
+- [x] 4.12 Resolver los INP heredados (primera apertura de los ajustes de sonido, 216 ms; pasada táctil 3D del 07, 224 ms) difiriendo el trabajo tras el feedback inmediato; verificar < 200 ms con `scripts/audio/measure-inp.mjs` y en perfil móvil
+- [x] 4.13 Reducir el JS propio de `/heap` (~494 KB) para que la lista y la cuadrícula DOM lleguen antes que la escena; verificar con `scripts/check-bundle.ts` y en Network
 
 ## 5. Accesibilidad
 
@@ -63,4 +63,4 @@
 
 ## 7. Verificación integral
 
-- [ ] 7.1 Recorrer la matriz completa (full con backend de nueva generación, full con WebGL2, reduced, fallback2d × tema claro/oscuro × es/en) comprobando que la narrativa y el contenido esencial son idénticos; verificar con checklist firmado en `docs/perf/README.md`
+- [x] 7.1 Recorrer la matriz completa (full con backend de nueva generación, full con WebGL2, reduced, fallback2d × tema claro/oscuro × es/en) comprobando que la narrativa y el contenido esencial son idénticos; verificar con checklist firmado en `docs/perf/README.md`

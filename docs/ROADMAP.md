@@ -21,6 +21,10 @@ Documentos de referencia (change 00): [TECHNIQUE-TEARDOWN.md](./TECHNIQUE-TEARDO
 | 9 | `09-performance-a11y-fallbacks` | Brief §9–§11 · Add. §7, §9 | `performance-budgets`, `reduced-motion`, `webgl-fallback`, `accessibility`, `seo` |
 | 10 | `10-testing-deployment` | Brief §7, §13 · Add. §7 (dispositivos), §8.5, §9 | `e2e-testing`, `lighthouse-ci`, `deployment` |
 
+## Estado del change 09
+
+Implementado y verificado en lo local; **no archivado**. Quedan abiertas 4.3, 4.10 (Lighthouse de la home < 90 por TBT), 4.11 (fps en frío) y las comprobaciones con NVDA/móvil real (5.4–5.7), más el validador de Schema.org (6.3). Informes y matriz en `docs/perf/README.md`.
+
 ## Flujo de trabajo
 
 1. Revisa el change (`openspec show <change>`).

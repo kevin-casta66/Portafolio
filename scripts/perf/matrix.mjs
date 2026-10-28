@@ -15,6 +15,12 @@ const { chromium } = require("@playwright/test");
 const BASE = (process.env.BASE ?? "http://localhost:3150").replace(/\/+$/, "");
 const jsonOut = process.argv.find((a) => a.startsWith("--json="))?.split("=")[1];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/**
+ * Avisos propios de un modo que la spec exige (reduced-motion: «Reproducir animación completa» y su aviso, la nota de que
+ * no hay previsualización animada) y los de la previsualización al pasar el cursor, que no existe sin animación. Son
+ * variaciones de interfaz del modo, no de contenido; se excluyen de la firma y se listan aquí a propósito.
+ */
+const MODE_NOTES = /movimiento reducido|reduced motion|animación completa|full animation|previsualización|preview/i;
 const MODES = [
   { id: "full-nueva-generacion", query: "?motionTest=1", reduced: false, expectExperience: "full", expectBackend: ["webgpu", "webgl2"] },
   { id: "full-webgl2", query: "?motionTest=1&webgl=webgl2", reduced: false, expectExperience: "full", expectBackend: ["webgl2"] },
@@ -62,7 +68,8 @@ for (const mode of MODES) {
           }
         });
         await sleep(1200);
-        const r = await page.evaluate(() => {
+        const r = await page.evaluate((noteSource) => {
+          const notes = new RegExp(noteSource, "i");
           const main = document.querySelector("main");
           const norm = (s) => (s ?? "").replace(/\s+/g, " ").trim();
           const state = window.__portafolioApp?.store.getState();
@@ -73,11 +80,11 @@ for (const mode of MODES) {
                 [...document.querySelectorAll("main p, main li, main h1, main h2, main h3, main h4, main dt, main dd, main th, main td, main summary, main label, main button, main a, main figcaption, main option")]
                   .filter((e) => !e.querySelector("p, li, h1, h2, h3, h4, dt, dd, th, td, summary, label, button, a, figcaption, option"))
                   .map((e) => norm(e.textContent))
-                  .filter(Boolean),
+                  .filter((t) => t && !notes.test(t)),
               ),
             ].sort(),
             headings: [...document.querySelectorAll("main h1, main h2, main h3")].map((h) => norm(h.textContent)).join("|"),
-            links: [...document.querySelectorAll("main a[href]")].map((a) => a.getAttribute("href")).join("|"),
+            links: [...document.querySelectorAll("main a[href]")].filter((a) => !a.closest("[aria-hidden=true]") && a.getAttribute("tabindex") !== "-1").map((a) => a.getAttribute("href")).join("|"),
             sections: [...document.querySelectorAll("main section[id]")].map((s) => s.id).join("|"),
             controls: document.querySelectorAll("main button, main input, main select, main textarea").length,
             exp: document.documentElement.getAttribute("data-experience"),
@@ -87,7 +94,7 @@ for (const mode of MODES) {
             htmlLang: document.documentElement.lang,
             theme: document.documentElement.getAttribute("data-theme"),
           };
-        });
+        }, MODE_NOTES.source);
         const signature = createHash("sha1").update([r.lines.join("\n"), r.headings, r.links, r.sections].join("\n#\n")).digest("hex").slice(0, 12);
         const key = `${pg.id}|${theme}|${locale}`;
         if (!signatures.has(key)) signatures.set(key, new Map());
