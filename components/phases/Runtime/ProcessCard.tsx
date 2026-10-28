@@ -26,7 +26,11 @@ export async function ProcessCard({
   const { links, media } = project;
   // Hold-to-Execute (change 05): solo las tarjetas con caso de estudio se pueden «ejecutar».
   const hold = links.caseStudy
-    ? { slug: links.caseStudy, descId: `project-${project.slug}-hold`, text: (await getTranslations("Hold"))("instruction") }
+    ? {
+        slug: links.caseStudy,
+        descId: `project-${project.slug}-hold`,
+        text: (await getTranslations("Hold"))("instruction"),
+      }
     : null;
 
   return (
@@ -99,7 +103,7 @@ export async function ProcessCard({
         ) : null}
 
         {links.demo || links.code || links.caseStudy ? (
-          <p className="mt-6 flex flex-wrap gap-3">
+          <p className="mt-6 flex flex-wrap items-center gap-3">
             {links.demo ? (
               <a href={links.demo} target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {t("demo")}
@@ -111,10 +115,21 @@ export async function ProcessCard({
               </a>
             ) : null}
             {links.caseStudy ? (
-              <Link href={`/projects/${links.caseStudy}`} data-hold-link className={linkClass}>
-                {t("caseStudy")}
+              <Link href={`/projects/${links.caseStudy}`} data-hold-link className="case-cta">
+                <span className="case-cta-inner">
+                  {t("caseStudy")}
+                  <span aria-hidden="true" className="case-cta-arrow">
+                    →
+                  </span>
+                </span>
               </Link>
             ) : null}
+          </p>
+        ) : null}
+        {hold ? (
+          // Pista visible del Hold-to-Execute (el lector de pantalla ya la oye en `aria-describedby`).
+          <p aria-hidden="true" className="case-cta-hint mt-3 font-mono text-xs text-fg-muted">
+            {t("holdHint")}
           </p>
         ) : null}
       </div>

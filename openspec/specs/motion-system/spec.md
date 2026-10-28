@@ -27,7 +27,11 @@ El sistema SHALL usar un único bucle de frame para avanzar el scroll suave, tod
 - **THEN** ambas reciben el mismo valor y no se observa desfase de un frame entre ellas
 
 ### Requirement: Scroll suave sin scroll-jacking
-El sistema SHALL proporcionar scroll suave sincronizado con todas las animaciones basadas en scroll, de modo que el progreso de las animaciones corresponda exactamente a la posición de scroll. El scroll MUST seguir siendo el nativo del navegador (el suavizado solo interpola la posición): nunca se bloquea, nunca se fuerza a una posición (sin snapping obligatorio) y retroceder invierte las animaciones scrubbed. Se permite fijar (pin) una sección durante una transición siempre que el usuario conserve el control de la velocidad y la dirección.
+El sistema SHALL proporcionar scroll suave sincronizado con todas las animaciones basadas en scroll, de modo que el progreso de las animaciones corresponda exactamente a la posición de scroll. El scroll MUST seguir siendo el nativo del navegador (el suavizado solo interpola la posición): nunca se bloquea, nunca se fuerza a una posición (sin snapping obligatorio) y retroceder invierte las animaciones scrubbed. Se permite fijar (pin) una sección durante una transición siempre que el usuario conserve el control de la velocidad y la dirección. Con rueda y puntero fino el avance SHALL estar acotado para que un giro rápido no salte fases enteras: cada evento avanza a lo sumo 80 px (tras un multiplicador de 0,6) y el destino nunca se adelanta más de 0,35 ventanas a la posición visible. Invertir la dirección MUST estar siempre permitido, y el teclado, la barra de scroll, el gesto táctil y las anclas MUST NOT limitarse.
+
+#### Scenario: Giro rápido de rueda
+- **WHEN** el usuario gira la rueda o el trackpad muy rápido sobre la página
+- **THEN** la página avanza de forma continua sin adelantarse más de 0,35 ventanas a lo visible, y las animaciones de cada fase se ven al pasar
 
 #### Scenario: Retroceder invierte la transición
 - **WHEN** el usuario hace scroll hacia arriba en mitad de una transición de fase

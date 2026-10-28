@@ -255,6 +255,165 @@ dialog.terminal::backdrop {
   transform-origin: top;
 }
 
+/* ───────────────────────── CTA «Ver caso de estudio» (RUNTIME) ───────────────────────── */
+
+/*
+ * Llamada principal de cada tarjeta con caso: botón relleno con el acento de la fase, un destello
+ * que orbita por su borde (gradiente cónico que GIRA con `transform`, no repinta), un brillo que lo
+ * cruza cada pocos segundos y una flecha que empuja hacia delante. Solo `transform`/`opacity` en
+ * bucle: compositor, sin coste de pintado. Movimiento reducido: estático, con el borde iluminado.
+ */
+.case-cta {
+  position: relative;
+  display: inline-flex;
+  padding: 2px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition:
+    transform var(--dur-ui) var(--ease-in-expo),
+    box-shadow var(--dur-ui) var(--ease-in-expo);
+}
+
+.case-cta::before {
+  position: absolute;
+  z-index: -1;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 62%,
+    var(--accent) 78%,
+    var(--paper-50) 84%,
+    var(--accent) 90%,
+    transparent 100%
+  );
+  content: "";
+  animation: case-cta-orbit 3.2s linear infinite;
+}
+
+.case-cta-inner {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  height: 2.75rem;
+  align-items: center;
+  padding-inline: 1.25rem;
+  border-radius: 8px;
+  background-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  gap: 0.6rem;
+}
+
+/* Brillo que cruza el botón (pausa larga entre pasadas). */
+.case-cta-inner::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, color-mix(in srgb, var(--paper-50) 55%, transparent) 50%, transparent 65%);
+  content: "";
+  transform: translateX(-130%);
+  animation: case-cta-shine 4s var(--ease-in-expo) infinite;
+}
+
+.case-cta-arrow {
+  display: inline-block;
+  animation: case-cta-nudge 2s var(--ease-in-expo) infinite;
+  transition: transform var(--dur-ui) var(--ease-in-expo);
+}
+
+html[data-experience="reduced"] .case-cta-arrow {
+  animation: none;
+}
+
+.case-cta:hover,
+.case-cta:focus-visible {
+  box-shadow: 0 14px 36px -10px color-mix(in srgb, var(--accent) 90%, transparent);
+  transform: translateY(-2px);
+}
+
+.case-cta:hover .case-cta-arrow,
+.case-cta:focus-visible .case-cta-arrow {
+  animation: none;
+  transform: translateX(5px);
+}
+
+.case-cta:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Pista del Hold-to-Execute: un punto que late delante del texto. */
+.case-cta-hint::before {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-inline-end: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--accent);
+  content: "";
+  animation: case-cta-beat 1.6s var(--ease-in-expo) infinite;
+  vertical-align: 0.1em;
+}
+
+@keyframes case-cta-orbit {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes case-cta-shine {
+  0%,
+  55% {
+    transform: translateX(-130%);
+  }
+
+  85%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@keyframes case-cta-nudge {
+  0%,
+  60%,
+  100% {
+    transform: translateX(0);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes case-cta-beat {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-cta::before,
+  .case-cta-inner::after,
+  .case-cta-arrow,
+  .case-cta-hint::before {
+    animation: none;
+  }
+}
+
+html[data-experience="reduced"] .case-cta::before,
+html[data-experience="reduced"] .case-cta-inner::after,
+html[data-experience="reduced"] .case-cta-hint::before {
+  animation: none;
+}
+
 /* ───────────────────────── Bienvenida ───────────────────────── */
 
 dialog.welcome {
